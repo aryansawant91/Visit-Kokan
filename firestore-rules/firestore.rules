@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+    function hasRole(role) {
+      return request.auth.token.role == role;
+    }
+    function isAdmin() {
+      return hasRole('admin');
+    }
+    function isVendor() {
+      return hasRole('vendor') || isAdmin();
+    }
+
+    // Users — can read/write own doc; admin reads all
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isAuth() && isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+    }
+
+    // Vendors
+    match /vendors/{vendorId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update: if isVendor() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Listings — public read, vendor write own
+    match /listings/{listingId} {
+      allow read: if true;
+      allow create: if isVendor();
+      allow update: if isVendor() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Destinations — public read, admin write
+    match /destinations/{destId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Blogs — public read, admin/author write
+    match /blogs/{blogId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Treks — public read, admin write
+    match /treks/{trekId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Bookings — user reads own, vendor reads their bookings
+    match /bookings/{bookingId} {
+      allow read: if isOwner(resource.data.userId) || isVendor() || isAdmin();
+      allow create: if isAuth();
+      allow update: if isAdmin() || isVendor();
+    }
+
+    // Reviews — public read, auth write own
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // Wishlists — user reads/writes own only
+    match /wishlists/{wishlistId} {
+      allow read, write: if isOwner(resource.data.userId);
+    }
+
+    // Trip plans — user reads/writes own
+    match /trip_plans/{planId} {
+      allow read, write: if isOwner(resource.data.userId);
+    }
+  }
+}

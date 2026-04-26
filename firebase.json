@@ -1,0 +1,11 @@
+{
+  "auth": {
+    "signIn": {
+      "allowDuplicateEmails": false
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
