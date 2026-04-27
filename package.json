@@ -9,7 +9,8 @@
     "lint": "next lint",
     "seed:destinations": "ts-node --project tsconfig.node.json scripts/seedDestinations.ts",
     "seed:treks": "ts-node --project tsconfig.node.json scripts/seedTreks.ts",
-    "seed:blogs": "ts-node --project tsconfig.node.json scripts/seedBlogs.ts"
+    "seed:blogs": "ts-node --project tsconfig.node.json scripts/seedBlogs.ts",
+    "seed:listings": "ts-node --project tsconfig.node.json scripts/seedListings.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",

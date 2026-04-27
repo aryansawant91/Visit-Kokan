@@ -16,7 +16,7 @@ const navItems = [
   { href: "/admin/vendors", label: "Vendors", icon: Store },
   { href: "/admin/listings", label: "Listings", icon: MapPin },
   { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/treks",        label: "Treks",icon: Mountain },
+  { href: "/admin/treks",label: "Treks",icon: Mountain },
   { href: "/admin/blogs", label: "Blogs", icon: BookOpen },
   { href: "/admin/destinations", label: "Destinations", icon: MapPin },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
@@ -27,6 +27,7 @@ const pageActions: Record<string, { label: string; href: string }> = {
   "/admin/products": { label: "Add Product", href: "/admin/products/new" },
   "/admin/destinations": { label: "Add Destination", href: "/admin/destinations/new" },
   "/admin/treks":        { label: "Add Trek",        href: "/admin/treks/new" },
+  "/admin/listings":     { label: "Add Listing",     href: "/admin/listings/new" },
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
