@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard, ShoppingBag, Package, Heart,
-  User, LogOut, ChevronRight, Waves, Menu, X
+  User, LogOut, ChevronRight, Waves, Menu, X,BookOpen
 } from "lucide-react";
 
 const navItems = [
@@ -15,6 +15,7 @@ const navItems = [
   { href: "/orders", label: "My Orders", icon: Package },
   { href: "/wishlist", label: "Wishlist", icon: Heart },
   { href: "/profile", label: "Profile", icon: User },
+  { href: "/dashboard/blogs", label: "My Blogs", icon: BookOpen },
 ];
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {

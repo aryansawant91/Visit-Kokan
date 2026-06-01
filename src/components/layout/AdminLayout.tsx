@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Store, MapPin, Package,
   BookOpen, BarChart3, LogOut, ChevronLeft, ChevronRight,
-  Bell, Settings, ShieldCheck, Plus,Mountain,
+  Bell, Settings, ShieldCheck, Plus,Mountain,ShoppingBag
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -20,6 +20,7 @@ const navItems = [
   { href: "/admin/blogs", label: "Blogs", icon: BookOpen },
   { href: "/admin/destinations", label: "Destinations", icon: MapPin },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
+  { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
 ];
 
 // Pages that get an action button in the top bar

@@ -56,6 +56,14 @@ export interface VendorSignUpData extends SignUpData {
   gstNumber?: string
 }
 
+export interface MobileSignUpData {
+  mobile: string;
+  password: string;
+  displayName: string;
+  email: string;
+  phone?: string;
+}
+
 interface AuthContextType {
   user: User | null
   profile: UserProfile | null
@@ -69,11 +77,12 @@ interface AuthContextType {
   sendPasswordReset: (email: string) => Promise<void>
   sendVerificationEmail: () => Promise<void>
   refreshProfile: () => Promise<void>
+  signInWithMobile: (mobile: string, password: string) => Promise<void>
+  signUpWithMobile: (data: MobileSignUpData) => Promise<void>
+  resetPasswordWithMobile: (mobile: string, newPassword: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
-
-// ── API helpers ───────────────────────────────────────────────────────────────
 
 async function setRoleClaim(uid: string, role: UserRole) {
   try {
@@ -105,8 +114,6 @@ async function clearSessionCookie() {
   } catch {}
 }
 
-// ── Redirect resolver ─────────────────────────────────────────────────────────
-
 function resolveRedirect(profile: UserProfile, role: UserRole, searchParams?: string): string {
   if (role === 'admin') return '/admin/dashboard'
 
@@ -124,8 +131,6 @@ function resolveRedirect(profile: UserProfile, role: UserRole, searchParams?: st
   return '/'
 }
 
-// ── Provider ──────────────────────────────────────────────────────────────────
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -134,6 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const skipNextAuthChange = useRef(false)
 
+  
   const fetchProfile = async (uid: string): Promise<UserProfile | null> => {
     try {
       const snap = await getDoc(doc(db, 'users', uid))
@@ -150,7 +156,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // ── Auth state listener ──────────────────────────────────────────────────
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (skipNextAuthChange.current) {
@@ -182,57 +187,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setRole(claimedRole)
       setProfile(p)
-
-      // Restore session cookie on page refresh
       await setSessionCookie(fbUser.uid, claimedRole, p?.vendorStatus)
-
       setLoading(false)
     })
 
     return () => unsubscribe()
   }, [])
 
-  // ── Sign in with email ───────────────────────────────────────────────────
   const signInWithEmail = async (email: string, password: string) => {
-    const cred = await signInWithEmailAndPassword(auth, email, password)
-    console.log(cred)
-    skipNextAuthChange.current = true
+  const cred = await signInWithEmailAndPassword(auth, email, password)
+  skipNextAuthChange.current = true
 
-    const p = await fetchProfile(cred.user.uid)
+  const p = await fetchProfile(cred.user.uid)
 
-
-    let claimedRole: UserRole = p?.role ?? 'user'
-    try {
-      const tokenResult = await cred.user.getIdTokenResult(true)
-      console.log(tokenResult)
-      if (tokenResult.claims.role) {
-        console.log(tokenResult.claims.role)
-        claimedRole = tokenResult.claims.role as UserRole
-      } else if (p?.role) {
-        claimedRole = p.role
-        await setRoleClaim(cred.user.uid, p.role)
-        await cred.user.getIdToken(true)
-      }
-    } catch {
-      claimedRole = p?.role ?? 'user'
+  let claimedRole: UserRole = p?.role ?? 'user'
+  try {
+    const tokenResult = await cred.user.getIdTokenResult(true)
+    if (tokenResult.claims.role) {
+      claimedRole = tokenResult.claims.role as UserRole
+    } else if (p?.role) {
+      claimedRole = p.role
+      await setRoleClaim(cred.user.uid, p.role)
+      await cred.user.getIdToken(true)
     }
-
-    setUser(cred.user)
-    setRole(claimedRole)
-    setProfile(p)
-
-    // Set session cookie for middleware
-    await setSessionCookie(cred.user.uid, claimedRole, p?.vendorStatus)
-
-    const destination = resolveRedirect(
-      p ?? ({ role: claimedRole, vendorStatus: undefined } as UserProfile),
-      claimedRole,
-      window.location.search
-    )
-    router.replace(destination)
+  } catch {
+    claimedRole = p?.role ?? 'user'
   }
 
-  // ── Sign in with Google ──────────────────────────────────────────────────
+  setUser(cred.user)
+  setRole(claimedRole)
+  setProfile(p)
+
+  // Set session cookie BEFORE redirect
+  await setSessionCookie(cred.user.uid, claimedRole, p?.vendorStatus)
+
+  // Redirect based on role
+  if (claimedRole === 'admin') {
+    router.replace('/admin/dashboard')
+  } else if (claimedRole === 'vendor') {
+    if (p?.vendorStatus === 'approved') {
+      router.replace('/vendor/dashboard')
+    } else {
+      router.replace('/vendor/pending')
+    }
+  } else {
+    // Regular user — go to homepage or redirect param
+    const params = new URLSearchParams(window.location.search)
+    const redirect = params.get('redirect')
+    router.replace(redirect && redirect.startsWith('/') ? redirect : '/')
+  }
+}
+
   const signInWithGoogle = async () => {
     const { user: fbUser } = await signInWithPopup(auth, googleProvider)
     skipNextAuthChange.current = true
@@ -286,7 +291,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // ── Sign up traveller ────────────────────────────────────────────────────
   const signUpWithEmail = async (data: SignUpData) => {
     const cred = await createUserWithEmailAndPassword(auth, data.email, data.password)
     skipNextAuthChange.current = true
@@ -316,7 +320,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace('/')
   }
 
-  // ── Sign up vendor ───────────────────────────────────────────────────────
   const signUpVendor = async (data: VendorSignUpData) => {
     const cred = await createUserWithEmailAndPassword(auth, data.email, data.password)
     skipNextAuthChange.current = true
@@ -350,7 +353,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace('/vendor/pending')
   }
 
-  // ── Logout ───────────────────────────────────────────────────────────────
   const logout = async () => {
     await signOut(auth)
     await clearSessionCookie()
@@ -370,6 +372,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // ── Mobile auth functions ─────────────────────────────────────────────────
+
+  const signInWithMobile = async (mobile: string, password: string) => {
+    const res = await fetch("/api/auth/mobile-lookup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error ?? "Mobile number not registered.");
+    }
+
+    const { email } = await res.json();
+    await signInWithEmail(email, password);
+  }
+
+  const signUpWithMobile = async (data: MobileSignUpData) => {
+    await signUpWithEmail({
+      email: data.email,
+      password: data.password,
+      displayName: data.displayName,
+      phone: data.mobile,
+    });
+  }
+
+  const resetPasswordWithMobile = async (mobile: string, newPassword: string) => {
+    const res = await fetch("/api/auth/mobile-lookup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile }),
+    });
+
+    if (!res.ok) throw new Error("Mobile number not registered.");
+
+    const { email } = await res.json();
+
+    const updateRes = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, newPassword }),
+    });
+
+    if (!updateRes.ok) throw new Error("Failed to reset password.");
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -385,6 +434,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sendPasswordReset,
         sendVerificationEmail,
         refreshProfile,
+        signInWithMobile,
+        signUpWithMobile,
+        resetPasswordWithMobile,
       }}
     >
       {children}

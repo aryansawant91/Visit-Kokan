@@ -10,7 +10,8 @@
     "seed:destinations": "ts-node --project tsconfig.node.json scripts/seedDestinations.ts",
     "seed:treks": "ts-node --project tsconfig.node.json scripts/seedTreks.ts",
     "seed:blogs": "ts-node --project tsconfig.node.json scripts/seedBlogs.ts",
-    "seed:listings": "ts-node --project tsconfig.node.json scripts/seedListings.ts"
+    "seed:listings": "ts-node --project tsconfig.node.json scripts/seedListings.ts",
+    "seed:products": "ts-node --project tsconfig.node.json scripts/newproductseed.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -20,11 +21,12 @@
     "lucide-react": "^0.383.0",
     "next": "14.2.3",
     "next-sitemap": "^4.2.3",
+    "nodemailer": "^8.0.10",
+    "razorpay": "^2.9.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1",
     "react-leaflet": "^4.2.1",
-    "resend": "^3.2.0",
     "sharp": "^0.33.4",
     "tailwind-merge": "^2.3.0",
     "zod": "^3.23.8"
@@ -32,6 +34,7 @@
   "devDependencies": {
     "@types/leaflet": "^1.9.12",
     "@types/node": "^20.14.2",
+    "@types/nodemailer": "^8.0.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",

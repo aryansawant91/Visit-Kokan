@@ -58,16 +58,30 @@ export async function POST(req: NextRequest) {
   }
 }
 
+
 export async function PATCH(req: NextRequest) {
   try {
-    const { id, featured } = await req.json();
+    const body = await req.json();
+    const { id, ...updates } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Missing id" },
+        { status: 400 }
+      );
+    }
+
     await db.collection("treks").doc(id).update({
-      featured,
+      ...updates,
       updatedAt: new Date().toISOString(),
     });
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
   }
 }
 

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Instagram, Facebook, Youtube, MapPin } from 'lucide-react'
 
 const links = {
   Explore: [
@@ -6,72 +7,92 @@ const links = {
     { label: 'Treks', href: '/treks' },
     { label: 'Listings', href: '/listings' },
     { label: 'Blogs', href: '/blogs' },
+    { label: 'Products', href: '/products' },
   ],
   Plan: [
     { label: 'Trip Planner', href: '/trip-planner' },
     { label: 'Search', href: '/search' },
-    { label: 'Contact', href: '/contact' },
+    { label: 'Contact Us', href: '/contact' },
     { label: 'About', href: '/about' },
   ],
   Partner: [
-    { label: 'List your business', href: '/vendor/register' },
-    { label: 'Vendor login', href: '/login' },
-    { label: 'Vendor dashboard', href: '/vendor/dashboard' },
+    { label: 'List Your Business', href: '/vendor/register' },
+    { label: 'Vendor Login', href: '/login' },
+    { label: 'Vendor Dashboard', href: '/vendor/dashboard' },
   ],
 }
+
+const socials = [
+  { icon: Instagram, label: 'Instagram', href: 'https://instagram.com/visitkokan' },
+  { icon: Facebook, label: 'Facebook', href: 'https://facebook.com/visitkokan' },
+  { icon: Youtube, label: 'YouTube', href: 'https://youtube.com/@visitkokan' },
+]
 
 export default function Footer() {
   return (
     <footer className="bg-kokan-earth text-white">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-12">
+
+        {/* Mobile: brand left, links right */}
+        <div className="flex gap-4 md:grid md:grid-cols-4 md:gap-8">
+
           {/* Brand */}
-          <div>
-            <h3 className="text-2xl font-display font-bold mb-4">
+          <div className="flex-shrink-0 w-36 md:w-auto md:col-span-1">
+            <h3 className="text-base md:text-2xl font-playfair font-bold mb-1 md:mb-3">
               Visit<span className="text-kokan-sand">Kokan</span>
             </h3>
-            <p className="text-white/60 text-sm leading-relaxed mb-6">
+            <p className="text-white/60 text-xs leading-snug mb-2 hidden md:block">
               Your guide to the pristine Konkan coast — beaches, forts, food and unforgettable experiences.
             </p>
-            <div className="flex gap-3">
-              {['Instagram', 'Facebook', 'YouTube'].map((s) => (
-                <span
-                  key={s}
-                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-xs hover:bg-kokan-sand transition-colors cursor-pointer"
+            <div className="flex items-center gap-1 text-white/40 text-xs mb-2">
+              <MapPin className="w-3 h-3 flex-shrink-0" />
+              <span>Ratnagiri, MH</span>
+            </div>
+            <div className="flex gap-2">
+              {socials.map(({ icon: Icon, label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="w-7 h-7 md:w-9 md:h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-kokan-sand transition-colors"
                 >
-                  {s[0]}
-                </span>
+                  <Icon className="w-3 h-3 md:w-4 md:h-4" />
+                </a>
               ))}
             </div>
           </div>
 
-          {/* Link groups */}
-          {Object.entries(links).map(([group, items]) => (
-            <div key={group}>
-              <h4 className="text-sm font-medium tracking-widest uppercase text-kokan-sand mb-5">{group}</h4>
-              <ul className="flex flex-col gap-3">
-                {items.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className="text-white/60 text-sm hover:text-white transition-colors"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Links — scroll horizontally on mobile */}
+          <div className="flex gap-5 overflow-x-auto flex-1 md:contents scrollbar-none">
+            {Object.entries(links).map(([group, items]) => (
+              <div key={group} className="min-w-max md:min-w-0">
+                <h4 className="text-xs font-semibold tracking-widest uppercase text-kokan-sand mb-2 md:mb-4">
+                  {group}
+                </h4>
+                <ul className="space-y-1 md:space-y-2.5">
+                  {items.map((item) => (
+                    <li key={item.href}>
+                      <Link href={item.href} className="text-white/60 text-xs hover:text-white transition-colors whitespace-nowrap">
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white/40 text-sm">
-            © {new Date().getFullYear()} VisitKokan. All rights reserved.
+        {/* Bottom */}
+        <div className="border-t border-white/10 mt-4 md:mt-10 pt-3 md:pt-6 flex flex-row justify-between items-center gap-2">
+          <p className="text-white/40 text-xs">
+            © {new Date().getFullYear()} Visit Kokan
           </p>
-          <div className="flex gap-6">
-            <Link href="/privacy" className="text-white/40 text-sm hover:text-white/70 transition-colors">Privacy</Link>
-            <Link href="/terms" className="text-white/40 text-sm hover:text-white/70 transition-colors">Terms</Link>
+          <div className="flex gap-4">
+            <Link href="/privacy" className="text-white/40 text-xs hover:text-white/70 transition-colors">Privacy</Link>
+            <Link href="/terms" className="text-white/40 text-xs hover:text-white/70 transition-colors">Terms</Link>
           </div>
         </div>
       </div>

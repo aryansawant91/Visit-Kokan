@@ -12,6 +12,7 @@ export interface Destination {
   id: string;
   slug: string;
   name: string;
+  coverImage:string;
   description: string;
   category: DestinationCategory;
   region: string;
@@ -24,4 +25,6 @@ export interface Destination {
   featured: boolean;
   createdAt: string;
   updatedAt: string;
+  rating:number;
+  shortDescription:string;
 }

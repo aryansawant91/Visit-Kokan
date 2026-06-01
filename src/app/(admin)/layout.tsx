@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Store, MapPin, Package,
   BookOpen, BarChart3, LogOut, ChevronLeft, ChevronRight,
-  Bell, Settings, ShieldCheck, Plus,Mountain,
+  Bell, Settings, ShieldCheck, Plus, Mountain, ShoppingBag, Flame,Tag
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -16,18 +16,20 @@ const navItems = [
   { href: "/admin/vendors", label: "Vendors", icon: Store },
   { href: "/admin/listings", label: "Listings", icon: MapPin },
   { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/treks",label: "Treks",icon: Mountain },
+  { href: "/admin/treks", label: "Treks", icon: Mountain },
   { href: "/admin/blogs", label: "Blogs", icon: BookOpen },
   { href: "/admin/destinations", label: "Destinations", icon: MapPin },
+  { href: "/admin/trending", label: "Trending", icon: Flame },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
+  { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { label: "Coupons", href: "/admin/coupons", icon: Tag }
 ];
 
-// Pages that get an action button in the top bar
 const pageActions: Record<string, { label: string; href: string }> = {
   "/admin/products": { label: "Add Product", href: "/admin/products/new" },
   "/admin/destinations": { label: "Add Destination", href: "/admin/destinations/new" },
-  "/admin/treks":        { label: "Add Trek",        href: "/admin/treks/new" },
-  "/admin/listings":     { label: "Add Listing",     href: "/admin/listings/new" },
+  "/admin/treks": { label: "Add Trek", href: "/admin/treks/new" },
+  "/admin/listings": { label: "Add Listing", href: "/admin/listings/new" },
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -55,6 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
           {navItems.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
+            const isTrending = href === "/admin/trending";
             return (
               <Link
                 key={href}
@@ -65,8 +68,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     : "text-white/40 hover:text-white/80 hover:bg-white/5"
                 }`}
               >
-                <Icon size={16} className="shrink-0" />
-                {!collapsed && <span className="truncate">{label}</span>}
+                <Icon
+                  size={16}
+                  className={`shrink-0 ${isTrending && !active ? "text-orange-400" : ""}`}
+                />
+                {!collapsed && (
+                  <span className={`truncate ${isTrending && !active ? "text-orange-400" : ""}`}>
+                    {label}
+                  </span>
+                )}
                 {collapsed && (
                   <div className="absolute left-16 bg-[#1a1a1a] text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 border border-white/10">
                     {label}
@@ -112,8 +122,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {navItems.find((n) => pathname.startsWith(n.href))?.label ?? "Admin"}
           </p>
           <div className="flex items-center gap-4">
-
-            {/* ← ADD PRODUCT BUTTON — only shows on /admin/products */}
             {currentAction && (
               <Link
                 href={currentAction.href}
@@ -123,7 +131,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {currentAction.label}
               </Link>
             )}
-
             <button className="relative text-white/40 hover:text-white transition-colors">
               <Bell size={18} />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#2ecc71] rounded-full" />

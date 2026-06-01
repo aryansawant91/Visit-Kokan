@@ -1,21 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Product } from "@/types/product";
-import { Check, X, Trash2, Pencil, Eye, Loader2, ChevronDown } from "lucide-react";
+import { Check, X, Trash2, Pencil, Loader2, PauseCircle, PlayCircle } from "lucide-react";
 import Image from "next/image";
 import { PRODUCT_CATEGORIES } from "@/constants/productCategories";
 
 type Tab = "pending" | "approved" | "rejected";
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<Tab>("pending");
+  const router = useRouter();
+  const [products, setProducts]         = useState<Product[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [tab, setTab]                   = useState<Tab>("pending");
   const [rejectReason, setRejectReason] = useState<{ [id: string]: string }>({});
   const [showRejectInput, setShowRejectInput] = useState<string | null>(null);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [actionLoading, setActionLoading]     = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/products/admin")
@@ -24,14 +25,14 @@ export default function AdminProductsPage() {
   }, []);
 
   const filtered = products.filter((p) => {
-    if (tab === "pending") return p.status === "pending";
+    if (tab === "pending")  return p.status === "pending";
     if (tab === "approved") return p.status === "approved";
     if (tab === "rejected") return p.status === "rejected";
     return true;
   });
 
   const counts = {
-    pending: products.filter((p) => p.status === "pending").length,
+    pending:  products.filter((p) => p.status === "pending").length,
     approved: products.filter((p) => p.status === "approved").length,
     rejected: products.filter((p) => p.status === "rejected").length,
   };
@@ -68,15 +69,17 @@ export default function AdminProductsPage() {
   };
 
   const handleApprove = (id: string) =>
-    updateProduct(id, { status: "approved", approved: true });
+    updateProduct(id, { status: "approved", approved: true, isActive: true });
 
   const handleReject = (id: string) => {
-    updateProduct(id, {
-      status: "rejected",
-      approved: false,
-    });
+    updateProduct(id, { status: "rejected", approved: false });
     setShowRejectInput(null);
     setRejectReason((prev) => ({ ...prev, [id]: "" }));
+  };
+
+  const handleToggleActive = (product: Product) => {
+    const next = product.isActive === false ? true : false;
+    updateProduct(product.id, { isActive: next });
   };
 
   const category = (val: string) =>
@@ -91,11 +94,9 @@ export default function AdminProductsPage() {
           <h1 className="text-2xl font-bold text-kokan-earth font-playfair">
             Product Approvals
           </h1>
-          <div className="flex gap-2 text-sm">
-            <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-medium">
-              {counts.pending} pending
-            </span>
-          </div>
+          <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-medium text-sm">
+            {counts.pending} pending
+          </span>
         </div>
 
         {/* Tabs */}
@@ -127,17 +128,24 @@ export default function AdminProductsPage() {
         ) : (
           <div className="space-y-4">
             {filtered.map((product) => {
-              const cat = category(product.category);
+              const cat       = category(product.category);
               const isLoading = actionLoading === product.id;
+              const isPaused  = product.isActive === false;
 
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-2xl border border-kokan-sand/30 p-5"
+                  className={`bg-white rounded-2xl border p-5 transition-all ${
+                    isPaused
+                      ? "border-orange-200 bg-orange-50/30"
+                      : "border-kokan-sand/30"
+                  }`}
                 >
                   <div className="flex gap-4">
                     {/* Thumbnail */}
-                    <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-kokan-sand/20 flex-shrink-0">
+                    <div className={`relative w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 ${
+                      isPaused ? "bg-kokan-sand/30 opacity-60" : "bg-kokan-sand/20"
+                    }`}>
                       {product.images?.[0] ? (
                         <Image
                           src={product.images[0]}
@@ -150,21 +158,39 @@ export default function AdminProductsPage() {
                           {cat?.emoji ?? "📦"}
                         </div>
                       )}
+                      {isPaused && (
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-xl">
+                          <PauseCircle className="w-8 h-8 text-white" />
+                        </div>
+                      )}
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h3 className="font-semibold text-kokan-earth">
-                            {product.name}
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className={`font-semibold ${isPaused ? "text-kokan-earth/50" : "text-kokan-earth"}`}>
+                              {product.name}
+                            </h3>
+                            {isPaused && (
+                              <span className="text-[10px] bg-orange-100 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full font-semibold">
+                                Selling Paused
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-kokan-earth/50 mt-0.5">
                             {cat?.emoji} {cat?.label} · {product.region}
                           </p>
                           <p className="text-xs text-kokan-earth/40 mt-0.5">
-                            By <span className="font-medium text-kokan-earth/60">{product.vendorName}</span>
-                            {" · "}Vendor ID: <span className="font-mono">{product.vendorId?.slice(0, 8)}...</span>
+                            By{" "}
+                            <span className="font-medium text-kokan-earth/60">
+                              {product.vendorName}
+                            </span>
+                            {" · "}Vendor ID:{" "}
+                            <span className="font-mono">
+                              {product.vendorId?.slice(0, 8)}...
+                            </span>
                           </p>
                         </div>
                         <div className="text-right flex-shrink-0">
@@ -182,60 +208,6 @@ export default function AdminProductsPage() {
                         {product.description}
                       </p>
 
-                      {/* Edit inline — basic fields */}
-                      {editingProduct?.id === product.id && (
-                        <div className="mt-3 grid grid-cols-2 gap-3 bg-kokan-cream/40 rounded-xl p-3">
-                          <input
-                            type="text"
-                            value={editingProduct.name}
-                            onChange={(e) =>
-                              setEditingProduct({ ...editingProduct, name: e.target.value })
-                            }
-                            placeholder="Name"
-                            className="border border-kokan-sand rounded-lg px-3 py-2 text-sm focus:outline-none"
-                          />
-                          <input
-                            type="number"
-                            value={editingProduct.price}
-                            onChange={(e) =>
-                              setEditingProduct({ ...editingProduct, price: Number(e.target.value) })
-                            }
-                            placeholder="Price"
-                            className="border border-kokan-sand rounded-lg px-3 py-2 text-sm focus:outline-none"
-                          />
-                          <textarea
-                            value={editingProduct.description}
-                            onChange={(e) =>
-                              setEditingProduct({ ...editingProduct, description: e.target.value })
-                            }
-                            rows={2}
-                            placeholder="Description"
-                            className="col-span-2 border border-kokan-sand rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"
-                          />
-                          <div className="col-span-2 flex gap-2">
-                            <button
-                              onClick={() => {
-                                updateProduct(editingProduct.id, {
-                                  name: editingProduct.name,
-                                  price: editingProduct.price,
-                                  description: editingProduct.description,
-                                });
-                                setEditingProduct(null);
-                              }}
-                              className="px-4 py-1.5 bg-kokan-green text-white rounded-lg text-sm font-medium"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => setEditingProduct(null)}
-                              className="px-4 py-1.5 border border-kokan-sand rounded-lg text-sm text-kokan-earth/60"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
                       {/* Reject reason input */}
                       {showRejectInput === product.id && (
                         <div className="mt-3 flex gap-2">
@@ -243,7 +215,10 @@ export default function AdminProductsPage() {
                             type="text"
                             value={rejectReason[product.id] ?? ""}
                             onChange={(e) =>
-                              setRejectReason((prev) => ({ ...prev, [product.id]: e.target.value }))
+                              setRejectReason((prev) => ({
+                                ...prev,
+                                [product.id]: e.target.value,
+                              }))
                             }
                             placeholder="Reason for rejection (optional)"
                             className="flex-1 border border-red-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200"
@@ -260,7 +235,7 @@ export default function AdminProductsPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-kokan-sand/30">
+                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-kokan-sand/30 flex-wrap">
                     {isLoading ? (
                       <Loader2 className="w-5 h-5 animate-spin text-kokan-green" />
                     ) : (
@@ -285,11 +260,32 @@ export default function AdminProductsPage() {
                             </button>
                           </>
                         )}
+
                         {tab === "approved" && (
-                          <span className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-full font-medium">
-                            ✓ Live on site
-                          </span>
+                          <>
+                            <button
+                              onClick={() => handleToggleActive(product)}
+                              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                                isPaused
+                                  ? "bg-kokan-green/10 text-kokan-green hover:bg-kokan-green/20"
+                                  : "bg-orange-50 text-orange-500 hover:bg-orange-100"
+                              }`}
+                            >
+                              {isPaused ? (
+                                <><PlayCircle className="w-4 h-4" /> Resume Selling</>
+                              ) : (
+                                <><PauseCircle className="w-4 h-4" /> Pause Selling</>
+                              )}
+                            </button>
+
+                            {!isPaused && (
+                              <span className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-full font-medium">
+                                ✓ Live on site
+                              </span>
+                            )}
+                          </>
                         )}
+
                         {tab === "rejected" && (
                           <button
                             onClick={() => handleApprove(product.id)}
@@ -298,16 +294,15 @@ export default function AdminProductsPage() {
                             <Check className="w-4 h-4" /> Re-approve
                           </button>
                         )}
+
+                        {/* Edit — navigates to dedicated edit page */}
                         <button
-                          onClick={() =>
-                            setEditingProduct(
-                              editingProduct?.id === product.id ? null : product
-                            )
-                          }
+                          onClick={() => router.push(`/admin/products/${product.id}`)}
                           className="flex items-center gap-1.5 px-4 py-2 border border-kokan-sand rounded-xl text-sm text-kokan-earth/70 hover:bg-kokan-sand/20 transition-colors"
                         >
                           <Pencil className="w-4 h-4" /> Edit
                         </button>
+
                         <button
                           onClick={() => deleteProduct(product.id)}
                           className="flex items-center gap-1.5 px-4 py-2 border border-red-200 text-red-400 rounded-xl text-sm hover:bg-red-50 transition-colors ml-auto"
