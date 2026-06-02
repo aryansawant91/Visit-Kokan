@@ -130,3 +130,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to send OTP" }, { status: 500 });
   }
 }
+console.log("GMAIL_USER:", process.env.GMAIL_USER);
+console.log("GMAIL_PASS length:", process.env.GMAIL_APP_PASSWORD?.length);
