@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import {
   Plus, Pencil, Trash2, Star, StarOff,
-  X, Loader2, ChevronDown, ChevronUp, Check,
+  X, Loader2, ChevronDown, ChevronUp, Check,Upload,
 } from "lucide-react";
+
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "@/lib/firebase";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface ItineraryDay {
@@ -37,6 +40,7 @@ interface Trek {
   featured: boolean;
   approved: boolean;
   createdAt: string;
+  whatsappGroupLink?: string;
 }
 
 // ─── Blank trek ───────────────────────────────────────────────────────────────
@@ -60,6 +64,7 @@ const blankTrek = (): Omit<Trek, "id" | "approved" | "featured" | "createdAt"> =
   thingsToBring: [""],
   itinerary: [{ day: 1, title: "", description: "" }],
   images: [""],
+  whatsappGroupLink: "",
 });
 
 // ─── Slug generator ───────────────────────────────────────────────────────────
@@ -115,6 +120,8 @@ export default function AdminTreksPage() {
   const toggleSection = (key: keyof typeof sections) =>
     setSections((s) => ({ ...s, [key]: !s[key] }));
 
+  const [uploadingImages, setUploadingImages] = useState<Record<number, boolean>>({});
+
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchTreks = async () => {
     setLoading(true);
@@ -157,6 +164,7 @@ export default function AdminTreksPage() {
       thingsToBring: trek.thingsToBring?.length ? trek.thingsToBring : [""],
       itinerary:     trek.itinerary?.length ? trek.itinerary : [{ day: 1, title: "", description: "" }],
       images:        trek.images?.length ? trek.images : [""],
+      whatsappGroupLink: trek.whatsappGroupLink ?? "",
     });
     setEditingId(trek.id);
     setErrors([]);
@@ -206,6 +214,23 @@ export default function AdminTreksPage() {
         .map((d, i) => ({ ...d, day: i + 1 }));
       return { ...f, itinerary: arr.length ? arr : [{ day: 1, title: "", description: "" }] };
     });
+
+  const handleImageUpload = async (index: number, file: File) => {
+    if (!file) return;
+    setUploadingImages((prev) => ({ ...prev, [index]: true }));
+    try {
+      const path = `trek-images/${form.slug || "untitled"}-${Date.now()}-${file.name}`;
+      const r = storageRef(storage, path);
+      await uploadBytes(r, file);
+      const url = await getDownloadURL(r);
+      setListItem("images", index, url);
+    } catch (err) {
+      console.error(err);
+      alert("Image upload failed. Try again.");
+    } finally {
+      setUploadingImages((prev) => ({ ...prev, [index]: false }));
+    }
+  };  
 
   // ── Validate ───────────────────────────────────────────────────────────────
   const validate = () => {
@@ -503,6 +528,22 @@ export default function AdminTreksPage() {
                   />
                 </div>
               </div>
+
+              {/* WhatsApp Group Link */}
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  WhatsApp Group Link
+                </label>
+                <input
+                  value={form.whatsappGroupLink}
+                  onChange={(e) => setField("whatsappGroupLink", e.target.value)}
+                  placeholder="https://chat.whatsapp.com/xxxxxxxxxx"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Shown to trekkers on the confirmation page after successful booking.
+                </p>
+              </div>
             </Section>
 
             {/* ── LISTS ── */}
@@ -595,18 +636,28 @@ export default function AdminTreksPage() {
                     <input
                       value={url}
                       onChange={(e) => setListItem("images", i, e.target.value)}
-                      placeholder={i === 0 ? "Hero image URL *" : `Image ${i + 1} URL`}
+                      placeholder={i === 0 ? "Paste image URL, or upload →" : `Image ${i + 1} URL`}
                       className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                     />
-                    {url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-200" />
-                    )}
-                    <button type="button" onClick={() => removeListItem("images", i)} className="p-2 text-gray-300 hover:text-red-400 transition-colors flex-shrink-0">
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
+                <label className="flex items-center justify-center w-9 h-9 rounded-lg border border-dashed border-gray-300 cursor-pointer hover:border-kokan-green/40 hover:bg-gray-50 transition-colors flex-shrink-0">
+                    {uploadingImages[i]
+                    ? <Loader2 size={14} className="animate-spin text-kokan-green" />
+                    : <Upload size={14} className="text-gray-400" />}
+                  <input
+                    type="file" accept="image/*" className="hidden"
+                    disabled={uploadingImages[i]}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(i, f); }}
+                  />
+                </label>
+                {url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-200" />
+                )}
+                <button type="button" onClick={() => removeListItem("images", i)} className="p-2 text-gray-300 hover:text-red-400 transition-colors flex-shrink-0">
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
                 <button type="button" onClick={() => addListItem("images")} className="text-xs font-semibold text-kokan-green flex items-center gap-1 hover:underline">
                   <Plus size={12} /> Add image
                 </button>

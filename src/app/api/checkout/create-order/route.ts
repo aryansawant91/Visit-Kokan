@@ -10,7 +10,7 @@ const razorpay = new Razorpay({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { amount, orderType, userId, userEmail, userName, items, deliveryAddress, trekId, trekName, trekDate, persons, trekSlug } = body;
+    const { amount, orderType, userId, userEmail, userName, items, deliveryAddress, trekId, trekName, trekDate, persons, trekSlug, whatsappGroupLink } = body;
 
     // Strip undefined values from Firestore document
     const cleanData = (obj: any): any => {
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       orderData.trekDate = trekDate;
       orderData.persons = persons;
       orderData.trekSlug = trekSlug;
+      orderData.whatsappGroupLink = whatsappGroupLink ?? null;
     }
 
     const ref = await db.collection("orders").add(cleanData(orderData));

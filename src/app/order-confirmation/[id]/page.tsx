@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Order } from "@/types/order";
-import { CheckCircle, Package, MapPin, Calendar, Users, ArrowRight, Home } from "lucide-react";
+import { CheckCircle, Package, MapPin, Calendar, Users, ArrowRight, Home, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function OrderConfirmationPage() {
@@ -124,6 +124,16 @@ export default function OrderConfirmationPage() {
                 <Users className="w-4 h-4" />
                 <span>{order.persons?.length} person(s)</span>
               </div>
+              {order.whatsappGroupLink && (
+                <a
+                  href={order.whatsappGroupLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-[#25D366] text-white rounded-2xl font-semibold text-sm hover:bg-[#1ebe57] transition-colors mt-2"
+                >
+                  <MessageCircle className="w-4 h-4" /> Join Trek WhatsApp Group
+                </a>
+              )}
             </div>
           )}
         </div>
