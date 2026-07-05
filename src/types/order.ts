@@ -50,6 +50,7 @@ export interface Order {
   trekDate?: string;
   persons?: TrekPerson[];
   trekSlug?: string;
+  whatsappGroupLink?: string | null;
 
   totalAmount: number;
   status: OrderStatus;
