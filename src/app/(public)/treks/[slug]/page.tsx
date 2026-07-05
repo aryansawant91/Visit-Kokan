@@ -194,6 +194,7 @@ export default async function TrekPage({ params }: { params: { slug: string } })
                 pricePerPerson={trek.price ?? 0}
                 maxCapacity={20}
                 advanceAmount={trek.advanceAmount ?? 0}
+                whatsappGroupLink={trek.whatsappGroupLink}
               />
             </div>
           </div>
@@ -208,6 +209,7 @@ export default async function TrekPage({ params }: { params: { slug: string } })
                 pricePerPerson={trek.price ?? 0}
                 maxCapacity={20}
                 advanceAmount={trek.advanceAmount ?? 0}
+                whatsappGroupLink={trek.whatsappGroupLink}
               />
             </div>
           </div>

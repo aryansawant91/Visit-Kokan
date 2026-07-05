@@ -1,20 +1,68 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import {
   ShoppingBag, Package, Heart, MapPin,
-  ArrowRight, Calendar, Star, Waves
+  ArrowRight, Calendar, Star, Waves, Loader2,
 } from "lucide-react";
+
+interface OrderSummary {
+  id: string;
+  orderType: "trek" | "product";
+  status: string;
+  trekName?: string;
+  items?: { name: string; quantity: number }[];
+  totalAmount: number;
+  createdAt: string;
+}
 
 export default function DashboardPage() {
   const { profile } = useAuth();
+  const [orders, setOrders] = useState<OrderSummary[]>([]);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!profile?.uid) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const ordersRes = await fetch(`/api/orders?userId=${profile.uid}`);
+        const ordersData = await ordersRes.json();
+        setOrders(Array.isArray(ordersData) ? ordersData : []);
+      } catch {
+        setOrders([]);
+      }
+
+      // Wishlist — safely degrades to 0 if this endpoint doesn't exist yet
+      try {
+        const wishlistRes = await fetch(`/api/wishlist?userId=${profile.uid}`);
+        if (wishlistRes.ok) {
+          const wishlistData = await wishlistRes.json();
+          setWishlistCount(Array.isArray(wishlistData) ? wishlistData.length : 0);
+        }
+      } catch {
+        setWishlistCount(0);
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [profile?.uid]);
+
+  const trekOrders    = orders.filter((o) => o.orderType === "trek");
+  const productOrders  = orders.filter((o) => o.orderType === "product");
+  const confirmedTreks = trekOrders.filter((o) => o.status === "confirmed" || o.status === "completed");
 
   const stats = [
-    { label: "Bookings", value: "0", icon: ShoppingBag, color: "bg-blue-50 text-blue-500", href: "/bookings" },
-    { label: "Orders", value: "0", icon: Package, color: "bg-purple-50 text-purple-500", href: "/orders" },
-    { label: "Wishlist", value: "0", icon: Heart, color: "bg-red-50 text-red-500", href: "/wishlist" },
-    { label: "Trips Planned", value: "0", icon: MapPin, color: "bg-kokan-green/10 text-kokan-green", href: "/trip-planner" },
+    { label: "Bookings", value: String(trekOrders.length), icon: ShoppingBag, color: "bg-blue-50 text-blue-500", href: "/orders" },
+    { label: "Orders", value: String(productOrders.length), icon: Package, color: "bg-purple-50 text-purple-500", href: "/orders" },
+    { label: "Wishlist", value: String(wishlistCount), icon: Heart, color: "bg-red-50 text-red-500", href: "/wishlist" },
+    { label: "Trips Planned", value: String(confirmedTreks.length), icon: MapPin, color: "bg-kokan-green/10 text-kokan-green", href: "/orders" },
   ];
 
   const quickLinks = [
@@ -25,6 +73,11 @@ export default function DashboardPage() {
   ];
 
   const firstName = profile?.displayName?.split(" ")[0] ?? "Traveller";
+
+  // Recent activity — most recent 4 orders across both types
+  const recentActivity = [...orders]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 4);
 
   return (
     <div className="space-y-6">
@@ -65,7 +118,9 @@ export default function DashboardPage() {
             <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center mb-3`}>
               <stat.icon className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-bold text-kokan-earth">{stat.value}</p>
+            <p className="text-2xl font-bold text-kokan-earth">
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : stat.value}
+            </p>
             <p className="text-xs text-kokan-earth/50 mt-0.5">{stat.label}</p>
           </Link>
         ))}
@@ -93,25 +148,54 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent activity placeholder */}
+      {/* Recent activity */}
       <div className="bg-white rounded-2xl p-6 border border-kokan-sand/30">
         <h2 className="font-semibold text-kokan-earth mb-4 flex items-center gap-2">
           <Calendar className="w-4 h-4 text-kokan-sand" />
           Recent Activity
         </h2>
-        <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-          <div className="text-4xl">🌊</div>
-          <p className="text-kokan-earth/50 text-sm">No activity yet</p>
-          <p className="text-kokan-earth/30 text-xs">
-            Your bookings and orders will appear here
-          </p>
-          <Link
-            href="/destinations"
-            className="mt-2 text-sm text-kokan-green font-medium hover:text-kokan-green/70 transition-colors"
-          >
-            Start exploring →
-          </Link>
-        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-10">
+            <Loader2 className="w-6 h-6 animate-spin text-kokan-green" />
+          </div>
+        ) : recentActivity.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
+            <div className="text-4xl">🌊</div>
+            <p className="text-kokan-earth/50 text-sm">No activity yet</p>
+            <p className="text-kokan-earth/30 text-xs">
+              Your bookings and orders will appear here
+            </p>
+            <Link
+              href="/destinations"
+              className="mt-2 text-sm text-kokan-green font-medium hover:text-kokan-green/70 transition-colors"
+            >
+              Start exploring →
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {recentActivity.map((order) => (
+              <Link
+                key={order.id}
+                href={`/order-confirmation/${order.id}`}
+                className="flex items-center justify-between p-3.5 rounded-xl border border-kokan-sand/20 hover:border-kokan-green/30 hover:bg-kokan-green/5 transition-all"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-kokan-earth truncate">
+                    {order.orderType === "trek" ? `🧗 ${order.trekName}` : `📦 ${order.items?.length ?? 0} product(s)`}
+                  </p>
+                  <p className="text-xs text-kokan-earth/40">
+                    {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+                </div>
+                <p className="text-sm font-bold text-kokan-green flex-shrink-0">
+                  ₹{order.totalAmount.toLocaleString("en-IN")}
+                </p>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

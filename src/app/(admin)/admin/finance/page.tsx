@@ -8,7 +8,12 @@ import {
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-interface Person { name: string; }
+interface Person {
+  name: string;
+  idProofUrl?: string;
+  age?: number;
+  gender?: string;
+}
 interface TrekOrder {
   id: string;
   trekId: string;
@@ -63,6 +68,9 @@ export default function AdminFinancePage() {
   });
   const [savingEdit, setSavingEdit] = useState(false);
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+
+  // ID proof expansion state
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   // Expense form
   const [expDesc, setExpDesc]         = useState("");
@@ -335,6 +343,12 @@ setTreks(Array.isArray(treksData) ? treksData : []);    setNotesDraft(
                               <p className="text-xs text-gray-400">
                                 {o.persons?.length || 0} person(s) · {new Date(o.createdAt).toLocaleDateString("en-IN")}
                               </p>
+                              <button
+                                onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}
+                                className="text-[10px] text-kokan-green font-semibold hover:underline mt-1"
+                              >
+                                {expandedOrder === o.id ? "Hide" : "View"} ID proofs ({o.persons?.length || 0})
+                              </button>
                             </div>
 
                             {editingOrderId !== o.id && (
@@ -397,6 +411,30 @@ setTreks(Array.isArray(treksData) ? treksData : []);    setNotesDraft(
                               </div>
                             )}
                           </div>
+
+                          {expandedOrder === o.id && (
+                            <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {o.persons?.map((p, i) => (
+                                <a
+                                  key={i}
+                                  href={p.idProofUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block group"
+                                >
+                                  <div className="relative w-full h-24 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                                    {p.idProofUrl ? (
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={p.idProofUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">No ID</div>
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-gray-500 mt-1 truncate">{p.name}</p>
+                                </a>
+                              ))}
+                            </div>
+                          )}
 
                           {editingOrderId === o.id && (
                             <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
