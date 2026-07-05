@@ -21,6 +21,7 @@ export default function AdminNewDestinationPage() {
   const [success, setSuccess] = useState(false);
   const [highlight, setHighlight] = useState("");
 
+  
   const [form, setForm] = useState({
     name: "",
     description: "",
