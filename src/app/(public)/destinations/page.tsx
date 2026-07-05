@@ -208,7 +208,7 @@ export default function DestinationsPage() {
           )}
           {search && (
             <span className="flex items-center gap-1 bg-kokan-earth/10 text-kokan-earth text-xs font-medium px-2.5 py-1 rounded-full border border-kokan-earth/20">
-              🔍 "{search}"
+              🔍 &quot;{search}&quot;
               <button onClick={() => setSearch("")}><X size={11} /></button>
             </span>
           )}

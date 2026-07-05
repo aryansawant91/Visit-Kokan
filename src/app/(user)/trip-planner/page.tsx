@@ -116,7 +116,7 @@ export default function TripPlannerPage() {
           <Sparkles className="w-6 h-6 text-kokan-sand" /> Trip Planner
         </h1>
         <p className="text-kokan-earth/50 text-sm mt-1">
-          Tell us your preferences and we'll build your perfect Kokan itinerary
+          Tell us your preferences and we&apos;ll build your perfect Kokan itinerary
         </p>
       </div>
 

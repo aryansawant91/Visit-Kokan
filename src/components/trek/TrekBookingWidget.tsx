@@ -38,6 +38,7 @@ interface TrekBookingWidgetProps {
   trekSlug: string;
   pricePerPerson: number;
   maxCapacity?: number;
+  advanceAmount?: number;
 }
 
 // ── Disclaimer ────────────────────────────────────────────────────────────────
@@ -133,7 +134,7 @@ function CountdownBadge({ expiresAt }: { expiresAt: string | null }) {
   const isUrgent = (() => {
     if (!expiresAt) return false;
     const diff = new Date(expiresAt).getTime() - Date.now();
-    return diff < 24 * 60 * 60 * 1000; // less than 1 day
+    return diff < 24 * 60 * 60 * 1000;
   })();
 
   return (
@@ -149,7 +150,7 @@ function CountdownBadge({ expiresAt }: { expiresAt: string | null }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function TrekBookingWidget({
-  trekId, trekName, trekSlug, pricePerPerson, maxCapacity = 20,
+  trekId, trekName, trekSlug, pricePerPerson, maxCapacity = 20, advanceAmount = 0,
 }: TrekBookingWidgetProps) {
   const { user, profile } = useAuth();
   const router = useRouter();
@@ -171,7 +172,6 @@ export default function TrekBookingWidget({
   const [couponError, setCouponError]       = useState("");
   const [couponLoading, setCouponLoading]   = useState(false);
 
-  // ── Fetch visible coupons on mount ────────────────────────────────────────
   useEffect(() => {
     fetch("/api/coupons/trek")
       .then((r) => r.json())
@@ -181,10 +181,12 @@ export default function TrekBookingWidget({
 
   // ── Derived amounts ───────────────────────────────────────────────────────
   const subtotal       = persons.length * pricePerPerson;
-  const couponDiscount = appliedCoupon
-    ? Math.min(appliedCoupon.discount, subtotal)
-    : 0;
+  const couponDiscount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
   const totalAmount    = Math.max(0, subtotal - couponDiscount);
+
+  const hasAdvancePayment = advanceAmount > 0;
+  const amountToPayOnline = hasAdvancePayment ? advanceAmount : totalAmount;
+  const remainingCash     = hasAdvancePayment ? Math.max(0, totalAmount - advanceAmount) : 0;
 
   // ── Persons ───────────────────────────────────────────────────────────────
 
@@ -293,13 +295,18 @@ export default function TrekBookingWidget({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: totalAmount, orderType: "trek",
+          amount: amountToPayOnline,
+          orderType: "trek",
           userId: user.uid, userEmail: user.email,
           userName: profile?.displayName ?? user.email ?? "Guest",
           trekId, trekName, trekSlug,
           couponCode: appliedCoupon?.code ?? null,
           couponDiscount,
           finalAmount: totalAmount,
+          totalAmount,
+          advancePaid: amountToPayOnline,
+          remainingCash,
+          paymentType: hasAdvancePayment ? "advance" : "full",
           persons: persons.map((p) => ({
             name: p.name, birthDate: p.birthDate,
             age: calculateAge(p.birthDate), gender: p.gender,
@@ -361,7 +368,6 @@ export default function TrekBookingWidget({
           </div>
           <p className="text-xs text-kokan-earth/40 mb-4">Includes guide, equipment &amp; meals</p>
 
-          {/* Person counter */}
           <div className="flex items-center justify-between bg-kokan-cream/50 rounded-xl px-4 py-3 mb-4">
             <div className="flex items-center gap-2 text-sm font-medium text-kokan-earth">
               <Users className="w-4 h-4 text-kokan-green" />
@@ -394,13 +400,32 @@ export default function TrekBookingWidget({
                 <span>− ₹{couponDiscount.toLocaleString("en-IN")}</span>
               </div>
             )}
-            {couponDiscount > 0 && (
-              <div className="flex justify-between text-sm font-bold text-kokan-earth border-t border-kokan-sand/30 pt-1 mt-1">
-                <span>Total</span>
-                <span>₹{totalAmount.toLocaleString("en-IN")}</span>
-              </div>
+            <div className="flex justify-between text-sm font-bold text-kokan-earth border-t border-kokan-sand/30 pt-1 mt-1">
+              <span>Total Trek Cost</span>
+              <span>₹{totalAmount.toLocaleString("en-IN")}</span>
+            </div>
+            {hasAdvancePayment && (
+              <>
+                <div className="flex justify-between text-sm font-bold text-kokan-green pt-1 border-t border-dashed border-gray-200 mt-1">
+                  <span>💳 Pay Online Now</span>
+                  <span>₹{amountToPayOnline.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between text-sm font-medium text-amber-600">
+                  <span>💵 Pay Cash at Trek</span>
+                  <span>₹{remainingCash.toLocaleString("en-IN")}</span>
+                </div>
+              </>
             )}
           </div>
+
+          {hasAdvancePayment && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 mb-4">
+              <p className="text-xs text-amber-700 leading-relaxed">
+                💡 Pay <strong>₹{amountToPayOnline.toLocaleString("en-IN")}</strong> now to confirm your slot. The remaining{" "}
+                <strong>₹{remainingCash.toLocaleString("en-IN")}</strong> is collected in cash on the day of the trek.
+              </p>
+            </div>
+          )}
 
           <button
             onClick={() => setOpen(true)}
@@ -415,8 +440,12 @@ export default function TrekBookingWidget({
       {/* ── Mobile sticky bottom bar ── */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-kokan-sand/30 px-4 py-3 flex items-center gap-3 shadow-2xl">
         <div className="flex-1">
-          <p className="text-xs text-kokan-earth/40">Total for {persons.length} person{persons.length > 1 ? "s" : ""}</p>
-          <p className="text-lg font-bold text-kokan-earth leading-tight">₹{totalAmount.toLocaleString("en-IN")}</p>
+          <p className="text-xs text-kokan-earth/40">
+            {hasAdvancePayment ? "Advance for" : "Total for"} {persons.length} person{persons.length > 1 ? "s" : ""}
+          </p>
+          <p className="text-lg font-bold text-kokan-earth leading-tight">
+            ₹{amountToPayOnline.toLocaleString("en-IN")}
+          </p>
         </div>
         <button
           onClick={() => setOpen(true)}
@@ -429,21 +458,22 @@ export default function TrekBookingWidget({
       {/* ── Booking drawer / modal ── */}
       {open && (
         <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => !loading && setOpen(false)}
           />
 
-          {/* Sheet */}
           <div className="relative w-full lg:max-w-lg bg-white lg:rounded-2xl rounded-t-2xl shadow-2xl max-h-[92vh] flex flex-col">
 
-            {/* Sheet header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-kokan-sand/20 flex-shrink-0">
               <div>
                 <h2 className="font-bold text-kokan-earth text-base">{trekName}</h2>
                 <p className="text-xs text-kokan-earth/40 mt-0.5">
-                  ₹{pricePerPerson.toLocaleString("en-IN")} × {persons.length} person{persons.length > 1 ? "s" : ""} = <span className="font-bold text-kokan-green">₹{totalAmount.toLocaleString("en-IN")}</span>
+                  ₹{pricePerPerson.toLocaleString("en-IN")} × {persons.length} person{persons.length > 1 ? "s" : ""} ={" "}
+                  <span className="font-bold text-kokan-green">₹{totalAmount.toLocaleString("en-IN")}</span>
+                  {hasAdvancePayment && (
+                    <span className="text-amber-600 font-bold"> · ₹{amountToPayOnline.toLocaleString("en-IN")} due now</span>
+                  )}
                 </p>
               </div>
               <button
@@ -454,7 +484,6 @@ export default function TrekBookingWidget({
               </button>
             </div>
 
-            {/* Scrollable body */}
             <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
 
               {/* ── Person tabs ── */}
@@ -501,11 +530,8 @@ export default function TrekBookingWidget({
                   )}
                 </div>
 
-                {/* Active person form */}
                 {p && (
                   <div className="bg-kokan-cream/30 rounded-xl p-4 space-y-4">
-
-                    {/* Name + DOB */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Full Name *</label>
@@ -531,7 +557,6 @@ export default function TrekBookingWidget({
                       </div>
                     </div>
 
-                    {/* Gender */}
                     <div>
                       <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1.5">Gender</label>
                       <Pills
@@ -541,7 +566,6 @@ export default function TrekBookingWidget({
                       />
                     </div>
 
-                    {/* Food */}
                     <div>
                       <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1.5">Food</label>
                       <Pills
@@ -551,7 +575,6 @@ export default function TrekBookingWidget({
                       />
                     </div>
 
-                    {/* Medical + ID side by side */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Medical <span className="normal-case font-normal">(optional)</span></label>
@@ -585,7 +608,6 @@ export default function TrekBookingWidget({
                         )}
                       </div>
                     </div>
-
                   </div>
                 )}
               </div>
@@ -654,8 +676,6 @@ export default function TrekBookingWidget({
                 </div>
 
                 <div className="px-4 pb-4 pt-3 space-y-3">
-
-                  {/* Admin-curated visible coupons */}
                   {!appliedCoupon && visibleCoupons.length > 0 && (
                     <div className="grid grid-cols-2 gap-2">
                       {visibleCoupons.map((c) => (
@@ -679,7 +699,6 @@ export default function TrekBookingWidget({
                     </div>
                   )}
 
-                  {/* Input */}
                   {!appliedCoupon ? (
                     <div className="flex gap-2">
                       <input
@@ -725,12 +744,32 @@ export default function TrekBookingWidget({
                   </div>
                 )}
                 <div className="flex justify-between text-sm font-bold text-kokan-earth pt-1 border-t border-gray-200">
-                  <span>Total</span>
+                  <span>Total Trek Cost</span>
                   <span>₹{totalAmount.toLocaleString("en-IN")}</span>
                 </div>
+                {hasAdvancePayment && (
+                  <>
+                    <div className="flex justify-between text-sm font-bold text-kokan-green pt-2 border-t border-dashed border-gray-300">
+                      <span>💳 Pay Online Now</span>
+                      <span>₹{amountToPayOnline.toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-medium text-amber-600">
+                      <span>💵 Pay Cash at Trek</span>
+                      <span>₹{remainingCash.toLocaleString("en-IN")}</span>
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* ── Errors ── */}
+              {hasAdvancePayment && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    💡 Pay <strong>₹{amountToPayOnline.toLocaleString("en-IN")}</strong> now to confirm your slot. The remaining{" "}
+                    <strong>₹{remainingCash.toLocaleString("en-IN")}</strong> is collected in cash on the day of the trek.
+                  </p>
+                </div>
+              )}
+
               {errors.length > 0 && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-1">
                   {errors.map((e, i) => (
@@ -740,7 +779,6 @@ export default function TrekBookingWidget({
                   ))}
                 </div>
               )}
-
             </div>
 
             {/* ── Sheet footer ── */}
@@ -757,12 +795,11 @@ export default function TrekBookingWidget({
               >
                 {loading
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</>
-                  : <><CreditCard className="w-4 h-4" /> Pay ₹{totalAmount.toLocaleString("en-IN")}</>
+                  : <><CreditCard className="w-4 h-4" /> Pay ₹{amountToPayOnline.toLocaleString("en-IN")}{hasAdvancePayment ? " to Confirm" : ""}</>
                 }
               </button>
               <p className="text-center text-[11px] text-kokan-earth/30 mt-2">🔒 Secured by Razorpay</p>
             </div>
-
           </div>
         </div>
       )}

@@ -259,7 +259,7 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-white text-xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-white/30 text-sm mt-0.5">Welcome back. Here's what needs your attention.</p>
+        <p className="text-white/30 text-sm mt-0.5">Welcome back. Here&apos;s what needs your attention.</p>
       </div>
 
       {/* Stats grid */}

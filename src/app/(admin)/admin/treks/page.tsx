@@ -24,6 +24,7 @@ interface Trek {
   duration: string;
   distance: string;
   price: number;
+  advanceAmount: number;
   startPoint: string;
   endPoint: string;
   maxAltitude: string;
@@ -49,6 +50,7 @@ const blankTrek = (): Omit<Trek, "id" | "approved" | "featured" | "createdAt"> =
   duration: "",
   distance: "",
   price: 0,
+  advanceAmount: 0,
   startPoint: "",
   endPoint: "",
   maxAltitude: "",
@@ -67,11 +69,11 @@ const toSlug = (name: string) =>
 // ─── Constants ────────────────────────────────────────────────────────────────
 const REGIONS = ["Ratnagiri", "Sindhudurg", "Raigad", "Thane", "Palghar"];
 const CATEGORIES = [
-  { value: "coastal",  label: "🏖️ Coastal"  },
-  { value: "fort",     label: "🏰 Fort"      },
-  { value: "waterfall",label: "💧 Waterfall" },
-  { value: "forest",   label: "🌲 Forest"    },
-  { value: "night",    label: "🌙 Night"     },
+  { value: "coastal",   label: "🏖️ Coastal"  },
+  { value: "fort",      label: "🏰 Fort"      },
+  { value: "waterfall", label: "💧 Waterfall" },
+  { value: "forest",    label: "🌲 Forest"    },
+  { value: "night",     label: "🌙 Night"     },
 ];
 const DIFFICULTIES = ["easy", "moderate", "hard", "expert"];
 
@@ -98,17 +100,15 @@ function Section({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function AdminTreksPage() {
-  const [treks, setTreks]           = useState<Trek[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [saving, setSaving]         = useState(false);
+  const [treks, setTreks]         = useState<Trek[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [saving, setSaving]       = useState(false);
 
-  // form state
-  const [showForm, setShowForm]     = useState(false);
-  const [editingId, setEditingId]   = useState<string | null>(null);
-  const [form, setForm]             = useState(blankTrek());
-  const [errors, setErrors]         = useState<string[]>([]);
+  const [showForm, setShowForm]   = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm]           = useState(blankTrek());
+  const [errors, setErrors]       = useState<string[]>([]);
 
-  // section open/close
   const [sections, setSections] = useState({
     basic: true, details: false, lists: false, itinerary: false, images: false,
   });
@@ -147,6 +147,7 @@ export default function AdminTreksPage() {
       duration:      trek.duration,
       distance:      trek.distance,
       price:         trek.price,
+      advanceAmount: trek.advanceAmount ?? 0,
       startPoint:    trek.startPoint,
       endPoint:      trek.endPoint,
       maxAltitude:   trek.maxAltitude ?? "",
@@ -222,7 +223,7 @@ export default function AdminTreksPage() {
     return errs.length === 0;
   };
 
-  // ── Save (create or update) ────────────────────────────────────────────────
+  // ── Save ───────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!validate()) {
       setSections((s) => ({ ...s, basic: true, details: true }));
@@ -237,18 +238,17 @@ export default function AdminTreksPage() {
       images:        form.images.filter(Boolean),
       itinerary:     form.itinerary.filter((d) => d.title || d.description),
       price:         Number(form.price),
+      advanceAmount: Number(form.advanceAmount) || 0,
     };
 
     try {
       if (editingId) {
-        // EDIT
         await fetch("/api/treks", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: editingId, ...payload }),
         });
       } else {
-        // CREATE
         await fetch("/api/treks", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -314,11 +314,10 @@ export default function AdminTreksPage() {
         )}
       </div>
 
-      {/* ── Form ──────────────────────────────────────────────────────────── */}
+      {/* ── Form ────────────────────────────────────────────────────────────── */}
       {showForm && (
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
 
-          {/* Form header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
             <h2 className="font-bold text-kokan-earth text-base">
               {editingId ? "✏️ Edit Trek" : "➕ New Trek"}
@@ -330,7 +329,6 @@ export default function AdminTreksPage() {
 
           <div className="p-5 space-y-4">
 
-            {/* Errors */}
             {errors.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-1">
                 {errors.map((e, i) => (
@@ -447,6 +445,19 @@ export default function AdminTreksPage() {
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Advance Amount (₹)</label>
+                  <input
+                    type="number" min="0"
+                    value={form.advanceAmount || ""}
+                    onChange={(e) => setField("advanceAmount", Number(e.target.value))}
+                    placeholder="0 = full payment online"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Amount paid online to confirm. Rest collected in cash at the trek. Leave 0 for full online payment.
+                  </p>
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Start Point *</label>
                   <input
                     value={form.startPoint}
@@ -496,8 +507,6 @@ export default function AdminTreksPage() {
 
             {/* ── LISTS ── */}
             <Section title="Highlights & Packing List" open={sections.lists} onToggle={() => toggleSection("lists")}>
-
-              {/* Highlights */}
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Highlights</label>
                 <div className="space-y-2">
@@ -509,26 +518,17 @@ export default function AdminTreksPage() {
                         placeholder={`Highlight ${i + 1}`}
                         className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                       />
-                      <button
-                        type="button"
-                        onClick={() => removeListItem("highlights", i)}
-                        className="p-2 text-gray-300 hover:text-red-400 transition-colors"
-                      >
+                      <button type="button" onClick={() => removeListItem("highlights", i)} className="p-2 text-gray-300 hover:text-red-400 transition-colors">
                         <X size={14} />
                       </button>
                     </div>
                   ))}
-                  <button
-                    type="button"
-                    onClick={() => addListItem("highlights")}
-                    className="text-xs font-semibold text-kokan-green flex items-center gap-1 hover:underline"
-                  >
+                  <button type="button" onClick={() => addListItem("highlights")} className="text-xs font-semibold text-kokan-green flex items-center gap-1 hover:underline">
                     <Plus size={12} /> Add highlight
                   </button>
                 </div>
               </div>
 
-              {/* Things to bring */}
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Things to Bring</label>
                 <div className="space-y-2">
@@ -540,20 +540,12 @@ export default function AdminTreksPage() {
                         placeholder={`Item ${i + 1}`}
                         className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                       />
-                      <button
-                        type="button"
-                        onClick={() => removeListItem("thingsToBring", i)}
-                        className="p-2 text-gray-300 hover:text-red-400 transition-colors"
-                      >
+                      <button type="button" onClick={() => removeListItem("thingsToBring", i)} className="p-2 text-gray-300 hover:text-red-400 transition-colors">
                         <X size={14} />
                       </button>
                     </div>
                   ))}
-                  <button
-                    type="button"
-                    onClick={() => addListItem("thingsToBring")}
-                    className="text-xs font-semibold text-kokan-green flex items-center gap-1 hover:underline"
-                  >
+                  <button type="button" onClick={() => addListItem("thingsToBring")} className="text-xs font-semibold text-kokan-green flex items-center gap-1 hover:underline">
                     <Plus size={12} /> Add item
                   </button>
                 </div>
@@ -568,11 +560,7 @@ export default function AdminTreksPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-kokan-green">Day {day.day}</span>
                       {form.itinerary.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeDay(i)}
-                          className="p-1 text-gray-300 hover:text-red-400 transition-colors"
-                        >
+                        <button type="button" onClick={() => removeDay(i)} className="p-1 text-gray-300 hover:text-red-400 transition-colors">
                           <Trash2 size={13} />
                         </button>
                       )}
@@ -592,11 +580,7 @@ export default function AdminTreksPage() {
                     />
                   </div>
                 ))}
-                <button
-                  type="button"
-                  onClick={addDay}
-                  className="text-xs font-semibold text-kokan-green flex items-center gap-1 hover:underline"
-                >
+                <button type="button" onClick={addDay} className="text-xs font-semibold text-kokan-green flex items-center gap-1 hover:underline">
                   <Plus size={12} /> Add day
                 </button>
               </div>
@@ -604,7 +588,7 @@ export default function AdminTreksPage() {
 
             {/* ── IMAGES ── */}
             <Section title="Image URLs" open={sections.images} onToggle={() => toggleSection("images")}>
-              <p className="text-xs text-gray-400">Paste direct image URLs (Unsplash, Firebase Storage, etc.). First image is the hero.</p>
+              <p className="text-xs text-gray-400">Paste direct image URLs. First image is the hero.</p>
               <div className="space-y-2 mt-2">
                 {form.images.map((url, i) => (
                   <div key={i} className="flex gap-2 items-center">
@@ -618,26 +602,17 @@ export default function AdminTreksPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-200" />
                     )}
-                    <button
-                      type="button"
-                      onClick={() => removeListItem("images", i)}
-                      className="p-2 text-gray-300 hover:text-red-400 transition-colors flex-shrink-0"
-                    >
+                    <button type="button" onClick={() => removeListItem("images", i)} className="p-2 text-gray-300 hover:text-red-400 transition-colors flex-shrink-0">
                       <X size={14} />
                     </button>
                   </div>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => addListItem("images")}
-                  className="text-xs font-semibold text-kokan-green flex items-center gap-1 hover:underline"
-                >
+                <button type="button" onClick={() => addListItem("images")} className="text-xs font-semibold text-kokan-green flex items-center gap-1 hover:underline">
                   <Plus size={12} /> Add image
                 </button>
               </div>
             </Section>
 
-            {/* Save / Cancel */}
             <div className="flex gap-3 pt-2">
               <button
                 onClick={handleSave}
@@ -660,7 +635,7 @@ export default function AdminTreksPage() {
         </div>
       )}
 
-      {/* ── Trek list ──────────────────────────────────────────────────────── */}
+      {/* ── Trek list ────────────────────────────────────────────────────────── */}
       {loading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
@@ -680,8 +655,6 @@ export default function AdminTreksPage() {
           <div className="divide-y divide-gray-100">
             {treks.map((trek) => (
               <div key={trek.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
-
-                {/* Thumbnail */}
                 <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
                   {trek.images?.[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -690,8 +663,6 @@ export default function AdminTreksPage() {
                     <div className="w-full h-full flex items-center justify-center text-2xl">🥾</div>
                   )}
                 </div>
-
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-kokan-earth text-sm truncate">{trek.name}</p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -701,12 +672,14 @@ export default function AdminTreksPage() {
                     <span className="text-[11px] text-gray-400">{trek.region}</span>
                     <span className="text-[11px] text-gray-400">{trek.duration}</span>
                     <span className="text-[11px] font-semibold text-kokan-earth">₹{trek.price?.toLocaleString("en-IN")}</span>
+                    {trek.advanceAmount > 0 && (
+                      <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded-full">
+                        ₹{trek.advanceAmount.toLocaleString("en-IN")} advance
+                      </span>
+                    )}
                   </div>
                 </div>
-
-                {/* Actions */}
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {/* Featured toggle */}
                   <button
                     onClick={() => toggleFeatured(trek)}
                     title={trek.featured ? "Remove from featured" : "Mark as featured"}
@@ -714,20 +687,10 @@ export default function AdminTreksPage() {
                   >
                     {trek.featured ? <Star size={16} fill="currentColor" /> : <StarOff size={16} />}
                   </button>
-
-                  {/* Edit */}
-                  <button
-                    onClick={() => openEdit(trek)}
-                    className="p-2 rounded-lg text-gray-400 hover:text-kokan-green hover:bg-kokan-green/5 transition-colors"
-                  >
+                  <button onClick={() => openEdit(trek)} className="p-2 rounded-lg text-gray-400 hover:text-kokan-green hover:bg-kokan-green/5 transition-colors">
                     <Pencil size={15} />
                   </button>
-
-                  {/* Delete */}
-                  <button
-                    onClick={() => handleDelete(trek.id, trek.name)}
-                    className="p-2 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                  >
+                  <button onClick={() => handleDelete(trek.id, trek.name)} className="p-2 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors">
                     <Trash2 size={15} />
                   </button>
                 </div>

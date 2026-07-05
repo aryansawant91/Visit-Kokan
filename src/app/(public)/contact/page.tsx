@@ -23,7 +23,7 @@ export default function ContactPage() {
       <div className="bg-kokan-green py-14 text-center px-4">
         <h1 className="font-playfair text-4xl font-bold text-white mb-2">Contact Us</h1>
         <p className="text-white/70 text-sm max-w-md mx-auto">
-          Have a question, suggestion or want to partner with us? We'd love to hear from you.
+          Have a question, suggestion or want to partner with us? We&apos;d love to hear from you.
         </p>
       </div>
 
@@ -82,7 +82,7 @@ export default function ContactPage() {
               </div>
               <h3 className="font-playfair text-xl font-bold text-kokan-earth">Message Sent!</h3>
               <p className="text-kokan-earth/50 text-sm max-w-xs">
-                Thank you for reaching out. We'll get back to you within 24 hours.
+                Thank you for reaching out. We&apos;ll get back to you within 24 hours.
               </p>
               <button
                 onClick={() => { setSubmitted(false); setForm({ name: "", email: "", subject: "", message: "" }); }}

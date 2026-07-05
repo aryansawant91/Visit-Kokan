@@ -1,24 +1,14 @@
 'use client'
 
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useRef,
-  ReactNode,
+  createContext, useContext, useEffect,
+  useState, useRef, ReactNode,
 } from 'react'
 import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  sendPasswordResetEmail,
-  sendEmailVerification,
-  updateProfile,
-  User,
-  IdTokenResult,
+  onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signInWithPopup,
+  signOut, sendPasswordResetEmail, sendEmailVerification,
+  updateProfile, User, IdTokenResult,
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db, googleProvider } from '@/lib/firebase'
@@ -57,11 +47,11 @@ export interface VendorSignUpData extends SignUpData {
 }
 
 export interface MobileSignUpData {
-  mobile: string;
-  password: string;
-  displayName: string;
-  email: string;
-  phone?: string;
+  mobile: string
+  password: string
+  displayName: string
+  email: string
+  phone?: string
 }
 
 interface AuthContextType {
@@ -84,24 +74,30 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 async function setRoleClaim(uid: string, role: UserRole) {
   try {
     await fetch('/api/users/set-role', {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, role }),
+      body:    JSON.stringify({ uid, role }),
     })
   } catch (err) {
     console.error('Failed to set role claim:', err)
   }
 }
 
-async function setSessionCookie(uid: string, role: UserRole, vendorStatus?: string | null) {
+async function setSessionCookie(
+  uid: string,
+  role: UserRole,
+  vendorStatus?: string | null,
+) {
   try {
     await fetch('/api/auth/session', {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, role, vendorStatus: vendorStatus ?? null }),
+      body:    JSON.stringify({ uid, role, vendorStatus: vendorStatus ?? null }),
     })
   } catch (err) {
     console.error('Failed to set session cookie:', err)
@@ -109,37 +105,57 @@ async function setSessionCookie(uid: string, role: UserRole, vendorStatus?: stri
 }
 
 async function clearSessionCookie() {
-  try {
-    await fetch('/api/auth/session', { method: 'DELETE' })
-  } catch {}
+  try { await fetch('/api/auth/session', { method: 'DELETE' }) } catch {}
 }
 
-function resolveRedirect(profile: UserProfile, role: UserRole, searchParams?: string): string {
-  if (role === 'admin') return '/admin/dashboard'
+// ── Read redirect from sessionStorage (set by login page before submit) ──────
+// Falls back to window.location.search if sessionStorage is empty
+function getRedirectParam(): string | null {
+  if (typeof window === 'undefined') return null
 
+  // Primary: sessionStorage set by login page right before submit
+  const stored = sessionStorage.getItem('vk_pending_redirect')
+  if (stored && stored.startsWith('/') && !stored.startsWith('//')) {
+    sessionStorage.removeItem('vk_pending_redirect') // consume it
+    return stored
+  }
+
+  // Fallback: URL search param
+  const params   = new URLSearchParams(window.location.search)
+  const redirect = params.get('redirect')
+  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+    return redirect
+  }
+
+  return null
+}
+
+function resolveRedirect(
+  profile: UserProfile,
+  role: UserRole,
+  redirectParam?: string | null,
+): string {
+  if (role === 'admin')  return '/admin/dashboard'
   if (role === 'vendor') {
-    if (profile.vendorStatus !== 'approved') return '/vendor/pending'
-    return '/vendor/dashboard'
+    return profile.vendorStatus === 'approved'
+      ? '/vendor/dashboard'
+      : '/vendor/pending'
   }
-
-  if (searchParams) {
-    const params = new URLSearchParams(searchParams)
-    const redirect = params.get('redirect')
-    if (redirect && redirect.startsWith('/')) return redirect
-  }
-
-  return '/'
+  return redirectParam ?? '/'
 }
+
+// ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser]       = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [role, setRole] = useState<UserRole | null>(null)
+  const [role, setRole]       = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const skipNextAuthChange = useRef(false)
+  const router                = useRouter()
 
-  
+  const skipNextAuthChange = useRef(false)
+  const pendingRedirect    = useRef<string | null>(null)
+
   const fetchProfile = async (uid: string): Promise<UserProfile | null> => {
     try {
       const snap = await getDoc(doc(db, 'users', uid))
@@ -156,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // ── Auth state listener ────────────────────────────────────────────────────
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (skipNextAuthChange.current) {
@@ -188,74 +205,88 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRole(claimedRole)
       setProfile(p)
       await setSessionCookie(fbUser.uid, claimedRole, p?.vendorStatus)
+
+      // Read redirect: sessionStorage (set by OTP flow) or URL param fallback
+      const storedRedirect = sessionStorage.getItem('vk_pending_redirect')
+      if (storedRedirect) sessionStorage.removeItem('vk_pending_redirect')
+
+      const urlParam = new URLSearchParams(window.location.search).get('redirect')
+      const redirect =
+        storedRedirect ??
+        (urlParam && urlParam.startsWith('/') && !urlParam.startsWith('//')
+          ? urlParam
+          : null)
+
+      pendingRedirect.current = null
+
+      const destination = resolveRedirect(
+        p ?? ({} as UserProfile),
+        claimedRole,
+        redirect,
+      )
+      router.replace(destination)
+
       setLoading(false)
     })
 
     return () => unsubscribe()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Email + password sign-in ───────────────────────────────────────────────
   const signInWithEmail = async (email: string, password: string) => {
-  const cred = await signInWithEmailAndPassword(auth, email, password)
-  skipNextAuthChange.current = true
+    const redirectParam = getRedirectParam() // reads + clears sessionStorage
 
-  const p = await fetchProfile(cred.user.uid)
+    const cred = await signInWithEmailAndPassword(auth, email, password)
+    skipNextAuthChange.current = true
 
-  let claimedRole: UserRole = p?.role ?? 'user'
-  try {
-    const tokenResult = await cred.user.getIdTokenResult(true)
-    if (tokenResult.claims.role) {
-      claimedRole = tokenResult.claims.role as UserRole
-    } else if (p?.role) {
-      claimedRole = p.role
-      await setRoleClaim(cred.user.uid, p.role)
-      await cred.user.getIdToken(true)
+    const p = await fetchProfile(cred.user.uid)
+
+    let claimedRole: UserRole = p?.role ?? 'user'
+    try {
+      const tokenResult = await cred.user.getIdTokenResult(true)
+      if (tokenResult.claims.role) {
+        claimedRole = tokenResult.claims.role as UserRole
+      } else if (p?.role) {
+        claimedRole = p.role
+        await setRoleClaim(cred.user.uid, p.role)
+        await cred.user.getIdToken(true)
+      }
+    } catch {
+      claimedRole = p?.role ?? 'user'
     }
-  } catch {
-    claimedRole = p?.role ?? 'user'
+
+    setUser(cred.user)
+    setRole(claimedRole)
+    setProfile(p)
+
+    await setSessionCookie(cred.user.uid, claimedRole, p?.vendorStatus)
+
+    router.replace(
+      resolveRedirect(p ?? ({} as UserProfile), claimedRole, redirectParam)
+    )
   }
 
-  setUser(cred.user)
-  setRole(claimedRole)
-  setProfile(p)
-
-  // Set session cookie BEFORE redirect
-  await setSessionCookie(cred.user.uid, claimedRole, p?.vendorStatus)
-
-  // Redirect based on role
-  if (claimedRole === 'admin') {
-    router.replace('/admin/dashboard')
-  } else if (claimedRole === 'vendor') {
-    if (p?.vendorStatus === 'approved') {
-      router.replace('/vendor/dashboard')
-    } else {
-      router.replace('/vendor/pending')
-    }
-  } else {
-    // Regular user — go to homepage or redirect param
-    const params = new URLSearchParams(window.location.search)
-    const redirect = params.get('redirect')
-    router.replace(redirect && redirect.startsWith('/') ? redirect : '/')
-  }
-}
-
+  // ── Google sign-in ─────────────────────────────────────────────────────────
   const signInWithGoogle = async () => {
+    const redirectParam = getRedirectParam() // reads + clears sessionStorage
+
     const { user: fbUser } = await signInWithPopup(auth, googleProvider)
     skipNextAuthChange.current = true
 
-    const userRef = doc(db, 'users', fbUser.uid)
+    const userRef  = doc(db, 'users', fbUser.uid)
     const userSnap = await getDoc(userRef)
 
     if (!userSnap.exists()) {
       const newProfile: UserProfile = {
-        uid: fbUser.uid,
-        email: fbUser.email!,
-        displayName: fbUser.displayName ?? '',
-        photoURL: fbUser.photoURL ?? '',
-        role: 'user',
+        uid:           fbUser.uid,
+        email:         fbUser.email!,
+        displayName:   fbUser.displayName ?? '',
+        photoURL:      fbUser.photoURL ?? '',
+        role:          'user',
         emailVerified: fbUser.emailVerified,
-        isActive: true,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        isActive:      true,
+        createdAt:     serverTimestamp(),
+        updatedAt:     serverTimestamp(),
       }
       await setDoc(userRef, newProfile)
       await setRoleClaim(fbUser.uid, 'user')
@@ -264,7 +295,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(fbUser)
       setProfile(newProfile)
       setRole('user')
-      router.replace('/')
+
+      router.replace(redirectParam ?? '/')
     } else {
       const p = userSnap.data() as UserProfile
 
@@ -287,10 +319,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(fbUser)
       setProfile(p)
       setRole(claimedRole)
-      router.replace(resolveRedirect(p, claimedRole, window.location.search))
+
+      router.replace(
+        resolveRedirect(p, claimedRole, redirectParam)
+      )
     }
   }
 
+  // ── Email sign-up ──────────────────────────────────────────────────────────
   const signUpWithEmail = async (data: SignUpData) => {
     const cred = await createUserWithEmailAndPassword(auth, data.email, data.password)
     skipNextAuthChange.current = true
@@ -299,15 +335,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try { await sendEmailVerification(cred.user) } catch {}
 
     const newProfile: UserProfile = {
-      uid: cred.user.uid,
-      email: data.email,
-      displayName: data.displayName,
-      role: 'user',
-      phone: data.phone ?? '',
+      uid:           cred.user.uid,
+      email:         data.email,
+      displayName:   data.displayName,
+      role:          'user',
+      phone:         data.phone ?? '',
       emailVerified: false,
-      isActive: true,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      isActive:      true,
+      createdAt:     serverTimestamp(),
+      updatedAt:     serverTimestamp(),
     }
 
     await setDoc(doc(db, 'users', cred.user.uid), newProfile)
@@ -320,6 +356,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace('/')
   }
 
+  // ── Vendor sign-up ─────────────────────────────────────────────────────────
   const signUpVendor = async (data: VendorSignUpData) => {
     const cred = await createUserWithEmailAndPassword(auth, data.email, data.password)
     skipNextAuthChange.current = true
@@ -328,19 +365,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try { await sendEmailVerification(cred.user) } catch {}
 
     const newProfile: UserProfile = {
-      uid: cred.user.uid,
-      email: data.email,
-      displayName: data.displayName,
-      role: 'vendor',
-      phone: data.phone ?? '',
-      emailVerified: false,
-      isActive: true,
-      businessName: data.businessName,
+      uid:             cred.user.uid,
+      email:           data.email,
+      displayName:     data.displayName,
+      role:            'vendor',
+      phone:           data.phone ?? '',
+      emailVerified:   false,
+      isActive:        true,
+      businessName:    data.businessName,
       businessAddress: data.businessAddress,
-      gstNumber: data.gstNumber ?? '',
-      vendorStatus: 'pending',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      gstNumber:       data.gstNumber ?? '',
+      vendorStatus:    'pending',
+      createdAt:       serverTimestamp(),
+      updatedAt:       serverTimestamp(),
     }
 
     await setDoc(doc(db, 'users', cred.user.uid), newProfile)
@@ -353,6 +390,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace('/vendor/pending')
   }
 
+  // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = async () => {
     await signOut(auth)
     await clearSessionCookie()
@@ -362,80 +400,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace('/')
   }
 
+  // ── Password reset ─────────────────────────────────────────────────────────
   const sendPasswordReset = async (email: string) => {
     await sendPasswordResetEmail(auth, email)
   }
 
+  // ── Verification email ─────────────────────────────────────────────────────
   const sendVerificationEmail = async () => {
     if (user) {
       try { await sendEmailVerification(user) } catch {}
     }
   }
 
-  // ── Mobile auth functions ─────────────────────────────────────────────────
-
+  // ── Mobile auth ────────────────────────────────────────────────────────────
   const signInWithMobile = async (mobile: string, password: string) => {
-    const res = await fetch("/api/auth/mobile-lookup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobile }),
-    });
-
+    const res = await fetch('/api/auth/mobile-lookup', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ mobile }),
+    })
     if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error ?? "Mobile number not registered.");
+      const data = await res.json()
+      throw new Error(data.error ?? 'Mobile number not registered.')
     }
-
-    const { email } = await res.json();
-    await signInWithEmail(email, password);
+    const { email } = await res.json()
+    await signInWithEmail(email, password)
   }
 
   const signUpWithMobile = async (data: MobileSignUpData) => {
     await signUpWithEmail({
-      email: data.email,
-      password: data.password,
+      email:       data.email,
+      password:    data.password,
       displayName: data.displayName,
-      phone: data.mobile,
-    });
+      phone:       data.mobile,
+    })
   }
 
-  const resetPasswordWithMobile = async (mobile: string, newPassword: string) => {
-    const res = await fetch("/api/auth/mobile-lookup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobile }),
-    });
+  const resetPasswordWithMobile = async (
+    mobile: string,
+    newPassword: string,
+  ) => {
+    const res = await fetch('/api/auth/mobile-lookup', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ mobile }),
+    })
+    if (!res.ok) throw new Error('Mobile number not registered.')
+    const { email } = await res.json()
 
-    if (!res.ok) throw new Error("Mobile number not registered.");
-
-    const { email } = await res.json();
-
-    const updateRes = await fetch("/api/auth/reset-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, newPassword }),
-    });
-
-    if (!updateRes.ok) throw new Error("Failed to reset password.");
+    const updateRes = await fetch('/api/auth/reset-password', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, newPassword }),
+    })
+    if (!updateRes.ok) throw new Error('Failed to reset password.')
   }
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        profile,
-        role,
-        loading,
-        signInWithEmail,
-        signInWithGoogle,
-        signUpWithEmail,
-        signUpVendor,
-        logout,
-        sendPasswordReset,
-        sendVerificationEmail,
-        refreshProfile,
-        signInWithMobile,
-        signUpWithMobile,
+        user, profile, role, loading,
+        signInWithEmail, signInWithGoogle,
+        signUpWithEmail, signUpVendor,
+        logout, sendPasswordReset,
+        sendVerificationEmail, refreshProfile,
+        signInWithMobile, signUpWithMobile,
         resetPasswordWithMobile,
       }}
     >

@@ -8,8 +8,8 @@ import {
   Loader2, Plus, ShieldCheck, X,
 } from "lucide-react";
 import Link from "next/link";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface ProductForm {
   name:           string;
   slug:           string;
@@ -23,11 +23,11 @@ interface ProductForm {
   features:       string[];
   specifications: string[];
   images:         string[];
+  codAvailable:   boolean;
 }
 
 const UNITS = ["per kg", "per box", "per dozen", "per piece", "per bottle", "per night", "per person"];
 
-// ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({
   title, open, onToggle, children,
 }: {
@@ -50,7 +50,6 @@ function Section({
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function AdminProductEditPage() {
   const { id }  = useParams<{ id: string }>();
   const router  = useRouter();
@@ -65,6 +64,7 @@ export default function AdminProductEditPage() {
     name: "", slug: "", description: "", category: "fruits",
     region: "Ratnagiri", price: "", unit: "per kg",
     stock: "", discount: "", features: [""], specifications: [""], images: [""],
+    codAvailable: true,
   });
 
   const [sections, setSections] = useState({
@@ -73,7 +73,6 @@ export default function AdminProductEditPage() {
   const toggle = (k: keyof typeof sections) =>
     setSections((s) => ({ ...s, [k]: !s[k] }));
 
-  // ── Fetch existing product ─────────────────────────────────────────────────
   useEffect(() => {
     if (!id) return;
     fetch(`/api/products/admin?id=${id}`)
@@ -93,14 +92,14 @@ export default function AdminProductEditPage() {
           features:       data.features?.length       ? data.features       : [""],
           specifications: data.specifications?.length ? data.specifications : [""],
           images:         data.images?.length          ? data.images          : [""],
+          codAvailable:   data.codAvailable ?? true,
         });
         setLoading(false);
       })
       .catch(() => { setNotFound(true); setLoading(false); });
   }, [id]);
 
-  // ── Field helpers ──────────────────────────────────────────────────────────
-  const setField = (k: keyof ProductForm, v: string) =>
+  const setField = <K extends keyof ProductForm>(k: K, v: ProductForm[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
   const setListItem = (k: "features" | "specifications" | "images", i: number, v: string) =>
@@ -115,7 +114,6 @@ export default function AdminProductEditPage() {
       return { ...f, [k]: a.length ? a : [""] };
     });
 
-  // ── Validate ───────────────────────────────────────────────────────────────
   const validate = () => {
     const errs: string[] = [];
     if (!form.name.trim())                       errs.push("Product name is required");
@@ -126,7 +124,6 @@ export default function AdminProductEditPage() {
     return errs.length === 0;
   };
 
-  // ── Save ───────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!validate()) {
       setSections((s) => ({ ...s, basic: true, pricing: true, images: true }));
@@ -151,6 +148,7 @@ export default function AdminProductEditPage() {
           features:       form.features.filter(Boolean),
           specifications: form.specifications.filter(Boolean),
           images:         form.images.filter(Boolean),
+          codAvailable:   form.codAvailable,
         }),
       });
       if (!res.ok) throw new Error("Save failed");
@@ -164,7 +162,6 @@ export default function AdminProductEditPage() {
     }
   };
 
-  // ── States ─────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen bg-kokan-cream/30 flex items-center justify-center">
@@ -184,12 +181,10 @@ export default function AdminProductEditPage() {
     );
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-kokan-cream/30">
       <div className="max-w-2xl mx-auto px-4 py-8">
 
-        {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Link
             href="/admin/products"
@@ -210,7 +205,6 @@ export default function AdminProductEditPage() {
           </Link>
         </div>
 
-        {/* Errors */}
         {errors.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 space-y-1">
             {errors.map((e, i) => (
@@ -221,7 +215,6 @@ export default function AdminProductEditPage() {
           </div>
         )}
 
-        {/* Saved toast */}
         {saved && (
           <div className="flex items-center gap-2 bg-kokan-green/10 border border-kokan-green/20 text-kokan-green text-sm font-semibold px-4 py-2.5 rounded-xl mb-4">
             <Check size={15} /> Changes saved successfully
@@ -256,11 +249,10 @@ export default function AdminProductEditPage() {
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
                 Description *
               </label>
-              <textarea
+              <RichTextEditor
                 value={form.description}
-                onChange={(e) => setField("description", e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
+                onChange={(html) => setField("description", html)}
+                placeholder="Describe the product — origin, quality, packaging..."
               />
             </div>
 
@@ -333,6 +325,24 @@ export default function AdminProductEditPage() {
                 className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
               />
             </div>
+
+            {/* ── COD TOGGLE ── */}
+            <label className="flex items-center justify-between cursor-pointer select-none py-2 border-t border-gray-100 mt-3 pt-3">
+              <div>
+                <p className="text-sm font-semibold text-kokan-earth">Cash on Delivery available</p>
+                <p className="text-xs text-gray-400 mt-0.5">Allow customers to pay cash when this product is delivered</p>
+              </div>
+              <div
+                onClick={() => setField("codAvailable", !form.codAvailable)}
+                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer flex-shrink-0 ${
+                  form.codAvailable ? "bg-kokan-green" : "bg-gray-200"
+                }`}
+              >
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${
+                  form.codAvailable ? "left-6" : "left-1"
+                }`} />
+              </div>
+            </label>
           </Section>
 
           {/* ── IMAGES ── */}
@@ -347,7 +357,6 @@ export default function AdminProductEditPage() {
                     placeholder={i === 0 ? "Hero image URL *" : `Image ${i + 1} URL`}
                     className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                   />
-                  {/* Live preview */}
                   {url && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -379,8 +388,6 @@ export default function AdminProductEditPage() {
 
           {/* ── DETAILS ── */}
           <Section title="Features & Specifications (optional)" open={sections.details} onToggle={() => toggle("details")}>
-
-            {/* Features */}
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Features</label>
               <div className="space-y-2">
@@ -403,10 +410,9 @@ export default function AdminProductEditPage() {
               </div>
             </div>
 
-            {/* Specifications */}
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                Specifications <span className="normal-case font-normal text-gray-300">(e.g. "Weight: 1kg")</span>
+                Specifications <span className="normal-case font-normal text-gray-300">(e.g. &quot;Weight: 1kg&quot;)</span>
               </label>
               <div className="space-y-2">
                 {form.specifications.map((s, i) => (
@@ -429,7 +435,6 @@ export default function AdminProductEditPage() {
             </div>
           </Section>
 
-          {/* Save button */}
           <button
             onClick={handleSave}
             disabled={saving}

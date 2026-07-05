@@ -269,7 +269,7 @@ export default function ProductsTab() {
         <div className="bg-kokan-green/5 border border-kokan-green/20 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <Tag className="w-4 h-4 text-kokan-green" />
-            <h2 className="font-semibold text-kokan-earth">Today's Offers</h2>
+            <h2 className="font-semibold text-kokan-earth">Today&apos;s Offers</h2>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {[

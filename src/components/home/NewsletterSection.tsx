@@ -28,7 +28,7 @@ export default function NewsletterSection() {
 
         {submitted ? (
           <div className="bg-white/20 rounded-2xl px-8 py-6 text-white font-medium">
-            Thank you! You're on the list.
+            Thank you! You&apos;re on the list.
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">

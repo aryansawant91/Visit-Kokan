@@ -54,9 +54,10 @@ export interface Product {
   status: ProductStatus;
   approved: boolean;
   isActive?: boolean;
+  isGiftable?: boolean;
+  codAvailable?: boolean;
   createdAt: string;
   updatedAt: string;
-  // Trending
   isFeaturedTrending?: boolean;
   trendingPriority?: number;
 }

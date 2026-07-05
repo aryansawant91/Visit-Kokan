@@ -57,7 +57,7 @@ export default function OrderConfirmationPage() {
             A confirmation email has been sent to {order.userEmail}
           </p>
           <p className="text-xs text-kokan-earth/30">
-            You'll be redirected to homepage in 10 seconds
+            You&apos;ll be redirected to homepage in 10 seconds
           </p>
         </div>
 

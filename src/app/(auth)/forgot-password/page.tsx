@@ -91,14 +91,14 @@ export default function ForgotPasswordPage() {
           <div className="space-y-5">
             <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full">
               <Waves className="w-4 h-4 text-white" />
-              <span className="text-white/90 text-sm font-medium">We've got you covered</span>
+              <span className="text-white/90 text-sm font-medium">We&apos;ve got you covered</span>
             </div>
             <h2 className="font-playfair text-4xl font-bold text-white leading-tight">
               Happens to<br />
               <span className="text-kokan-sand">everyone.</span>
             </h2>
             <p className="text-white/65 text-sm leading-relaxed max-w-xs">
-              Just enter your registered email and we'll send you a secure link
+              Just enter your registered email and we&apos;ll send you a secure link
               to reset your password. Takes less than a minute.
             </p>
 
@@ -120,7 +120,7 @@ export default function ForgotPasswordPage() {
 
           <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 text-sm text-white/60 leading-relaxed">
             💡 <span className="text-white/80 font-medium">Tip:</span> Check
-            your spam folder if you don't see the email within a few minutes.
+            your spam folder if you don&apos;t see the email within a few minutes.
           </div>
         </div>
       </div>
@@ -151,12 +151,12 @@ export default function ForgotPasswordPage() {
                 </h1>
                 <p className="text-kokan-earth/50 text-sm leading-relaxed">
                   If <span className="text-kokan-earth font-medium">{email}</span> is
-                  registered with us, you'll receive a password reset link shortly.
+                  registered with us, you&apos;ll receive a password reset link shortly.
                 </p>
               </div>
 
               <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 text-left leading-relaxed">
-                📬 Don't see it? Check your spam or junk folder. The link expires in 1 hour.
+                📬 Don&apos;t see it? Check your spam or junk folder. The link expires in 1 hour.
               </div>
 
               <div className="space-y-2 pt-2">
@@ -190,7 +190,7 @@ export default function ForgotPasswordPage() {
                   Forgot password?
                 </h1>
                 <p className="text-kokan-earth/50 text-sm">
-                  No worries — we'll send you a reset link.
+                  No worries — we&apos;ll send you a reset link.
                 </p>
               </div>
 

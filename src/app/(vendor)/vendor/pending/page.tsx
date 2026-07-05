@@ -129,7 +129,7 @@ export default function VendorPendingPage() {
             Hey, {profile?.displayName?.split(" ")[0] ?? "there"} 👋
           </h1>
           <p className="text-kokan-earth/50 text-sm mt-0.5">
-            Here's the status of your vendor application.
+            Here&apos;s the status of your vendor application.
           </p>
         </div>
 

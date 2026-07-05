@@ -98,7 +98,7 @@ export default function NewProductPage() {
             Product Submitted!
           </h2>
           <p className="text-kokan-earth/60 text-sm mb-6">
-            Your product is under review. Admin will approve it shortly and it'll go live on the products page.
+            Your product is under review. Admin will approve it shortly and it&apos;ll go live on the products page.
           </p>
           <div className="flex gap-3">
             <button

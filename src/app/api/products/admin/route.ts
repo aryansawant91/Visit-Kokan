@@ -28,7 +28,11 @@ export async function PATCH(req: NextRequest) {
     await db
       .collection("products")
       .doc(id)
-      .update({ ...updates, updatedAt: new Date().toISOString() });
+      .update({
+        ...updates,
+        codAvailable: updates.codAvailable ?? true,
+        updatedAt: new Date().toISOString(),
+      });
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error(err);

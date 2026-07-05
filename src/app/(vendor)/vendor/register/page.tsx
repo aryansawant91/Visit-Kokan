@@ -52,7 +52,7 @@ export default function VendorRegisterPage() {
         {user ? (
           <div className="bg-white rounded-2xl p-6 border border-kokan-sand/30 text-center space-y-3">
             <p className="text-sm text-kokan-earth/60">
-              You're logged in as <span className="font-medium text-kokan-earth">{profile?.email}</span>
+              You&apos;re logged in as <span className="font-medium text-kokan-earth">{profile?.email}</span>
             </p>
             <p className="text-xs text-kokan-earth/40">
               To become a vendor, register a new account with the Vendor option selected

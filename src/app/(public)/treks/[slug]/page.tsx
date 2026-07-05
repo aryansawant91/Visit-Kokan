@@ -42,12 +42,11 @@ export default async function TrekPage({ params }: { params: { slug: string } })
   return (
     <div className="min-h-screen bg-white">
 
-      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
+      {/* ── Hero ── */}
       <div className="relative h-[60vw] max-h-[520px] min-h-[280px] overflow-hidden">
         <Image src={heroImage} alt={trek.name} fill className="object-cover" priority />
         <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/35 to-black/15" />
 
-        {/* Back to Travel tab */}
         <div className="absolute top-4 left-4 z-10">
           <Link
             href="/?tab=travel"
@@ -57,7 +56,6 @@ export default async function TrekPage({ params }: { params: { slug: string } })
           </Link>
         </div>
 
-        {/* Back to all treks */}
         <div className="absolute top-4 left-[5.5rem] z-10">
           <Link
             href="/treks"
@@ -67,7 +65,6 @@ export default async function TrekPage({ params }: { params: { slug: string } })
           </Link>
         </div>
 
-        {/* Hero text */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-6 sm:px-8 sm:pb-10 md:px-14 md:pb-14">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center gap-2 mb-2.5 flex-wrap">
@@ -82,8 +79,6 @@ export default async function TrekPage({ params }: { params: { slug: string } })
             <div className="flex items-center gap-1.5 text-white/70 mt-2 text-sm">
               <MapPin size={13} /> {trek.region}, Maharashtra
             </div>
-
-            {/* Quick stats — horizontal scroll on mobile */}
             <div className="flex gap-3 mt-3 overflow-x-auto scrollbar-hide">
               <span className="flex-shrink-0 flex items-center gap-1 text-white/70 text-xs bg-white/10 px-2.5 py-1.5 rounded-lg backdrop-blur-sm">
                 <Clock size={12} /> {trek.duration}
@@ -101,7 +96,7 @@ export default async function TrekPage({ params }: { params: { slug: string } })
         </div>
       </div>
 
-      {/* ── Image strip ───────────────────────────────────────────────────────── */}
+      {/* ── Image strip ── */}
       {trek.images?.length > 1 && (
         <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-8 mt-4">
           <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
@@ -119,14 +114,13 @@ export default async function TrekPage({ params }: { params: { slug: string } })
         </div>
       )}
 
-      {/* ── Content ───────────────────────────────────────────────────────────── */}
+      {/* ── Content ── */}
       <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-8 py-6 sm:py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12">
 
-          {/* ── Left: trek details ────────────────────────────────────────────── */}
+          {/* Left: trek details */}
           <div className="lg:col-span-2 order-2 lg:order-1 space-y-8">
 
-            {/* About */}
             <div>
               <h2 className="text-xl sm:text-2xl font-display font-bold text-kokan-earth mb-3">
                 About This Trek
@@ -134,15 +128,14 @@ export default async function TrekPage({ params }: { params: { slug: string } })
               <p className="text-gray-600 text-sm sm:text-base leading-relaxed">{trek.description}</p>
             </div>
 
-            {/* Trek info grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { label: "Duration",     value: trek.duration,     icon: "⏱" },
-                { label: "Distance",     value: trek.distance,     icon: "📍" },
-                { label: "Start Point",  value: trek.startPoint,   icon: "🚩" },
-                { label: "End Point",    value: trek.endPoint,     icon: "🏁" },
+                { label: "Duration",    value: trek.duration,    icon: "⏱" },
+                { label: "Distance",    value: trek.distance,    icon: "📍" },
+                { label: "Start Point", value: trek.startPoint,  icon: "🚩" },
+                { label: "End Point",   value: trek.endPoint,    icon: "🏁" },
                 ...(trek.maxAltitude ? [{ label: "Max Altitude", value: trek.maxAltitude, icon: "⛰️" }] : []),
-                { label: "Best Season",  value: trek.bestSeason,   icon: "🌤️" },
+                { label: "Best Season", value: trek.bestSeason,  icon: "🌤️" },
               ].map((item) => (
                 <div key={item.label} className="p-3 sm:p-4 bg-kokan-cream/30 rounded-xl border border-kokan-sand/20">
                   <span className="text-lg sm:text-xl">{item.icon}</span>
@@ -152,7 +145,6 @@ export default async function TrekPage({ params }: { params: { slug: string } })
               ))}
             </div>
 
-            {/* Highlights */}
             {trek.highlights?.length > 0 && (
               <div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-kokan-earth mb-3 flex items-center gap-2">
@@ -169,7 +161,6 @@ export default async function TrekPage({ params }: { params: { slug: string } })
               </div>
             )}
 
-            {/* Itinerary */}
             {trek.itinerary?.length > 0 && (
               <div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-kokan-earth mb-5">
@@ -179,7 +170,6 @@ export default async function TrekPage({ params }: { params: { slug: string } })
               </div>
             )}
 
-            {/* Things to bring */}
             {trek.thingsToBring?.length > 0 && (
               <div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-kokan-earth mb-3 flex items-center gap-2">
@@ -203,11 +193,12 @@ export default async function TrekPage({ params }: { params: { slug: string } })
                 trekSlug={trek.slug}
                 pricePerPerson={trek.price ?? 0}
                 maxCapacity={20}
+                advanceAmount={trek.advanceAmount ?? 0}
               />
             </div>
           </div>
 
-          {/* ── Right: booking widget (desktop) ───────────────────────────────── */}
+          {/* Right: booking widget (desktop) */}
           <div className="order-1 lg:order-2 hidden lg:block">
             <div className="sticky top-4">
               <TrekBookingWidget
@@ -216,6 +207,7 @@ export default async function TrekPage({ params }: { params: { slug: string } })
                 trekSlug={trek.slug}
                 pricePerPerson={trek.price ?? 0}
                 maxCapacity={20}
+                advanceAmount={trek.advanceAmount ?? 0}
               />
             </div>
           </div>

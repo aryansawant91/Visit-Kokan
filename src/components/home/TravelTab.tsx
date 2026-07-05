@@ -280,7 +280,7 @@ export default function TravelTab() {
         <div className="bg-kokan-green rounded-2xl p-6 text-center">
           <div className="text-4xl mb-3">🗺️</div>
           <h3 className="font-playfair font-bold text-white text-xl mb-2">Plan Your Kokan Trip</h3>
-          <p className="text-white/70 text-sm mb-4">Tell us your dates and budget — we'll build the perfect itinerary</p>
+          <p className="text-white/70 text-sm mb-4">Tell us your dates and budget — we&apos;ll build the perfect itinerary</p>
           <Link
             href="/trip-planner"
             className="inline-block bg-white text-kokan-green font-bold px-6 py-2.5 rounded-full text-sm hover:bg-kokan-cream transition-colors"

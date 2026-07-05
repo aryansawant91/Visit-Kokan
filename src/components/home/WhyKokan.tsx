@@ -43,7 +43,7 @@ export default function WhyKokan() {
             A World Apart
           </h2>
           <p className="mt-4 text-gray-500 max-w-xl mx-auto text-lg">
-            The Konkan coast is one of India's best kept secrets — raw, real and breathtaking.
+            The Konkan coast is one of India&apos;s best kept secrets — raw, real and breathtaking.
           </p>
         </div>
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { PRODUCT_CATEGORIES, PRODUCT_REGIONS } from "@/constants/productCategories";
 import { Plus, X, ShieldCheck, ChevronDown, ChevronUp, Check } from "lucide-react";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 const toSlug = (name: string) =>
   name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") +
@@ -17,34 +18,31 @@ export default function AdminNewProductPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess]       = useState(false);
 
-  // ── Sections ───────────────────────────────────────────────────────────────
   const [sections, setSections] = useState({
     basic: true, pricing: false, images: false, details: false,
   });
   const toggle = (k: keyof typeof sections) =>
     setSections((s) => ({ ...s, [k]: !s[k] }));
 
-  // ── Form ───────────────────────────────────────────────────────────────────
   const [form, setForm] = useState({
-    name:        "",
-    slug:        "",
-    description: "",
-    category:    "fruits",
-    region:      "Ratnagiri",
-    price:       "",
-    unit:        "per kg",
-    stock:       "",
-    discount:    "",
-    features:    [""],
+    name:           "",
+    slug:           "",
+    description:    "",
+    category:       "fruits",
+    region:         "Ratnagiri",
+    price:          "",
+    unit:           "per kg",
+    stock:          "",
+    discount:       "",
+    features:       [""],
     specifications: [""],
+    codAvailable:   true,
   });
 
-  // Image URLs (array of strings, same as treks)
   const [imageUrls, setImageUrls] = useState<string[]>(["", "", "", ""]);
-
   const [errors, setErrors] = useState<string[]>([]);
 
-  const setField = (k: keyof typeof form, v: string) =>
+  const setField = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
   const setListItem = (k: "features" | "specifications", i: number, v: string) =>
@@ -59,7 +57,6 @@ export default function AdminNewProductPage() {
       return { ...f, [k]: a.length ? a : [""] };
     });
 
-  // ── Validate ───────────────────────────────────────────────────────────────
   const validate = () => {
     const errs: string[] = [];
     if (!form.name.trim())        errs.push("Product name is required");
@@ -70,7 +67,6 @@ export default function AdminNewProductPage() {
     return errs.length === 0;
   };
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!user) return;
     if (!validate()) {
@@ -91,6 +87,7 @@ export default function AdminNewProductPage() {
           images:         imageUrls.filter(Boolean),
           features:       form.features.filter(Boolean),
           specifications: form.specifications.filter(Boolean),
+          codAvailable:   form.codAvailable,
           vendorId:       null,
           vendorName:     "Visit Kokan Team",
           addedBy:        user.uid,
@@ -112,13 +109,13 @@ export default function AdminNewProductPage() {
       name: "", slug: "", description: "", category: "fruits",
       region: "Ratnagiri", price: "", unit: "per kg",
       stock: "", discount: "", features: [""], specifications: [""],
+      codAvailable: true,
     });
     setImageUrls(["", "", "", ""]);
     setErrors([]);
     setSections({ basic: true, pricing: false, images: false, details: false });
   };
 
-  // ── Section wrapper ────────────────────────────────────────────────────────
   function Section({
     id, title, open, children,
   }: { id: keyof typeof sections; title: string; open: boolean; children: React.ReactNode }) {
@@ -139,7 +136,6 @@ export default function AdminNewProductPage() {
     );
   }
 
-  // ── Success ────────────────────────────────────────────────────────────────
   if (success) {
     return (
       <div className="min-h-screen bg-kokan-cream/30 flex items-center justify-center p-4">
@@ -168,12 +164,10 @@ export default function AdminNewProductPage() {
     );
   }
 
-  // ── Form render ────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-kokan-cream/30">
       <div className="max-w-2xl mx-auto px-4 py-8">
 
-        {/* Header */}
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-2xl font-bold text-kokan-earth font-playfair">Add Product</h1>
           <span className="flex items-center gap-1 bg-kokan-green/10 text-kokan-green text-xs font-medium px-2.5 py-1 rounded-full">
@@ -184,7 +178,6 @@ export default function AdminNewProductPage() {
           Products added by admin go live immediately without review.
         </p>
 
-        {/* Errors */}
         {errors.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 space-y-1">
             {errors.map((e, i) => (
@@ -230,12 +223,10 @@ export default function AdminNewProductPage() {
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
                 Description *
               </label>
-              <textarea
+              <RichTextEditor
                 value={form.description}
-                onChange={(e) => setField("description", e.target.value)}
-                rows={3}
+                onChange={(html) => setField("description", html)}
                 placeholder="Describe the product — origin, quality, packaging..."
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
               />
             </div>
 
@@ -313,6 +304,24 @@ export default function AdminNewProductPage() {
                 className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
               />
             </div>
+
+            {/* ── COD TOGGLE ── */}
+            <label className="flex items-center justify-between cursor-pointer select-none py-2 border-t border-gray-100 mt-3 pt-3">
+              <div>
+                <p className="text-sm font-semibold text-kokan-earth">Cash on Delivery available</p>
+                <p className="text-xs text-gray-400 mt-0.5">Allow customers to pay cash when this product is delivered</p>
+              </div>
+              <div
+                onClick={() => setField("codAvailable", !form.codAvailable)}
+                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer flex-shrink-0 ${
+                  form.codAvailable ? "bg-kokan-green" : "bg-gray-200"
+                }`}
+              >
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${
+                  form.codAvailable ? "left-6" : "left-1"
+                }`} />
+              </div>
+            </label>
           </Section>
 
           {/* ── IMAGES ── */}
@@ -333,7 +342,6 @@ export default function AdminNewProductPage() {
                     placeholder={i === 0 ? "Hero image URL *" : `Image ${i + 1} URL (optional)`}
                     className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                   />
-                  {/* Live preview thumbnail */}
                   {url && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -349,10 +357,8 @@ export default function AdminNewProductPage() {
             </div>
           </Section>
 
-          {/* ── DETAILS (optional) ── */}
+          {/* ── DETAILS ── */}
           <Section id="details" title="Features & Specifications (optional)" open={sections.details}>
-
-            {/* Features */}
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Features</label>
               <div className="space-y-2">
@@ -383,10 +389,9 @@ export default function AdminNewProductPage() {
               </div>
             </div>
 
-            {/* Specifications */}
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                Specifications <span className="normal-case font-normal text-gray-300">(e.g. "Weight: 1kg")</span>
+                Specifications <span className="normal-case font-normal text-gray-300">(e.g. &quot;Weight: 1kg&quot;)</span>
               </label>
               <div className="space-y-2">
                 {form.specifications.map((s, i) => (
@@ -417,7 +422,6 @@ export default function AdminNewProductPage() {
             </div>
           </Section>
 
-          {/* Submit */}
           <button
             onClick={handleSubmit}
             disabled={submitting}

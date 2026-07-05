@@ -8,7 +8,7 @@ export default function WishlistPage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-playfair text-2xl font-bold text-kokan-earth">My Wishlist</h1>
-        <p className="text-kokan-earth/50 text-sm mt-1">Places and listings you've saved</p>
+        <p className="text-kokan-earth/50 text-sm mt-1">Places and listings you&apos;ve saved</p>
       </div>
 
       {/* Category tabs */}
@@ -35,7 +35,7 @@ export default function WishlistPage() {
         <div>
           <p className="font-semibold text-kokan-earth mb-1">Your wishlist is empty</p>
           <p className="text-sm text-kokan-earth/50">
-            Save destinations and homestays you'd love to visit
+            Save destinations and homestays you&apos;d love to visit
           </p>
         </div>
         <div className="flex gap-3 mt-2">

@@ -82,7 +82,7 @@ function OTPInput({ value, onChange }: { value: string; onChange: (v: string) =>
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKey(i, e)}
           onPaste={handlePaste}
-          className="w-11 h-13 text-center text-lg font-bold border-2 rounded-xl focus:outline-none focus:border-kokan-green transition-colors border-kokan-sand text-kokan-earth bg-white"
+          className="w-11 h-12 text-center text-lg font-bold border-2 rounded-xl focus:outline-none focus:border-kokan-green transition-colors border-kokan-sand text-kokan-earth bg-white"
         />
       ))}
     </div>
@@ -235,7 +235,7 @@ export default function RegisterPage() {
 
             {/* Resend */}
             <div className="text-center text-sm text-kokan-earth/50">
-              Didn't receive it?{" "}
+              Didn&apos;t receive it?{" "}
               {resendCooldown > 0 ? (
                 <span className="inline-flex items-center gap-1">
                   Resend in <Countdown seconds={resendCooldown} onEnd={() => setResendCooldown(0)} />
@@ -321,7 +321,7 @@ export default function RegisterPage() {
               ))}
             </div>
             <p className="text-white/80 text-xs leading-relaxed italic">
-              "Signed up in 30 seconds, booked a trek to Harishchandragad the same day. Incredible platform!"
+              &quot;Signed up in 30 seconds, booked a trek to Harishchandragad the same day. Incredible platform!&quot;
             </p>
             <div className="flex items-center gap-2 mt-3">
               <div className="w-6 h-6 rounded-full bg-kokan-sand flex items-center justify-center text-xs font-bold text-kokan-earth">A</div>
@@ -502,7 +502,7 @@ export default function RegisterPage() {
                 </button>
               </div>
               {confirm && confirm !== password && (
-                <p className="text-xs text-red-400 mt-1">Passwords don't match</p>
+                <p className="text-xs text-red-400 mt-1">Passwords don&apos;t match</p>
               )}
             </div>
 

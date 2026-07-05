@@ -38,6 +38,7 @@ export default function TrendingNow() {
           collection(db, 'products'),
           where('isFeaturedTrending', '==', true),
           where('status', '==', 'approved'),
+          where('isActive','==',1),
           orderBy('trendingPriority', 'asc'),
           limit(4)
         )
@@ -58,13 +59,15 @@ export default function TrendingNow() {
 
         const mlProducts = await Promise.all(
           scoreProductIds.map(async (id) => {
-            const snap = await getDoc(doc(db, 'products', id))
-            if (!snap.exists()) return null
-            const data = snap.data()
-            if (data.status !== 'approved') return null
-            return { id: snap.id, ...data } as Product
+            const snap = await getDoc(doc(db, "products", id));
+            if (!snap.exists()) return null;
+            const data = snap.data();
+            // Fix: check both status AND isActive (handles boolean true and number 1)
+            if (data.status !== "approved") return null;
+            if (data.isActive === false || data.isActive === 0) return null;
+            return { id: snap.id, ...data } as Product;
           })
-        )
+);
 
         const merged = [
           ...pinned,

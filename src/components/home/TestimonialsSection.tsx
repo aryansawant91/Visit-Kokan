@@ -46,7 +46,7 @@ export default function TestimonialsSection() {
                   <span key={i} className="text-kokan-sand text-lg">★</span>
                 ))}
               </div>
-              <p className="text-white/85 text-sm leading-relaxed mb-6">"{t.text}"</p>
+              <p className="text-white/85 text-sm leading-relaxed mb-6">&quot;{t.text}&quot;</p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-kokan-sand text-white flex items-center justify-center text-sm font-bold">
                   {t.avatar}

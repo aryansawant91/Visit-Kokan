@@ -134,7 +134,7 @@ export default function SearchPage() {
         ) : query && results.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">🔍</div>
-            <p className="font-semibold text-kokan-earth mb-1">No results for "{query}"</p>
+            <p className="font-semibold text-kokan-earth mb-1">No results for &quot;{query}&quot;</p>
             <p className="text-sm text-kokan-earth/50">Try different keywords</p>
           </div>
         ) : !query ? (
@@ -144,7 +144,7 @@ export default function SearchPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            <p className="text-sm text-kokan-earth/50">{results.length} results for "{query}"</p>
+            <p className="text-sm text-kokan-earth/50">{results.length} results for &quot;{query}&quot;</p>
             {(Object.entries(grouped) as [keyof typeof grouped, SearchResult[]][])
               .filter(([, items]) => items.length > 0)
               .map(([type, items]) => (
