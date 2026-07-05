@@ -66,7 +66,11 @@ export default function OrderConfirmationPage() {
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-kokan-earth">Order Details</h2>
             <span className="text-xs bg-kokan-green/10 text-kokan-green px-2.5 py-1 rounded-full font-medium capitalize">
-              {order.status}
+              {order.status === "pending_verification" && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-700 mb-4">
+                ⏳ Your booking is <strong>pending verification</strong>. Please pay ₹{order.totalAmount.toLocaleString("en-IN")} in cash before the trek. Our team will confirm your slot once payment is received.
+              </div>
+            )}
             </span>
           </div>
 

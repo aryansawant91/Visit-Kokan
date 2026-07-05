@@ -7,13 +7,15 @@ import { Order } from "@/types/order";
 import { Package, ShoppingCart, ArrowRight, Truck, CheckCircle, Clock, X } from "lucide-react";
 import Link from "next/link";
 
-const statusConfig = {
+const statusConfig: Record<Order["status"], { icon: React.ReactNode; color: string; label: string }> = {
   pending: { icon: <Clock className="w-3.5 h-3.5" />, color: "text-yellow-600 bg-yellow-50", label: "Pending" },
+  pending_verification: { icon: <Clock className="w-3.5 h-3.5" />, color: "text-amber-600 bg-amber-50", label: "Pending Verification" },
   confirmed: { icon: <CheckCircle className="w-3.5 h-3.5" />, color: "text-blue-600 bg-blue-50", label: "Confirmed" },
   out_for_delivery: { icon: <Truck className="w-3.5 h-3.5" />, color: "text-orange-600 bg-orange-50", label: "Out for Delivery" },
   delivered: { icon: <CheckCircle className="w-3.5 h-3.5" />, color: "text-green-600 bg-green-50", label: "Delivered" },
   cancelled: { icon: <X className="w-3.5 h-3.5" />, color: "text-red-500 bg-red-50", label: "Cancelled" },
 };
+
 
 export default function OrdersPage() {
   const { profile } = useAuth();
@@ -82,6 +84,7 @@ export default function OrdersPage() {
       ) : (
         <div className="space-y-3">
           {orders.map((order) => {
+  
             const status = statusConfig[order.status] ?? statusConfig.pending;
             return (
               <div key={order.id} className="bg-white rounded-2xl p-5 border border-kokan-sand/30">

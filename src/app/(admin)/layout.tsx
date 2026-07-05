@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Store, MapPin, Package,
   BookOpen, BarChart3, LogOut, ChevronLeft, ChevronRight,
-  Bell, Settings, ShieldCheck, Plus, Mountain, ShoppingBag, Flame,Tag
+  Bell, Settings, ShieldCheck, Plus, Mountain, ShoppingBag, Flame, Tag,
+  IndianRupee,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -22,7 +23,9 @@ const navItems = [
   { href: "/admin/trending", label: "Trending", icon: Flame },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
-  { label: "Coupons", href: "/admin/coupons", icon: Tag }
+{ href: "/admin/finance", label: "Finance", icon: IndianRupee },
+{ label: "Coupons", href: "/admin/coupons", icon: Tag }
+  
 ];
 
 const pageActions: Record<string, { label: string; href: string }> = {

@@ -6,14 +6,16 @@ import { Package, Truck, CheckCircle, Clock, X, ChevronDown } from "lucide-react
 
 const STATUS_OPTIONS: { value: OrderStatus; label: string; color: string }[] = [
   { value: "pending", label: "Pending", color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
+  { value: "pending_verification", label: "Pending Verification", color: "text-amber-600 bg-amber-50 border-amber-200" },
   { value: "confirmed", label: "Confirmed", color: "text-blue-600 bg-blue-50 border-blue-200" },
   { value: "out_for_delivery", label: "Out for Delivery", color: "text-orange-600 bg-orange-50 border-orange-200" },
   { value: "delivered", label: "Delivered", color: "text-green-600 bg-green-50 border-green-200" },
   { value: "cancelled", label: "Cancelled", color: "text-red-500 bg-red-50 border-red-200" },
 ];
 
-const statusIcon = {
+const statusIcon: Partial<Record<OrderStatus, JSX.Element>> = {
   pending: <Clock className="w-4 h-4" />,
+  pending_verification: <Clock className="w-4 h-4" />,
   confirmed: <CheckCircle className="w-4 h-4" />,
   out_for_delivery: <Truck className="w-4 h-4" />,
   delivered: <CheckCircle className="w-4 h-4" />,

@@ -1,5 +1,6 @@
 export type OrderStatus = 
   | "pending" 
+  |"pending_verification"
   | "confirmed" 
   | "out_for_delivery" 
   | "delivered" 
@@ -52,6 +53,13 @@ export interface Order {
   trekSlug?: string;
   whatsappGroupLink?: string | null;
 
+  paymentType?: "full" | "advance";
+  advancePaid?: number;
+  remainingCash?: number;
+  cashCollected?: boolean;
+  couponCode?: string | null;
+  couponDiscount?: number;
+  offlineVerified?: boolean;
   totalAmount: number;
   status: OrderStatus;
 

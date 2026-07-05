@@ -181,6 +181,8 @@ export default function TrekBookingWidget({
     advanceAmount > 0 ? "half" : "full"
   );
 
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "offline">("online");
+
   // ── Coupon state ──────────────────────────────────────────────────────────
   const [visibleCoupons, setVisibleCoupons] = useState<VisibleCoupon[]>([]);
   const [couponInput, setCouponInput]       = useState("");
@@ -203,7 +205,7 @@ export default function TrekBookingWidget({
   const totalAmount    = Math.max(0, subtotal - couponDiscount);
 
   const hasAdvanceOption   = advanceAmount > 0;
-  const showSplitBreakdown = hasAdvanceOption && paymentChoice === "half";
+  const showSplitBreakdown = hasAdvanceOption && paymentChoice === "half" && paymentMethod === "online";
   const amountToPayOnline  = showSplitBreakdown ? advanceAmount : totalAmount;
   const remainingCash      = showSplitBreakdown ? Math.max(0, totalAmount - advanceAmount) : 0;
 
@@ -371,6 +373,43 @@ export default function TrekBookingWidget({
       setLoading(false);
     }
   };
+
+  const handleOfflineBooking = async () => {
+  if (!user) { router.push(`/login?redirect=/treks/${trekSlug}`); return; }
+  if (!validate()) return;
+  setLoading(true);
+
+  try {
+    const res = await fetch("/api/checkout/create-offline-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderType: "trek",
+        userId: user.uid, userEmail: user.email,
+        userName: profile?.displayName ?? user.email ?? "Guest",
+        trekId, trekName, trekSlug,
+        whatsappGroupLink: whatsappGroupLink ?? null,
+        couponCode: appliedCoupon?.code ?? null,
+        couponDiscount,
+        totalAmount,
+        persons: persons.map((p) => ({
+          name: p.name, birthDate: p.birthDate,
+          age: calculateAge(p.birthDate), gender: p.gender,
+          foodPreference: p.foodPreference,
+          medicalConditions: p.medicalConditions,
+          idProofUrl: p.idProofUrl,
+        })),
+      }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error("Booking failed");
+    router.replace(`/order-confirmation/${data.orderId}`);
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong. Try again.");
+    setLoading(false);
+  }
+};
 
   const p = persons[activePerson];
   const age = p?.birthDate ? calculateAge(p.birthDate) : null;
@@ -808,8 +847,42 @@ export default function TrekBookingWidget({
                   Open Terms above and tick the checkbox to continue
                 </p>
               )}
+              <div className="mb-4">
+                <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1.5">
+                  Payment Method
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("online")}
+                    className={`flex-1 py-2.5 rounded-xl border text-xs font-bold transition-all ${
+                      paymentMethod === "online"
+                        ? "bg-kokan-green text-white border-kokan-green"
+                        : "bg-white text-kokan-earth/60 border-kokan-sand/60 hover:border-kokan-green/40"
+                    }`}
+                  >
+                    💳 Pay Online
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("offline")}
+                    className={`flex-1 py-2.5 rounded-xl border text-xs font-bold transition-all ${
+                      paymentMethod === "offline"
+                        ? "bg-kokan-green text-white border-kokan-green"
+                        : "bg-white text-kokan-earth/60 border-kokan-sand/60 hover:border-kokan-green/40"
+                    }`}
+                  >
+                    💵 Pay Offline (Cash)
+                  </button>
+                </div>
+                {paymentMethod === "offline" && (
+                  <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 leading-relaxed">
+                    Your slot will be marked <strong>pending</strong> until you pay ₹{totalAmount.toLocaleString("en-IN")} in person and our team verifies it.
+                  </p>
+                )}
+              </div>
 
-              {hasAdvanceOption && (
+              {hasAdvanceOption   && paymentMethod === "online" && (
                 <div className="mb-4">
                   <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1.5">
                     Payment Option
@@ -841,14 +914,16 @@ export default function TrekBookingWidget({
                 </div>
               )}
 
-              <button
-                onClick={handleBooking}
+             <button
+                onClick={paymentMethod === "offline" ? handleOfflineBooking : handleBooking}
                 disabled={loading || !agreed}
                 className="w-full flex items-center justify-center gap-2 py-4 bg-kokan-green text-white rounded-xl font-bold text-sm hover:bg-kokan-green/90 active:bg-kokan-green/80 transition-colors disabled:opacity-50 shadow-lg shadow-kokan-green/20"
               >
                 {loading
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</>
-                  : <><CreditCard className="w-4 h-4" /> Pay ₹{amountToPayOnline.toLocaleString("en-IN")}{showSplitBreakdown ? " to Confirm" : ""}</>
+                  : paymentMethod === "offline"
+                    ? <>Confirm Booking — Pay ₹{totalAmount.toLocaleString("en-IN")} at Trek</>
+                    : <><CreditCard className="w-4 h-4" /> Pay ₹{amountToPayOnline.toLocaleString("en-IN")}{showSplitBreakdown ? " to Confirm" : ""}</>
                 }
               </button>
               <p className="text-center text-[11px] text-kokan-earth/30 mt-2">🔒 Secured by Razorpay</p>
