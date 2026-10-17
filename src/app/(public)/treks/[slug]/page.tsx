@@ -7,6 +7,8 @@ import { TREK_CATEGORIES } from "@/constants/trekConstants";
 import TrekDifficultyBadge from "@/components/trek/TrekDifficultyBadge";
 import TrekItinerary from "@/components/trek/TrekItinerary";
 import TrekBookingWidget from "@/components/trek/TrekBookingWidget";
+import TrekNotifyWidget from "@/components/trek/TrekNotifyWidget";
+import { Trek } from "@/types/trek";
 
 async function getTrek(slug: string) {
   try {
@@ -187,30 +189,48 @@ export default async function TrekPage({ params }: { params: { slug: string } })
 
             {/* Mobile booking widget */}
             <div className="lg:hidden">
-              <TrekBookingWidget
-                trekId={trek.id}
-                trekName={trek.name}
-                trekSlug={trek.slug}
-                pricePerPerson={trek.price ?? 0}
-                maxCapacity={20}
-                advanceAmount={trek.advanceAmount ?? 0}
-                whatsappGroupLink={trek.whatsappGroupLink}
-              />
+              {trek.scheduledDate ? (
+                <TrekBookingWidget
+                  trekId={trek.id}
+                  trekName={trek.name}
+                  trekSlug={trek.slug}
+                  pricePerPerson={trek.price ?? 0}
+                  maxCapacity={20}
+                  advanceAmount={trek.advanceAmount ?? 0}
+                  whatsappGroupLink={trek.whatsappGroupLink}
+                  scheduledDate={trek.scheduledDate}
+                />
+              ) : (
+                <TrekNotifyWidget
+                  trekName={trek.name}
+                  pricePerPerson={trek.price ?? 0}
+                  whatsappGroupLink={trek.whatsappGroupLink}
+                />
+              )}
             </div>
           </div>
 
           {/* Right: booking widget (desktop) */}
           <div className="order-1 lg:order-2 hidden lg:block">
             <div className="sticky top-4">
-              <TrekBookingWidget
-                trekId={trek.id}
-                trekName={trek.name}
-                trekSlug={trek.slug}
-                pricePerPerson={trek.price ?? 0}
-                maxCapacity={20}
-                advanceAmount={trek.advanceAmount ?? 0}
-                whatsappGroupLink={trek.whatsappGroupLink}
-              />
+              {trek.scheduledDate ? (
+                <TrekBookingWidget
+                  trekId={trek.id}
+                  trekName={trek.name}
+                  trekSlug={trek.slug}
+                  pricePerPerson={trek.price ?? 0}
+                  maxCapacity={20}
+                  advanceAmount={trek.advanceAmount ?? 0}
+                  whatsappGroupLink={trek.whatsappGroupLink}
+                  scheduledDate={trek.scheduledDate}
+                />
+              ) : (
+                <TrekNotifyWidget
+                  trekName={trek.name}
+                  pricePerPerson={trek.price ?? 0}
+                  whatsappGroupLink={trek.whatsappGroupLink}
+                />
+              )}
             </div>
           </div>
         </div>

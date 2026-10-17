@@ -37,6 +37,7 @@ export default function AdminNewProductPage() {
     features:       [""],
     specifications: [""],
     codAvailable:   true,
+    isComingSoon:   false,
   });
 
   const [imageUrls, setImageUrls] = useState<string[]>(["", "", "", ""]);
@@ -88,6 +89,7 @@ export default function AdminNewProductPage() {
           features:       form.features.filter(Boolean),
           specifications: form.specifications.filter(Boolean),
           codAvailable:   form.codAvailable,
+          isComingSoon:   form.isComingSoon,
           vendorId:       null,
           vendorName:     "Visit Kokan Team",
           addedBy:        user.uid,
@@ -110,6 +112,7 @@ export default function AdminNewProductPage() {
       region: "Ratnagiri", price: "", unit: "per kg",
       stock: "", discount: "", features: [""], specifications: [""],
       codAvailable: true,
+      isComingSoon: false,
     });
     setImageUrls(["", "", "", ""]);
     setErrors([]);
@@ -319,6 +322,24 @@ export default function AdminNewProductPage() {
               >
                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${
                   form.codAvailable ? "left-6" : "left-1"
+                }`} />
+              </div>
+            </label>
+
+            {/* ── COMING SOON TOGGLE ── */}
+            <label className="flex items-center justify-between cursor-pointer select-none py-2 border-t border-gray-100 mt-3 pt-3">
+              <div>
+                <p className="text-sm font-semibold text-kokan-earth">Coming Soon</p>
+                <p className="text-xs text-gray-400 mt-0.5">Hides Buy Now / Add to Cart. Product will still be visible to browse.</p>
+              </div>
+              <div
+                onClick={() => setField("isComingSoon", !form.isComingSoon)}
+                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer flex-shrink-0 ${
+                  form.isComingSoon ? "bg-amber-500" : "bg-gray-200"
+                }`}
+              >
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${
+                  form.isComingSoon ? "left-6" : "left-1"
                 }`} />
               </div>
             </label>

@@ -24,6 +24,7 @@ interface ProductForm {
   specifications: string[];
   images:         string[];
   codAvailable:   boolean;
+  isComingSoon:   boolean;
 }
 
 const UNITS = ["per kg", "per box", "per dozen", "per piece", "per bottle", "per night", "per person"];
@@ -65,6 +66,7 @@ export default function AdminProductEditPage() {
     region: "Ratnagiri", price: "", unit: "per kg",
     stock: "", discount: "", features: [""], specifications: [""], images: [""],
     codAvailable: true,
+    isComingSoon: false,
   });
 
   const [sections, setSections] = useState({
@@ -93,6 +95,7 @@ export default function AdminProductEditPage() {
           specifications: data.specifications?.length ? data.specifications : [""],
           images:         data.images?.length          ? data.images          : [""],
           codAvailable:   data.codAvailable ?? true,
+          isComingSoon:   data.isComingSoon ?? false,
         });
         setLoading(false);
       })
@@ -149,6 +152,7 @@ export default function AdminProductEditPage() {
           specifications: form.specifications.filter(Boolean),
           images:         form.images.filter(Boolean),
           codAvailable:   form.codAvailable,
+          isComingSoon:   form.isComingSoon,
         }),
       });
       if (!res.ok) throw new Error("Save failed");
@@ -340,6 +344,24 @@ export default function AdminProductEditPage() {
               >
                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${
                   form.codAvailable ? "left-6" : "left-1"
+                }`} />
+              </div>
+            </label>
+
+            {/* ── COMING SOON TOGGLE ── */}
+            <label className="flex items-center justify-between cursor-pointer select-none py-2 border-t border-gray-100 mt-3 pt-3">
+              <div>
+                <p className="text-sm font-semibold text-kokan-earth">Coming Soon</p>
+                <p className="text-xs text-gray-400 mt-0.5">Hides Buy Now / Add to Cart on this product. Still visible to browse.</p>
+              </div>
+              <div
+                onClick={() => setField("isComingSoon", !form.isComingSoon)}
+                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer flex-shrink-0 ${
+                  form.isComingSoon ? "bg-amber-500" : "bg-gray-200"
+                }`}
+              >
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${
+                  form.isComingSoon ? "left-6" : "left-1"
                 }`} />
               </div>
             </label>

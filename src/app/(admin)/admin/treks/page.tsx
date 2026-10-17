@@ -41,6 +41,7 @@ interface Trek {
   approved: boolean;
   createdAt: string;
   whatsappGroupLink?: string;
+  scheduledDate?: string | null;
 }
 
 // ─── Blank trek ───────────────────────────────────────────────────────────────
@@ -65,6 +66,7 @@ const blankTrek = (): Omit<Trek, "id" | "approved" | "featured" | "createdAt"> =
   itinerary: [{ day: 1, title: "", description: "" }],
   images: [""],
   whatsappGroupLink: "",
+  scheduledDate: "",
 });
 
 // ─── Slug generator ───────────────────────────────────────────────────────────
@@ -165,6 +167,7 @@ export default function AdminTreksPage() {
       itinerary:     trek.itinerary?.length ? trek.itinerary : [{ day: 1, title: "", description: "" }],
       images:        trek.images?.length ? trek.images : [""],
       whatsappGroupLink: trek.whatsappGroupLink ?? "",
+      scheduledDate: trek.scheduledDate ?? "",
     });
     setEditingId(trek.id);
     setErrors([]);
@@ -264,6 +267,7 @@ export default function AdminTreksPage() {
       itinerary:     form.itinerary.filter((d) => d.title || d.description),
       price:         Number(form.price),
       advanceAmount: Number(form.advanceAmount) || 0,
+      scheduledDate: form.scheduledDate || null,
     };
 
     try {
@@ -544,6 +548,33 @@ export default function AdminTreksPage() {
                   Shown to trekkers on the confirmation page after successful booking.
                 </p>
               </div>
+
+              {/* ── SCHEDULED DATE ── */}
+              <div className="border-t border-gray-100 pt-3 mt-3">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  Scheduled Date (leave empty = not bookable yet)
+                </label>
+                <input
+                  type="date"
+                  value={form.scheduledDate ?? ""}
+                  onChange={(e) => setField("scheduledDate", e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">
+                  {form.scheduledDate
+                    ? "✅ Trek is bookable — real booking widget will show."
+                    : "⏳ No date set — trek shows 'Coming Soon' with WhatsApp notify + group enquiry buttons instead."}
+                </p>
+                {form.scheduledDate && (
+                  <button
+                    type="button"
+                    onClick={() => setField("scheduledDate", "")}
+                    className="text-[11px] text-red-500 font-semibold mt-1.5 hover:underline"
+                  >
+                    Clear date (mark as Coming Soon)
+                  </button>
+                )}
+              </div>
             </Section>
 
             {/* ── LISTS ── */}
@@ -723,6 +754,15 @@ export default function AdminTreksPage() {
                     <span className="text-[11px] text-gray-400">{trek.region}</span>
                     <span className="text-[11px] text-gray-400">{trek.duration}</span>
                     <span className="text-[11px] font-semibold text-kokan-earth">₹{trek.price?.toLocaleString("en-IN")}</span>
+                    {trek.scheduledDate ? (
+                      <span className="text-[10px] text-kokan-green font-semibold bg-kokan-green/10 px-1.5 py-0.5 rounded-full">
+                        📅 {new Date(trek.scheduledDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded-full">
+                        ⏳ Coming Soon
+                      </span>
+                    )}
                     {trek.advanceAmount > 0 && (
                       <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded-full">
                         ₹{trek.advanceAmount.toLocaleString("en-IN")} advance

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Product } from "@/types/product";
-import { Check, X, Trash2, Pencil, Loader2, PauseCircle, PlayCircle } from "lucide-react";
+import { Check, X, Trash2, Pencil, Loader2, PauseCircle, PlayCircle, Clock } from "lucide-react";
 import Image from "next/image";
 import { PRODUCT_CATEGORIES } from "@/constants/productCategories";
 
@@ -82,6 +82,14 @@ export default function AdminProductsPage() {
     updateProduct(product.id, { isActive: next });
   };
 
+  const handleToggleComingSoon = (product: Product) => {
+    const next = !product.isComingSoon;
+    updateProduct(product.id, { isComingSoon: next });
+  };
+
+  const handleToggleHidePrice = (product: Product) => {
+    updateProduct(product.id, { hidePrice: !product.hidePrice });
+  };
   const category = (val: string) =>
     PRODUCT_CATEGORIES.find((c) => c.value === val);
 
@@ -176,6 +184,11 @@ export default function AdminProductsPage() {
                             {isPaused && (
                               <span className="text-[10px] bg-orange-100 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full font-semibold">
                                 Selling Paused
+                              </span>
+                            )}
+                            {product.isComingSoon && (
+                              <span className="text-[10px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                                <Clock className="w-2.5 h-2.5" /> Coming Soon
                               </span>
                             )}
                           </div>
@@ -278,7 +291,30 @@ export default function AdminProductsPage() {
                               )}
                             </button>
 
-                            {!isPaused && (
+                            <button
+                              onClick={() => handleToggleComingSoon(product)}
+                              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                                product.isComingSoon
+                                  ? "bg-kokan-green/10 text-kokan-green hover:bg-kokan-green/20"
+                                  : "bg-amber-50 text-amber-600 hover:bg-amber-100"
+                              }`}
+                            >
+                              <Clock className="w-4 h-4" />
+                              {product.isComingSoon ? "Make Live" : "Mark Coming Soon"}
+                            </button>
+
+                            <button
+                                onClick={() => handleToggleHidePrice(product)}
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                                  product.hidePrice
+                                    ? "bg-kokan-green/10 text-kokan-green hover:bg-kokan-green/20"
+                                    : "bg-kokan-sand/20 text-kokan-earth/60 hover:bg-kokan-sand/30"
+                                }`}
+                              >
+                                {product.hidePrice ? "Show Price" : "Hide Price"}
+                              </button>
+
+                            {!isPaused && !product.isComingSoon && (
                               <span className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-full font-medium">
                                 ✓ Live on site
                               </span>

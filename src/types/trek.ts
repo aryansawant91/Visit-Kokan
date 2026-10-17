@@ -35,7 +35,8 @@ export interface Trek {
   itinerary: TrekItineraryDay[];
   thingsToBring: string[];
   bestSeason: string;
-  price?: number;          // base price per person
+  price?: number;  
+  scheduledDate?: string | null;        // base price per person
   groupSize?: string;      // e.g. "2-15 people"
   addedBy: string;
   approved: boolean;

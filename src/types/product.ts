@@ -60,6 +60,8 @@ export interface Product {
   updatedAt: string;
   isFeaturedTrending?: boolean;
   trendingPriority?: number;
+  isComingSoon?: boolean;
+  hidePrice:boolean;
 }
 
 export interface CartItem {

@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase";
+import Link from "next/link";
 import {
   Plus, CreditCard, Loader2,
   Upload, Shield, Check, X, ChevronDown,
@@ -40,6 +39,7 @@ interface TrekBookingWidgetProps {
   maxCapacity?: number;
   advanceAmount?: number;
   whatsappGroupLink?: string;
+  scheduledDate?: string;
 }
 
 // ── Disclaimer ────────────────────────────────────────────────────────────────
@@ -108,6 +108,18 @@ function formatTimeLeft(expiresAt: string | null): string | null {
   return `${minutes}m left`;
 }
 
+function makeGuestId() {
+  return `guest_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+function isValidPhone(phone: string) {
+  return /^\d{10}$/.test(phone.replace(/\D/g, ""));
+}
+
 declare global { interface Window { Razorpay: any; } }
 
 // ── Pill selector ─────────────────────────────────────────────────────────────
@@ -163,7 +175,7 @@ function CountdownBadge({ expiresAt }: { expiresAt: string | null }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function TrekBookingWidget({
-  trekId, trekName, trekSlug, pricePerPerson, maxCapacity = 20, advanceAmount = 0, whatsappGroupLink,
+  trekId, trekName, trekSlug, pricePerPerson, maxCapacity = 20, advanceAmount = 0, whatsappGroupLink, scheduledDate,
 }: TrekBookingWidgetProps) {
   const { user, profile } = useAuth();
   const router = useRouter();
@@ -175,6 +187,17 @@ export default function TrekBookingWidget({
   const [agreed, setAgreed]                 = useState(false);
   const [loading, setLoading]               = useState(false);
   const [errors, setErrors]                 = useState<string[]>([]);
+
+  // ── Guest checkout fields (only used when not logged in) ───────────────────
+  const [guestId]    = useState(() => makeGuestId());
+  const [guestName, setGuestName]   = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+
+  const effectiveUserId = user?.uid ?? guestId;
+  const effectiveEmail  = user ? (user.email ?? "") : guestEmail;
+  const effectiveName   = user ? (profile?.displayName ?? user.email ?? "Guest") : guestName;
+  const effectivePhone  = user ? (profile?.phone ?? "") : guestPhone;
 
   // ── Payment choice (full vs advance) ───────────────────────────────────────
   const [paymentChoice, setPaymentChoice] = useState<"full" | "half">(
@@ -227,18 +250,27 @@ export default function TrekBookingWidget({
   const update = (i: number, key: keyof Person, val: string | boolean) =>
     setPersons((p) => p.map((x, idx) => idx === i ? { ...x, [key]: val } : x));
 
-  // ── ID upload ─────────────────────────────────────────────────────────────
+  // ── ID upload (server-side, works for guests and logged-in users alike) ────
 
   const handleIdUpload = async (index: number, file: File) => {
-    if (!file || !user) return;
+    if (!file) return;
     update(index, "idProofUploading", true);
     try {
-      const path = `trek-id-proofs/${user.uid}/${trekId}/p${index}-${Date.now()}-${file.name}`;
-      const r = storageRef(storage, path);
-      await uploadBytes(r, file);
-      const url = await getDownloadURL(r);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("ownerId", effectiveUserId);
+      formData.append("trekId", trekId);
+      formData.append("personIndex", String(index));
+
+      const res = await fetch("/api/upload/trek-id-proof", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!data.url) throw new Error("Upload failed");
+
       setPersons((prev) =>
-        prev.map((p, i) => i === index ? { ...p, idProofUrl: url, idProofUploading: false } : p)
+        prev.map((p, i) => i === index ? { ...p, idProofUrl: data.url, idProofUploading: false } : p)
       );
     } catch {
       update(index, "idProofUploading", false);
@@ -250,6 +282,13 @@ export default function TrekBookingWidget({
 
   const validate = () => {
     const errs: string[] = [];
+
+    if (!user) {
+      if (!guestName.trim())            errs.push("Your name is required");
+      if (!isValidEmail(guestEmail))    errs.push("A valid email address is required");
+      if (!isValidPhone(guestPhone))    errs.push("A valid 10-digit phone number is required");
+    }
+
     persons.forEach((p, i) => {
       const lbl = `Person ${i + 1}`;
       if (!p.name.trim()) errs.push(`${lbl}: Name required`);
@@ -295,10 +334,9 @@ export default function TrekBookingWidget({
 
   const removeCoupon = () => { setAppliedCoupon(null); setCouponError(""); };
 
-  // ── Book ──────────────────────────────────────────────────────────────────
+  // ── Book (online) ────────────────────────────────────────────────────────
 
   const handleBooking = async () => {
-    if (!user) { router.push(`/login?redirect=/treks/${trekSlug}`); return; }
     if (!validate()) return;
     setLoading(true);
 
@@ -318,8 +356,11 @@ export default function TrekBookingWidget({
         body: JSON.stringify({
           amount: amountToPayOnline,
           orderType: "trek",
-          userId: user.uid, userEmail: user.email,
-          userName: profile?.displayName ?? user.email ?? "Guest",
+          userId: effectiveUserId,
+          userEmail: effectiveEmail,
+          userName: effectiveName,
+          userPhone: effectivePhone,
+          isGuest: !user,
           trekId, trekName, trekSlug,
           whatsappGroupLink: whatsappGroupLink ?? null,
           couponCode: appliedCoupon?.code ?? null,
@@ -348,7 +389,7 @@ export default function TrekBookingWidget({
         name: "Visit Kokan",
         description: `${trekName} — ${persons.length} person(s)`,
         image: "/icons/icon-192.png",
-        prefill: { name: profile?.displayName, email: user.email, contact: profile?.phone },
+        prefill: { name: effectiveName, email: effectiveEmail, contact: effectivePhone },
         theme: { color: "#2d7a4f" },
         handler: async (response: any) => {
           const v = await fetch("/api/checkout/verify-payment", {
@@ -374,42 +415,46 @@ export default function TrekBookingWidget({
     }
   };
 
-  const handleOfflineBooking = async () => {
-  if (!user) { router.push(`/login?redirect=/treks/${trekSlug}`); return; }
-  if (!validate()) return;
-  setLoading(true);
+  // ── Book (offline / pay-at-trek) ─────────────────────────────────────────
 
-  try {
-    const res = await fetch("/api/checkout/create-offline-order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderType: "trek",
-        userId: user.uid, userEmail: user.email,
-        userName: profile?.displayName ?? user.email ?? "Guest",
-        trekId, trekName, trekSlug,
-        whatsappGroupLink: whatsappGroupLink ?? null,
-        couponCode: appliedCoupon?.code ?? null,
-        couponDiscount,
-        totalAmount,
-        persons: persons.map((p) => ({
-          name: p.name, birthDate: p.birthDate,
-          age: calculateAge(p.birthDate), gender: p.gender,
-          foodPreference: p.foodPreference,
-          medicalConditions: p.medicalConditions,
-          idProofUrl: p.idProofUrl,
-        })),
-      }),
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error("Booking failed");
-    router.replace(`/order-confirmation/${data.orderId}`);
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong. Try again.");
-    setLoading(false);
-  }
-};
+  const handleOfflineBooking = async () => {
+    if (!validate()) return;
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/checkout/create-offline-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderType: "trek",
+          userId: effectiveUserId,
+          userEmail: effectiveEmail,
+          userName: effectiveName,
+          userPhone: effectivePhone,
+          isGuest: !user,
+          trekId, trekName, trekSlug,
+          whatsappGroupLink: whatsappGroupLink ?? null,
+          couponCode: appliedCoupon?.code ?? null,
+          couponDiscount,
+          totalAmount,
+          persons: persons.map((p) => ({
+            name: p.name, birthDate: p.birthDate,
+            age: calculateAge(p.birthDate), gender: p.gender,
+            foodPreference: p.foodPreference,
+            medicalConditions: p.medicalConditions,
+            idProofUrl: p.idProofUrl,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error("Booking failed");
+      router.replace(`/order-confirmation/${data.orderId}`);
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong. Try again.");
+      setLoading(false);
+    }
+  };
 
   const p = persons[activePerson];
   const age = p?.birthDate ? calculateAge(p.birthDate) : null;
@@ -544,6 +589,53 @@ export default function TrekBookingWidget({
             </div>
 
             <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
+
+              {/* ── Guest contact details (only when not logged in) ── */}
+              {!user && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-kokan-earth">Your Contact Details</p>
+                    <Link
+                      href={`/login?redirect=/treks/${trekSlug}`}
+                      className="text-xs font-semibold text-kokan-green hover:underline"
+                    >
+                      Log in instead
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Full Name *</label>
+                      <input
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        placeholder="Your name"
+                        className="w-full border border-kokan-sand bg-white rounded-lg px-3 py-2 text-sm text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30 placeholder:text-kokan-earth/25"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Email *</label>
+                      <input
+                        type="email"
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full border border-kokan-sand bg-white rounded-lg px-3 py-2 text-sm text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30 placeholder:text-kokan-earth/25"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Phone *</label>
+                      <input
+                        type="tel"
+                        value={guestPhone}
+                        onChange={(e) => setGuestPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        placeholder="10-digit number"
+                        className="w-full border border-kokan-sand bg-white rounded-lg px-3 py-2 text-sm text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30 placeholder:text-kokan-earth/25"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-kokan-earth/40">We&apos;ll use these to send your booking confirmation.</p>
+                </div>
+              )}
 
               {/* ── Person tabs ── */}
               <div>

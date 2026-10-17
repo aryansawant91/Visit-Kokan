@@ -10,7 +10,7 @@ import {
   ShoppingCart, Check, Star, MapPin,
   Heart, Shield, Truck, RotateCcw, Zap,
   ZoomIn, X, ChevronLeft, ChevronRight, Play,
-  Package, Copy,
+  Package, Copy, Clock,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -122,6 +122,7 @@ export default function ProductDetailPage() {
 
   // ── Add to cart (no redirect) ──────────────────────────────────────────────
   const handleAddToCart = () => {
+    if (product?.isComingSoon) return;
     if (!user) {
       router.push(`/login?redirect=/products/${slug}`);
       return;
@@ -142,7 +143,7 @@ export default function ProductDetailPage() {
 
   // ── Buy Now ────────────────────────────────────────────────────────────────
   const handleBuyNow = () => {
-    if (!product) return;
+    if (!product || product.isComingSoon) return;
 
     if (!user) {
       // Save intent to sessionStorage — don't touch cart yet
@@ -521,31 +522,37 @@ export default function ProductDetailPage() {
             )}
 
             {/* CTA buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={handleAddToCart}
-                disabled={product.stock === 0}
-                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl
-                  font-semibold transition-all disabled:opacity-50 shadow-sm ${
-                  inCart
-                    ? "bg-kokan-green/10 text-kokan-green border-2 border-kokan-green/30"
-                    : "border-2 border-kokan-green text-kokan-green hover:bg-kokan-green/5"
-                }`}
-              >
-                {inCart
-                  ? <><Check className="w-5 h-5" /> In Cart</>
-                  : <><ShoppingCart className="w-5 h-5" /> Add to Cart</>}
-              </button>
-              <button
-                onClick={handleBuyNow}
-                disabled={product.stock === 0}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl
-                  font-semibold bg-kokan-green text-white hover:bg-kokan-green/90
-                  transition-all disabled:opacity-50 shadow-md"
-              >
-                <Zap className="w-5 h-5" /> Buy Now
-              </button>
-            </div>
+            {product.isComingSoon ? (
+              <div className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold bg-amber-50 text-amber-600 border-2 border-amber-200 shadow-sm">
+                <Clock className="w-5 h-5" /> Coming Soon
+              </div>
+            ) : (
+              <div className="flex gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={product.stock === 0}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl
+                    font-semibold transition-all disabled:opacity-50 shadow-sm ${
+                    inCart
+                      ? "bg-kokan-green/10 text-kokan-green border-2 border-kokan-green/30"
+                      : "border-2 border-kokan-green text-kokan-green hover:bg-kokan-green/5"
+                  }`}
+                >
+                  {inCart
+                    ? <><Check className="w-5 h-5" /> In Cart</>
+                    : <><ShoppingCart className="w-5 h-5" /> Add to Cart</>}
+                </button>
+                <button
+                  onClick={handleBuyNow}
+                  disabled={product.stock === 0}
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl
+                    font-semibold bg-kokan-green text-white hover:bg-kokan-green/90
+                    transition-all disabled:opacity-50 shadow-md"
+                >
+                  <Zap className="w-5 h-5" /> Buy Now
+                </button>
+              </div>
+            )}
 
             {/* Trust badges */}
             <div className="grid grid-cols-3 gap-2">
@@ -585,28 +592,37 @@ export default function ProductDetailPage() {
       {/* ── Sticky mobile bottom bar ── */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-kokan-sand/30
         p-3 flex gap-3 lg:hidden z-30 shadow-lg">
-        <button
-          onClick={handleAddToCart}
-          disabled={product.stock === 0}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl
-            font-semibold text-sm transition-all disabled:opacity-50 ${
-            inCart
-              ? "bg-kokan-green/10 text-kokan-green border-2 border-kokan-green/30"
-              : "border-2 border-kokan-green text-kokan-green"
-          }`}
-        >
-          <ShoppingCart className="w-4 h-4" />
-          {inCart ? "In Cart" : "Add to Cart"}
-        </button>
-        <button
-          onClick={handleBuyNow}
-          disabled={product.stock === 0}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl
-            font-semibold text-sm bg-kokan-green text-white hover:bg-kokan-green/90
-            disabled:opacity-50 shadow-md"
-        >
-          <Zap className="w-4 h-4" /> Buy Now
-        </button>
+        {product.isComingSoon ? (
+          <div className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl
+            font-semibold text-sm bg-amber-50 text-amber-600 border-2 border-amber-200">
+            <Clock className="w-4 h-4" /> Coming Soon
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl
+                font-semibold text-sm transition-all disabled:opacity-50 ${
+                inCart
+                  ? "bg-kokan-green/10 text-kokan-green border-2 border-kokan-green/30"
+                  : "border-2 border-kokan-green text-kokan-green"
+              }`}
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {inCart ? "In Cart" : "Add to Cart"}
+            </button>
+            <button
+              onClick={handleBuyNow}
+              disabled={product.stock === 0}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl
+                font-semibold text-sm bg-kokan-green text-white hover:bg-kokan-green/90
+                disabled:opacity-50 shadow-md"
+            >
+              <Zap className="w-4 h-4" /> Buy Now
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -76,20 +76,18 @@ export default async function DestinationPage({
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/15" />
 
         {/* Back button — top left */}
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
           <Link
             href="/?tab=travel"
             className="flex items-center gap-1.5 px-3 py-2 bg-white/15 backdrop-blur-md text-white rounded-full text-xs font-medium border border-white/25 hover:bg-white/25 transition-colors"
           >
-            <ArrowLeft size={13} /> Travel
+            <ArrowLeft size={13} />
+            Travel
           </Link>
-        </div>
 
-        {/* Breadcrumb back to destinations list */}
-        <div className="absolute top-4 left-[5.5rem] z-10">
           <Link
             href="/destinations"
-            className="flex items-center gap-1.5 px-3 py-2 bg-white/15 backdrop-blur-md text-white rounded-full text-xs font-medium border border-white/25 hover:bg-white/25 transition-colors"
+            className="px-3 py-2 bg-white/15 backdrop-blur-md text-white rounded-full text-xs font-medium border border-white/25 hover:bg-white/25 transition-colors"
           >
             All Destinations
           </Link>

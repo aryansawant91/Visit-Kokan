@@ -72,9 +72,15 @@ function TrekCard({ trek, featured = false }: { trek: Trek; featured?: boolean }
               ₹{trek.price?.toLocaleString("en-IN")}
               <span className="text-white/60 font-normal text-[11px]">/person</span>
             </span>
-            <span className="flex items-center gap-0.5 bg-white/15 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-1 rounded-lg">
-              Book <ChevronRight className="w-3 h-3" />
-            </span>
+            {trek.scheduledDate ? (
+              <span className="flex items-center gap-0.5 bg-white/15 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-1 rounded-lg">
+                Book <ChevronRight className="w-3 h-3" />
+              </span>
+            ) : (
+              <span className="flex items-center gap-0.5 bg-amber-400/90 text-amber-950 text-[10px] font-bold px-2 py-1 rounded-lg">
+                ⏳ Coming Soon
+              </span>
+            )}
           </div>
         </div>
       </div>

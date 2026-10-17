@@ -7,32 +7,29 @@ import ProductsTab from "./ProductsTab";
 import TravelTab from "./TravelTab";
 
 const TABS = [
-  { id: "products", label: "Products", icon: ShoppingBag },
   { id: "travel",   label: "Travel",   icon: Compass },
+  { id: "products", label: "Products", icon: ShoppingBag },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
 
-// Inner component reads searchParams — must be inside <Suspense>
 function HomeTabsInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const param = searchParams.get("tab");
-    return param === "travel" ? "travel" : "products";
+    return param === "products" ? "products" : "travel";
   });
 
   function switchTab(id: TabId) {
     setActiveTab(id);
-    // Write tab to URL so Back button restores it correctly
-    const url = id === "travel" ? "/?tab=travel" : "/";
+    const url = id === "products" ? "/?tab=products" : "/";
     router.replace(url, { scroll: false });
   }
 
   return (
     <div className="bg-white">
-      {/* Tab bar — sticks below the green HomeTopBar (height ≈ 52px) */}
       <div className="sticky top-[52px] z-40 bg-white border-b border-kokan-sand/30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex">
@@ -54,16 +51,14 @@ function HomeTabsInner() {
         </div>
       </div>
 
-      {/* Content */}
       <div>
-        {activeTab === "products" && <ProductsTab />}
         {activeTab === "travel"   && <TravelTab />}
+        {activeTab === "products" && <ProductsTab />}
       </div>
     </div>
   );
 }
 
-// Outer component provides the Suspense boundary required by useSearchParams
 export default function HomeTabs() {
   return (
     <Suspense

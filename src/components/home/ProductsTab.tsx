@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, Star, ChevronRight, ArrowRight, Flame, Tag } from "lucide-react";
+import { ShoppingCart, Star, ChevronRight, ArrowRight, Flame, Tag,Clock ,Lock} from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -62,9 +62,16 @@ function ProductMiniCard({ product }: { product: Product }) {
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (product.isComingSoon) return;
     if (!user) { router.push("/login"); return; }
     addToCart(product);
   };
+
+   const maskPrice = (price: number) => {
+  const str = Math.round(price).toString();
+  if (str.length <= 1) return `₹${str}`;
+  return `₹${"*".repeat(str.length - 1)}${str.slice(-1)}`;
+};
 
   return (
     <Link href={`/products/${product.slug}`} className="flex-shrink-0 snap-start">
@@ -81,30 +88,52 @@ function ProductMiniCard({ product }: { product: Product }) {
             <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
             {product.rating.toFixed(1)}
           </div>
+          {product.isComingSoon && (
+            <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+              <Clock className="w-2.5 h-2.5" /> Soon
+            </div>
+          )}
         </div>
         <div className="p-2.5">
           <p className="text-xs font-semibold text-kokan-earth line-clamp-2 leading-tight mb-1">{product.name}</p>
           <p className="text-xs text-kokan-earth/40 mb-2">{product.unit}</p>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-kokan-green">₹{product.price}</span>
-            <button
-              onClick={handleAdd}
-              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium transition-colors ${
-                inCart
-                  ? "bg-kokan-green/10 text-kokan-green"
-                  : "bg-kokan-green text-white hover:bg-kokan-green/90"
-              }`}
-            >
-              <ShoppingCart className="w-3 h-3" />
-              {inCart ? "Added" : "Add"}
-            </button>
+
+
+            {product.hidePrice ? (
+                <span className="flex items-center gap-1 text-kokan-earth/40 font-bold text-base leading-none tracking-wider">
+                  <Lock className="w-3 h-3" />
+                  {maskPrice(product.price)}
+                </span>
+              ) : (
+                <span className="text-kokan-earth font-bold text-base leading-none">
+                  ₹{product.price.toLocaleString("en-IN")}
+                </span>
+              )}
+              
+            {product.isComingSoon ? (
+              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium bg-amber-50 text-amber-600 border border-amber-200">
+                <Clock className="w-3 h-3" /> Soon
+              </span>
+            ) : (
+              <button
+                onClick={handleAdd}
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium transition-colors ${
+                  inCart
+                    ? "bg-kokan-green/10 text-kokan-green"
+                    : "bg-kokan-green text-white hover:bg-kokan-green/90"
+                }`}
+              >
+                <ShoppingCart className="w-3 h-3" />
+                {inCart ? "Added" : "Add"}
+              </button>
+            )}
           </div>
         </div>
       </div>
     </Link>
   );
 }
-
 export default function ProductsTab() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
