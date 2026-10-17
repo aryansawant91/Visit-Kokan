@@ -64,7 +64,7 @@ export default function NearbyListings({ region, currentSlug }: Props) {
         <Link
           key={listing.id}
           href={`/listings/${listing.slug}`}
-          className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-gray-100 hover:border-kokan-green/30 hover:shadow-md transition-all group"
+          className="flex items-center gap-3.5 p-3.5 bg-white rounded-2xl border border-[#d6e2d4] hover:border-[#2D6A4F]/40 hover:shadow-md transition-all group"
         >
           {/* Image */}
           <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-kokan-sand/20 flex-shrink-0">

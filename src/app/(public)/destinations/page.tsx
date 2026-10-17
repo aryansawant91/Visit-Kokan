@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Destination } from "@/types/destination";
 import { DESTINATION_CATEGORIES, DESTINATION_REGIONS } from "@/constants/destinationConstants";
-import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Star, ChevronRight } from "lucide-react";
+import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Star, ChevronRight, ChevronLeft } from "lucide-react";
 
 function DestinationCard({ destination, featured = false }: { destination: Destination; featured?: boolean }) {
   return (
@@ -69,6 +69,9 @@ export default function DestinationsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedRegion, setSelectedRegion]     = useState("all");
   const [showFilterSheet, setShowFilterSheet]   = useState(false);
+  const [currentPage, setCurrentPage]           = useState(1);
+
+  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
     fetch("/api/destinations")
@@ -89,8 +92,23 @@ export default function DestinationsPage() {
   const hasFilters = selectedCategory !== "all" || selectedRegion !== "all" || !!search;
   const activeCount = [selectedCategory !== "all", selectedRegion !== "all"].filter(Boolean).length;
 
+  const itemsToPaginate = hasFilters ? filtered : rest;
+  const totalPages = Math.max(1, Math.ceil(itemsToPaginate.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedItems = itemsToPaginate.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    const el = document.getElementById("destinations-grid-top");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 320, behavior: "smooth" });
+    }
+  };
+
   const clearFilters = () => {
-    setSearch(""); setSelectedCategory("all"); setSelectedRegion("all"); setShowFilterSheet(false);
+    setSearch(""); setSelectedCategory("all"); setSelectedRegion("all"); setShowFilterSheet(false); setCurrentPage(1);
   };
 
   return (
@@ -113,12 +131,21 @@ export default function DestinationsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kokan-earth/40" />
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search destinations..."
               className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm bg-white border border-[#e8d5bc] focus:outline-none focus:ring-2 focus:ring-kokan-earth/20 text-kokan-earth placeholder:text-kokan-earth/40 shadow-sm"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2">
+              <button
+                onClick={() => {
+                  setSearch("");
+                  setCurrentPage(1);
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2"
+              >
                 <X className="w-4 h-4 text-kokan-earth/40" />
               </button>
             )}
@@ -143,7 +170,10 @@ export default function DestinationsPage() {
         <div className="border-t border-[#e8d5bc]/60">
           <div className="max-w-7xl mx-auto px-3 py-2 flex items-center gap-2 overflow-x-auto scrollbar-hide">
             <button
-              onClick={() => setSelectedCategory("all")}
+              onClick={() => {
+                setSelectedCategory("all");
+                setCurrentPage(1);
+              }}
               className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                 selectedCategory === "all"
                   ? "bg-kokan-earth text-white"
@@ -155,7 +185,10 @@ export default function DestinationsPage() {
             {DESTINATION_CATEGORIES.map((c) => (
               <button
                 key={c.value}
-                onClick={() => setSelectedCategory(selectedCategory === c.value ? "all" : c.value)}
+                onClick={() => {
+                  setSelectedCategory(selectedCategory === c.value ? "all" : c.value);
+                  setCurrentPage(1);
+                }}
                 className={`flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   selectedCategory === c.value
                     ? "bg-kokan-earth text-white"
@@ -256,20 +289,72 @@ export default function DestinationsPage() {
             )}
 
             {/* Results header */}
-            <div className="flex items-center justify-between mb-3">
+            <div id="destinations-grid-top" className="flex items-center justify-between mb-3 scroll-mt-24">
               <p className="text-xs font-semibold text-kokan-earth/50">
-                {hasFilters ? filtered.length : rest.length} destination{(hasFilters ? filtered.length : rest.length) !== 1 ? "s" : ""}
+                {itemsToPaginate.length} destination{itemsToPaginate.length !== 1 ? "s" : ""}
+                {totalPages > 1 && (
+                  <span className="ml-1 text-kokan-green font-bold">
+                    (Page {currentPage} of {totalPages})
+                  </span>
+                )}
               </p>
             </div>
 
             {/* Main grid — 2 col mobile, 3 col sm, 4 col desktop */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {(hasFilters ? filtered : rest).map((d, i) => (
-                <div key={d.id} className={i === 0 && !hasFilters ? "col-span-2 sm:col-span-1" : ""}>
+              {paginatedItems.map((d, i) => (
+                <div key={d.id} className={i === 0 && !hasFilters && currentPage === 1 ? "col-span-2 sm:col-span-1" : ""}>
                   <DestinationCard destination={d} />
                 </div>
               ))}
             </div>
+
+            {/* ── Pagination Controls: Previous & Next with Page Numbers ── */}
+            {totalPages > 1 && (
+              <div className="mt-8 pt-6 border-t border-[#e8d5bc]/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-xs text-kokan-earth/60 font-medium order-2 sm:order-1">
+                  Showing <span className="font-bold text-kokan-earth">{startIndex + 1}</span> to{" "}
+                  <span className="font-bold text-kokan-earth">
+                    {Math.min(startIndex + ITEMS_PER_PAGE, itemsToPaginate.length)}
+                  </span>{" "}
+                  of <span className="font-bold text-kokan-earth">{itemsToPaginate.length}</span> destinations
+                </p>
+
+                <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                  <button
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-[#e8d5bc] text-kokan-earth hover:bg-kokan-cream transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+                  >
+                    <ChevronLeft size={15} /> Previous
+                  </button>
+
+                  <div className="flex items-center gap-1 mx-1">
+                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => handlePageChange(p)}
+                        className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                          p === currentPage
+                            ? "bg-kokan-green text-white shadow-sm"
+                            : "bg-white text-kokan-earth/70 border border-[#e8d5bc] hover:bg-kokan-cream"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-semibold bg-kokan-green text-white hover:bg-kokan-teal transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+                  >
+                    Next <ChevronRight size={15} />
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -288,7 +373,10 @@ export default function DestinationsPage() {
                 <p className="text-[11px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-2.5">Region</p>
                 <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => setSelectedRegion("all")}
+                    onClick={() => {
+                      setSelectedRegion("all");
+                      setCurrentPage(1);
+                    }}
                     className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${selectedRegion === "all" ? "bg-kokan-earth text-white" : "bg-gray-100 text-gray-600"}`}
                   >
                     All Regions
@@ -296,7 +384,10 @@ export default function DestinationsPage() {
                   {DESTINATION_REGIONS.map((r) => (
                     <button
                       key={r}
-                      onClick={() => setSelectedRegion(r)}
+                      onClick={() => {
+                        setSelectedRegion(r);
+                        setCurrentPage(1);
+                      }}
                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${selectedRegion === r ? "bg-kokan-earth text-white" : "bg-gray-100 text-gray-600"}`}
                     >
                       {r}

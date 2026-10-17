@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed:destinations": "ts-node --project tsconfig.node.json scripts/seedDestinations.ts",
+    "seed:more-destinations": "ts-node --project tsconfig.node.json scripts/seedMoreDestinations.ts",
     "seed:treks": "ts-node --project tsconfig.node.json scripts/seedTreks.ts",
     "seed:blogs": "ts-node --project tsconfig.node.json scripts/seedBlogs.ts",
     "seed:listings": "ts-node --project tsconfig.node.json scripts/seedListings.ts",

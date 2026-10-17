@@ -250,7 +250,7 @@ export default function TrekBookingWidget({
   const update = (i: number, key: keyof Person, val: string | boolean) =>
     setPersons((p) => p.map((x, idx) => idx === i ? { ...x, [key]: val } : x));
 
-  // ── ID upload (server-side, works for guests and logged-in users alike) ────
+  // ── ID upload (optional; server-side, works for guests and logged-in users) ─
 
   const handleIdUpload = async (index: number, file: File) => {
     if (!file) return;
@@ -298,7 +298,7 @@ export default function TrekBookingWidget({
         if (age < 6)  errs.push(`${lbl}: Min age is 6`);
         if (age > 80) errs.push(`${lbl}: Max age is 80`);
       }
-      if (!p.idProofUrl) errs.push(`${lbl}: ID proof required`);
+      if (p.idProofUploading) errs.push(`${lbl}: ID proof is still uploading, please wait`);
     });
     if (!agreed) errs.push("Please agree to the terms");
     setErrors(errs);
@@ -642,7 +642,7 @@ export default function TrekBookingWidget({
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex gap-1.5 flex-1 overflow-x-auto scrollbar-hide">
                     {persons.map((person, i) => {
-                      const done = person.name && person.birthDate && person.idProofUrl;
+                      const done = person.name && person.birthDate;
                       return (
                         <button
                           key={i}
@@ -737,7 +737,7 @@ export default function TrekBookingWidget({
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">ID Proof *</label>
+                        <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">ID Proof <span className="normal-case font-normal">(optional)</span></label>
                         {p.idProofUrl ? (
                           <div className="flex items-center gap-1.5 bg-kokan-green/5 border border-kokan-green/20 rounded-lg px-3 py-2 h-[38px]">
                             <Check className="w-3.5 h-3.5 text-kokan-green flex-shrink-0" />
@@ -974,7 +974,7 @@ export default function TrekBookingWidget({
                 )}
               </div>
 
-              {hasAdvanceOption   && paymentMethod === "online" && (
+              {hasAdvanceOption && paymentMethod === "online" && (
                 <div className="mb-4">
                   <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1.5">
                     Payment Option
@@ -1006,7 +1006,7 @@ export default function TrekBookingWidget({
                 </div>
               )}
 
-             <button
+              <button
                 onClick={paymentMethod === "offline" ? handleOfflineBooking : handleBooking}
                 disabled={loading || !agreed}
                 className="w-full flex items-center justify-center gap-2 py-4 bg-kokan-green text-white rounded-xl font-bold text-sm hover:bg-kokan-green/90 active:bg-kokan-green/80 transition-colors disabled:opacity-50 shadow-lg shadow-kokan-green/20"

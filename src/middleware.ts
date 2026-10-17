@@ -17,11 +17,12 @@ const PUBLIC_PATHS = [
   '/terms',
   '/checkout',
   '/order-confirmation',
+  '/trip-planner',
 ]
 
 const ADMIN_PREFIX = '/admin'
 const VENDOR_PREFIX = '/vendor'
-const USER_PROTECTED = ['/dashboard', '/bookings', '/wishlist', '/profile', '/trip-planner', '/orders']
+const USER_PROTECTED = ['/dashboard', '/bookings', '/wishlist', '/profile', '/orders']
 
 function isPublic(pathname: string): boolean {
   if (pathname.startsWith('/api/')) return true
@@ -68,7 +69,6 @@ export function middleware(req: NextRequest) {
   const { role, vendorStatus } = session
 
   if (pathname.startsWith(ADMIN_PREFIX)) {
-    console.log(role);
     if (role !== 'admin') {
       return NextResponse.redirect(new URL(role === 'vendor' ? '/vendor/dashboard' : '/dashboard', req.url))
     }
