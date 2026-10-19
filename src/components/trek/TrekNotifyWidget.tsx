@@ -6,12 +6,13 @@ interface TrekNotifyWidgetProps {
   trekName: string;
   pricePerPerson: number;
   whatsappGroupLink?: string;
+  hideStickyBar?: boolean;
 }
 
 const ENQUIRY_WHATSAPP_NUMBER = "918432587706"; // ← REPLACE with your number, country code no + or spaces
 
 export default function TrekNotifyWidget({
-  trekName, pricePerPerson, whatsappGroupLink,
+  trekName, pricePerPerson, whatsappGroupLink, hideStickyBar = false,
 }: TrekNotifyWidgetProps) {
   const enquiryMessage = encodeURIComponent(
     `Hi! I have a group of 8+ people interested in the "${trekName}" trek. Can you help us arrange a date for this?`
@@ -59,38 +60,40 @@ export default function TrekNotifyWidget({
 
   return (
     <>
-      {/* Desktop */}
-      <div className="hidden lg:block bg-white rounded-2xl border border-kokan-sand/30 shadow-sm overflow-hidden p-5">
+      {/* Card */}
+      <div className={`${hideStickyBar ? "block" : "hidden lg:block"} bg-white rounded-3xl border border-[#d6e2d4] shadow-sm overflow-hidden p-5`}>
         {Content}
       </div>
 
       {/* Mobile sticky bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-kokan-sand/30 px-4 py-3 shadow-2xl space-y-2">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-sm font-bold text-kokan-earth">₹{pricePerPerson.toLocaleString("en-IN")}<span className="text-xs text-kokan-earth/40 font-normal">/person</span></span>
-          <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-1 rounded-full">⏳ Coming Soon</span>
-        </div>
-        <div className="flex gap-2">
-          {whatsappGroupLink && (
+      {!hideStickyBar && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-kokan-sand/30 px-4 py-3 shadow-2xl space-y-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm font-bold text-kokan-earth">₹{pricePerPerson.toLocaleString("en-IN")}<span className="text-xs text-kokan-earth/40 font-normal">/person</span></span>
+            <span className="text-[10px] text-kokan-green font-bold bg-kokan-green/10 px-2 py-1 rounded-full">Enquire Now</span>
+          </div>
+          <div className="flex gap-2">
+            {whatsappGroupLink && (
+              <a
+                href={whatsappGroupLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border-2 border-kokan-green text-kokan-green rounded-xl font-bold text-xs"
+              >
+                <Bell className="w-3.5 h-3.5" /> Notify Me
+              </a>
+            )}
             <a
-              href={whatsappGroupLink}
+              href={enquiryLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border-2 border-kokan-green text-kokan-green rounded-xl font-bold text-xs"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-kokan-green text-white rounded-xl font-bold text-xs"
             >
-              <Bell className="w-3.5 h-3.5" /> Notify Me
+              <Users className="w-3.5 h-3.5" /> Enquire
             </a>
-          )}
-          <a
-            href={enquiryLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-kokan-green text-white rounded-xl font-bold text-xs"
-          >
-            <Users className="w-3.5 h-3.5" /> Enquire
-          </a>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

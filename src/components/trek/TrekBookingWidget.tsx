@@ -40,6 +40,7 @@ interface TrekBookingWidgetProps {
   advanceAmount?: number;
   whatsappGroupLink?: string;
   scheduledDate?: string;
+  hideStickyBar?: boolean;
 }
 
 // ── Disclaimer ────────────────────────────────────────────────────────────────
@@ -175,13 +176,20 @@ function CountdownBadge({ expiresAt }: { expiresAt: string | null }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function TrekBookingWidget({
-  trekId, trekName, trekSlug, pricePerPerson, maxCapacity = 20, advanceAmount = 0, whatsappGroupLink, scheduledDate,
+  trekId, trekName, trekSlug, pricePerPerson, maxCapacity = 20, advanceAmount = 0, whatsappGroupLink, scheduledDate, hideStickyBar = false,
 }: TrekBookingWidgetProps) {
   const { user, profile } = useAuth();
   const router = useRouter();
 
   const [open, setOpen]                     = useState(false);
   const [persons, setPersons]               = useState<Person[]>([emptyPerson()]);
+
+  // Listen to open-trek-booking event from external triggers
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-trek-booking", handler);
+    return () => window.removeEventListener("open-trek-booking", handler);
+  }, []);
   const [activePerson, setActivePerson]     = useState(0);
   const [disclaimerOpen, setDisclaimerOpen] = useState(false);
   const [agreed, setAgreed]                 = useState(false);
@@ -463,8 +471,8 @@ export default function TrekBookingWidget({
 
   return (
     <>
-      {/* ── Desktop sidebar card ── */}
-      <div className="hidden lg:block bg-white rounded-2xl border border-kokan-sand/30 shadow-sm overflow-hidden">
+      {/* ── Booking card ── */}
+      <div className={`${hideStickyBar ? "block" : "hidden lg:block"} bg-white rounded-3xl border border-[#d6e2d4] shadow-sm overflow-hidden`}>
         <div className="p-5">
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-2xl font-bold text-kokan-earth">₹{pricePerPerson.toLocaleString("en-IN")}</span>
@@ -542,22 +550,24 @@ export default function TrekBookingWidget({
       </div>
 
       {/* ── Mobile sticky bottom bar ── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-kokan-sand/30 px-4 py-3 flex items-center gap-3 shadow-2xl">
-        <div className="flex-1">
-          <p className="text-xs text-kokan-earth/40">
-            {showSplitBreakdown ? "Advance for" : "Total for"} {persons.length} person{persons.length > 1 ? "s" : ""}
-          </p>
-          <p className="text-lg font-bold text-kokan-earth leading-tight">
-            ₹{amountToPayOnline.toLocaleString("en-IN")}
-          </p>
+      {!hideStickyBar && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-kokan-sand/30 px-4 py-3 flex items-center gap-3 shadow-2xl">
+          <div className="flex-1">
+            <p className="text-xs text-kokan-earth/40">
+              {showSplitBreakdown ? "Advance for" : "Total for"} {persons.length} person{persons.length > 1 ? "s" : ""}
+            </p>
+            <p className="text-lg font-bold text-kokan-earth leading-tight">
+              ₹{amountToPayOnline.toLocaleString("en-IN")}
+            </p>
+          </div>
+          <button
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-kokan-green text-white rounded-xl font-bold text-sm shadow-lg shadow-kokan-green/20 hover:bg-kokan-green/90 transition-colors"
+          >
+            Book Now <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
-        <button
-          onClick={() => setOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-kokan-green text-white rounded-xl font-bold text-sm shadow-lg shadow-kokan-green/20 hover:bg-kokan-green/90 transition-colors"
-        >
-          Book Now <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
+      )}
 
       {/* ── Booking drawer / modal ── */}
       {open && (

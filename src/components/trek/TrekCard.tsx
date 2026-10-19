@@ -79,7 +79,7 @@ export default function TrekCard({ trek, featured = false }: Props) {
         {/* Hover CTA */}
         <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <span className="text-kokan-sand text-sm font-semibold">
-            View trek details →
+            Book Trek →
           </span>
         </div>
       </div>

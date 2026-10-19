@@ -1,16 +1,44 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Clock, Ruler, Users, Sparkles, Package, ArrowLeft } from "lucide-react";
-import { TREK_CATEGORIES } from "@/constants/trekConstants";
-import TrekDifficultyBadge from "@/components/trek/TrekDifficultyBadge";
-import TrekItinerary from "@/components/trek/TrekItinerary";
-import TrekBookingWidget from "@/components/trek/TrekBookingWidget";
-import TrekNotifyWidget from "@/components/trek/TrekNotifyWidget";
+import {
+  MapPin, Sun, Navigation, Sparkles,
+  ChevronRight, Compass, TreePine, Waves,
+  Mountain, Tent, Camera, Footprints,
+  Wind, Umbrella, Castle, Calendar, Clock,
+  Package, Ruler, Users, Check, Flag
+} from "lucide-react";
+import { TREK_CATEGORIES, TREK_DIFFICULTIES } from "@/constants/trekConstants";
 import { Trek } from "@/types/trek";
+import WeatherWidget from "@/components/destination/WeatherWidget";
+import NearbyListings from "@/components/destination/NearbyListings";
+import TrekHeroCarousel from "@/components/trek/TrekHeroCarousel";
+import TrekStickyBar from "@/components/trek/TrekStickyBar";
+import TrekJsonLd from "@/components/trek/TrekJsonLd";
+import TrekBookingWidget from "@/components/trek/TrekBookingWidget";
+import { adminDb } from "@/lib/firebaseAdmin";
 
-async function getTrek(slug: string) {
+async function getTrek(slug: string): Promise<Trek | null> {
+  try {
+    // Direct Firestore query first for fast SSR
+    if (adminDb) {
+      const snap = await adminDb
+        .collection("treks")
+        .where("slug", "==", slug)
+        .where("approved", "==", true)
+        .limit(1)
+        .get();
+
+      if (!snap.empty) {
+        const doc = snap.docs[0];
+        return { id: doc.id, ...doc.data() } as Trek;
+      }
+    }
+  } catch (err: any) {
+    console.warn("Direct adminDb lookup failed for trek, falling back to API:", err.message);
+  }
+
+  // Fallback to internal API
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/api/treks?slug=${slug}`,
@@ -25,215 +53,362 @@ async function getTrek(slug: string) {
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const trek = await getTrek(params.slug);
-  if (!trek) return { title: "Trek Not Found" };
+  if (!trek) return { title: "Trek Not Found — Visit Kokan" };
   return {
     title: `${trek.name} Trek — Visit Kokan`,
-    description: trek.description,
-    openGraph: { images: trek.images?.[0] ? [trek.images[0]] : [] },
+    description: trek.description || `Explore ${trek.name} trek in ${trek.region}, Maharashtra.`,
+    openGraph: {
+      images: trek.images?.[0] ? [trek.images[0]] : [],
+    },
   };
+}
+
+function HighlightIcon({ text }: { text: string }) {
+  const t = text.toLowerCase();
+  if (t.includes("fort") || t.includes("ruin") || t.includes("castle") || t.includes("histor") || t.includes("temple"))
+    return <Castle size={20} className="text-[#173722]" />;
+  if (t.includes("view") || t.includes("sunset") || t.includes("sunrise") || t.includes("scenic") || t.includes("photo") || t.includes("point"))
+    return <Camera size={20} className="text-[#173722]" />;
+  if (t.includes("forest") || t.includes("nature") || t.includes("green") || t.includes("grove") || t.includes("jungle") || t.includes("tree"))
+    return <TreePine size={20} className="text-[#173722]" />;
+  if (t.includes("mountain") || t.includes("hill") || t.includes("peak") || t.includes("cliff") || t.includes("summit") || t.includes("ridge") || t.includes("climb"))
+    return <Mountain size={20} className="text-[#173722]" />;
+  if (t.includes("camp") || t.includes("stay") || t.includes("night") || t.includes("star") || t.includes("tent") || t.includes("village"))
+    return <Tent size={20} className="text-[#173722]" />;
+  if (t.includes("waterfall") || t.includes("stream") || t.includes("river") || t.includes("rain") || t.includes("monsoon") || t.includes("water"))
+    return <Umbrella size={20} className="text-[#173722]" />;
+  if (t.includes("beach") || t.includes("sea") || t.includes("coast") || t.includes("sand") || t.includes("ocean"))
+    return <Waves size={20} className="text-[#173722]" />;
+  if (t.includes("wind") || t.includes("breeze") || t.includes("air"))
+    return <Wind size={20} className="text-[#173722]" />;
+  if (t.includes("walk") || t.includes("trail") || t.includes("hike") || t.includes("step"))
+    return <Footprints size={20} className="text-[#173722]" />;
+  return <Compass size={20} className="text-[#173722]" />;
 }
 
 export default async function TrekPage({ params }: { params: { slug: string } }) {
   const trek = await getTrek(params.slug);
   if (!trek) notFound();
 
-  const category  = TREK_CATEGORIES.find((c) => c.value === trek.category);
-  const heroImage = trek.images?.[0] ??
-    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600&q=80";
+  const category = TREK_CATEGORIES.find((c) => c.value === trek.category);
+  const difficultyInfo = TREK_DIFFICULTIES.find((d) => d.value === trek.difficulty);
+  const allImages: string[] = (trek.images ?? []).filter(
+    (v: string, i: number, a: string[]) => a.indexOf(v) === i
+  );
+
+  const mapsQuery = trek.startPoint
+    ? `${trek.startPoint} ${trek.region} Maharashtra`
+    : `${trek.name} Trek ${trek.region} Maharashtra`;
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#dce5da] sm:py-6 sm:px-4 flex justify-center items-start">
+      <TrekJsonLd
+        name={trek.name}
+        description={trek.description}
+        image={allImages[0]}
+        region={trek.region}
+        slug={trek.slug}
+        price={trek.price}
+      />
 
-      {/* ── Hero ── */}
-      <div className="relative h-[60vw] max-h-[520px] min-h-[280px] overflow-hidden">
-        <Image src={heroImage} alt={trek.name} fill className="object-cover" priority />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/35 to-black/15" />
+      {/* ── Outer App-Style Canvas Frame (Full-bleed on mobile, luxury phone card on desktop) ── */}
+      <div className="w-full max-w-md sm:max-w-lg min-h-screen sm:min-h-0 bg-[#edf3eb] relative sm:rounded-[44px] sm:shadow-2xl sm:overflow-hidden sm:border sm:border-black/10 pb-28">
 
-        <div className="absolute top-4 left-4 z-10">
-          <Link
-            href="/?tab=travel"
-            className="flex items-center gap-1.5 px-3 py-2 bg-white/15 backdrop-blur-md text-white rounded-full text-xs font-medium border border-white/25 hover:bg-white/25 transition-colors"
-          >
-            <ArrowLeft size={13} /> Travel
-          </Link>
-        </div>
+        {/* ── 1. Hero: Curved bottom, frosted glass buttons, dots capsule & Star FAB ── */}
+        <TrekHeroCarousel
+          images={allImages}
+          name={trek.name}
+          backHref="/treks"
+          category={category}
+          difficulty={trek.difficulty}
+          region={trek.region}
+          slug={trek.slug}
+        />
 
-        <div className="absolute top-4 left-[5.5rem] z-10">
-          <Link
-            href="/treks"
-            className="flex items-center gap-1.5 px-3 py-2 bg-white/15 backdrop-blur-md text-white rounded-full text-xs font-medium border border-white/25 hover:bg-white/25 transition-colors"
-          >
-            All Treks
-          </Link>
-        </div>
+        {/* ── 2. Content Section (Immediately below hero curve with soft mint background) ── */}
+        <div id="trek-details" className="px-5 pt-8 space-y-6">
 
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-6 sm:px-8 sm:pb-10 md:px-14 md:pb-14">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center gap-2 mb-2.5 flex-wrap">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/15 backdrop-blur-md text-white text-xs font-semibold rounded-full border border-white/20">
-                {category?.emoji} {category?.label}
+          {/* Region / Category Eyebrow & Main Title */}
+          <div>
+            <div className="flex items-center gap-1.5 text-[#1f422b] text-[11px] font-extrabold tracking-[0.2em] uppercase mb-1">
+              <Mountain size={13} className="text-[#2D6A4F]" />
+              <span>
+                {trek.region} {category ? `· ${category.label}` : ""} {trek.difficulty ? `· ${trek.difficulty.toUpperCase()}` : ""}
               </span>
-              <TrekDifficultyBadge difficulty={trek.difficulty} />
             </div>
-            <h1 className="text-3xl sm:text-5xl md:text-7xl font-display text-white font-bold leading-tight">
-              {trek.name}
-            </h1>
-            <div className="flex items-center gap-1.5 text-white/70 mt-2 text-sm">
-              <MapPin size={13} /> {trek.region}, Maharashtra
-            </div>
-            <div className="flex gap-3 mt-3 overflow-x-auto scrollbar-hide">
-              <span className="flex-shrink-0 flex items-center gap-1 text-white/70 text-xs bg-white/10 px-2.5 py-1.5 rounded-lg backdrop-blur-sm">
-                <Clock size={12} /> {trek.duration}
-              </span>
-              <span className="flex-shrink-0 flex items-center gap-1 text-white/70 text-xs bg-white/10 px-2.5 py-1.5 rounded-lg backdrop-blur-sm">
-                <Ruler size={12} /> {trek.distance}
-              </span>
-              {trek.groupSize && (
-                <span className="flex-shrink-0 flex items-center gap-1 text-white/70 text-xs bg-white/10 px-2.5 py-1.5 rounded-lg backdrop-blur-sm">
-                  <Users size={12} /> {trek.groupSize}
-                </span>
-              )}
-            </div>
+            <h2 className="text-[22px] sm:text-[24px] font-black text-[#0f2416] tracking-tight leading-tight">
+              {trek.name} Expedition
+            </h2>
           </div>
-        </div>
-      </div>
 
-      {/* ── Image strip ── */}
-      {trek.images?.length > 1 && (
-        <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-8 mt-4">
-          <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
-            {trek.images.slice(1).map((img: string, i: number) => (
-              <div key={i} className="relative w-32 h-20 sm:w-40 sm:h-28 flex-shrink-0 rounded-xl overflow-hidden">
-                <Image
-                  src={img}
-                  alt={`${trek.name} ${i + 2}`}
-                  fill
-                  className="object-cover hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-            ))}
+          {/* Key Info Pills (Row of rounded white pill badges with subtle border & shadow) */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white rounded-full text-xs font-bold text-[#142e1b] shadow-sm border border-[#d6e2d4] shrink-0">
+              <MapPin size={13} className="text-[#2D6A4F]" /> {trek.region}, MH
+            </span>
+            {trek.duration && (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white rounded-full text-xs font-bold text-[#142e1b] shadow-sm border border-[#d6e2d4] shrink-0">
+                <Clock size={13} className="text-[#2D6A4F]" /> {trek.duration}
+              </span>
+            )}
+            {trek.distance && (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white rounded-full text-xs font-bold text-[#142e1b] shadow-sm border border-[#d6e2d4] shrink-0">
+                <Ruler size={13} className="text-[#2D6A4F]" /> {trek.distance}
+              </span>
+            )}
+            {trek.maxAltitude && (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white rounded-full text-xs font-bold text-[#142e1b] shadow-sm border border-[#d6e2d4] shrink-0">
+                <Mountain size={13} className="text-[#2D6A4F]" /> {trek.maxAltitude}
+              </span>
+            )}
+            {trek.groupSize && (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white rounded-full text-xs font-bold text-[#142e1b] shadow-sm border border-[#d6e2d4] shrink-0">
+                <Users size={13} className="text-[#2D6A4F]" /> {trek.groupSize}
+              </span>
+            )}
+            {trek.bestSeason && (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white rounded-full text-xs font-bold text-[#142e1b] shadow-sm border border-[#d6e2d4] shrink-0">
+                <Sun size={13} className="text-[#2D6A4F]" /> {trek.bestSeason}
+              </span>
+            )}
           </div>
-        </div>
-      )}
 
-      {/* ── Content ── */}
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-8 py-6 sm:py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12">
-
-          {/* Left: trek details */}
-          <div className="lg:col-span-2 order-2 lg:order-1 space-y-8">
-
+          {/* Highlight Cards (Rounded rectangular pastel chips) */}
+          {trek.highlights && trek.highlights.length > 0 && (
             <div>
-              <h2 className="text-xl sm:text-2xl font-display font-bold text-kokan-earth mb-3">
-                About This Trek
-              </h2>
-              <p className="text-gray-600 text-sm sm:text-base leading-relaxed">{trek.description}</p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {[
-                { label: "Duration",    value: trek.duration,    icon: "⏱" },
-                { label: "Distance",    value: trek.distance,    icon: "📍" },
-                { label: "Start Point", value: trek.startPoint,  icon: "🚩" },
-                { label: "End Point",   value: trek.endPoint,    icon: "🏁" },
-                ...(trek.maxAltitude ? [{ label: "Max Altitude", value: trek.maxAltitude, icon: "⛰️" }] : []),
-                { label: "Best Season", value: trek.bestSeason,  icon: "🌤️" },
-              ].map((item) => (
-                <div key={item.label} className="p-3 sm:p-4 bg-kokan-cream/30 rounded-xl border border-kokan-sand/20">
-                  <span className="text-lg sm:text-xl">{item.icon}</span>
-                  <p className="text-[10px] sm:text-xs text-gray-400 mt-1">{item.label}</p>
-                  <p className="text-xs sm:text-sm font-semibold text-kokan-earth mt-0.5">{item.value}</p>
-                </div>
-              ))}
-            </div>
-
-            {trek.highlights?.length > 0 && (
-              <div>
-                <h2 className="text-xl sm:text-2xl font-display font-bold text-kokan-earth mb-3 flex items-center gap-2">
-                  <Sparkles size={18} className="text-kokan-sand" /> Highlights
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {trek.highlights.map((h: string) => (
-                    <div key={h} className="flex items-center gap-3 p-3.5 bg-kokan-cream/40 rounded-xl border border-kokan-sand/20">
-                      <div className="w-2 h-2 rounded-full bg-kokan-green flex-shrink-0" />
-                      <span className="text-kokan-earth font-medium text-sm">{h}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+                {trek.highlights.map((h: string, idx: number) => (
+                  <div
+                    key={idx}
+                    className="bg-[#dce7da] rounded-2xl p-3.5 flex flex-col justify-between min-w-[108px] h-[84px] border border-[#cadbc7] shadow-sm shrink-0 hover:bg-[#d4e1d1] transition-colors"
+                  >
+                    <HighlightIcon text={h} />
+                    <span className="text-[11px] font-bold text-[#142e1b] line-clamp-2 leading-tight">
+                      {h}
+                    </span>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {trek.itinerary?.length > 0 && (
-              <div>
-                <h2 className="text-xl sm:text-2xl font-display font-bold text-kokan-earth mb-5">
-                  Day-by-Day Itinerary
-                </h2>
-                <TrekItinerary itinerary={trek.itinerary} />
-              </div>
-            )}
+          {/* ── Detailed Content Cards ── */}
 
-            {trek.thingsToBring?.length > 0 && (
-              <div>
-                <h2 className="text-xl sm:text-2xl font-display font-bold text-kokan-earth mb-3 flex items-center gap-2">
-                  <Package size={18} className="text-kokan-sand" /> What to Bring
-                </h2>
-                <div className="grid grid-cols-2 gap-2">
-                  {trek.thingsToBring.map((item: string) => (
-                    <div key={item} className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                      <span className="text-kokan-green font-bold">✓</span> {item}
-                    </div>
-                  ))}
+          {/* About Section */}
+          {trek.description && (
+            <div className="bg-white rounded-3xl p-5 border border-[#d6e2d4] shadow-sm">
+              <h3 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] mb-2 flex items-center gap-1.5">
+                <Sparkles size={14} className="text-[#B7895A]" /> About This Trek
+              </h3>
+              <p className="text-[13px] text-[#3d5343] leading-relaxed">
+                {trek.description}
+              </p>
+            </div>
+          )}
+
+          {/* Quick Trek Facts / Specs (2x2 or 2x3 Grid) */}
+          <div className="grid grid-cols-2 gap-2.5">
+            {trek.duration && (
+              <div className="bg-white rounded-2xl p-4 border border-[#d6e2d4] shadow-sm flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#dce7da] flex items-center justify-center shrink-0">
+                  <Clock size={17} className="text-[#2D6A4F]" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#69846f] font-bold uppercase tracking-wider">Duration</p>
+                  <p className="text-xs font-bold text-[#102416] mt-0.5 leading-snug">{trek.duration}</p>
                 </div>
               </div>
             )}
 
-            {/* Mobile booking widget */}
-            <div className="lg:hidden">
-              {trek.scheduledDate ? (
-                <TrekBookingWidget
-                  trekId={trek.id}
-                  trekName={trek.name}
-                  trekSlug={trek.slug}
-                  pricePerPerson={trek.price ?? 0}
-                  maxCapacity={20}
-                  advanceAmount={trek.advanceAmount ?? 0}
-                  whatsappGroupLink={trek.whatsappGroupLink}
-                  scheduledDate={trek.scheduledDate}
-                />
-              ) : (
-                <TrekNotifyWidget
-                  trekName={trek.name}
-                  pricePerPerson={trek.price ?? 0}
-                  whatsappGroupLink={trek.whatsappGroupLink}
-                />
-              )}
-            </div>
+            {trek.distance && (
+              <div className="bg-white rounded-2xl p-4 border border-[#d6e2d4] shadow-sm flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#dce7da] flex items-center justify-center shrink-0">
+                  <Ruler size={17} className="text-[#2D6A4F]" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#69846f] font-bold uppercase tracking-wider">Distance</p>
+                  <p className="text-xs font-bold text-[#102416] mt-0.5 leading-snug">{trek.distance}</p>
+                </div>
+              </div>
+            )}
+
+            {trek.startPoint && (
+              <div className="bg-white rounded-2xl p-4 border border-[#d6e2d4] shadow-sm flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#dce7da] flex items-center justify-center shrink-0">
+                  <Flag size={17} className="text-[#2D6A4F]" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#69846f] font-bold uppercase tracking-wider">Start Point</p>
+                  <p className="text-xs font-bold text-[#102416] mt-0.5 leading-snug truncate">{trek.startPoint}</p>
+                </div>
+              </div>
+            )}
+
+            {trek.endPoint && (
+              <div className="bg-white rounded-2xl p-4 border border-[#d6e2d4] shadow-sm flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#dce7da] flex items-center justify-center shrink-0">
+                  <MapPin size={17} className="text-[#2D6A4F]" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#69846f] font-bold uppercase tracking-wider">End Point</p>
+                  <p className="text-xs font-bold text-[#102416] mt-0.5 leading-snug truncate">{trek.endPoint}</p>
+                </div>
+              </div>
+            )}
+
+            {trek.maxAltitude && (
+              <div className="bg-white rounded-2xl p-4 border border-[#d6e2d4] shadow-sm flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#dce7da] flex items-center justify-center shrink-0">
+                  <Mountain size={17} className="text-[#2D6A4F]" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#69846f] font-bold uppercase tracking-wider">Altitude</p>
+                  <p className="text-xs font-bold text-[#102416] mt-0.5 leading-snug">{trek.maxAltitude}</p>
+                </div>
+              </div>
+            )}
+
+            {trek.bestSeason && (
+              <div className="bg-white rounded-2xl p-4 border border-[#d6e2d4] shadow-sm flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#dce7da] flex items-center justify-center shrink-0">
+                  <Sun size={17} className="text-[#2D6A4F]" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#69846f] font-bold uppercase tracking-wider">Best Season</p>
+                  <p className="text-xs font-bold text-[#102416] mt-0.5 leading-snug">{trek.bestSeason}</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Right: booking widget (desktop) */}
-          <div className="order-1 lg:order-2 hidden lg:block">
-            <div className="sticky top-4">
-              {trek.scheduledDate ? (
-                <TrekBookingWidget
-                  trekId={trek.id}
-                  trekName={trek.name}
-                  trekSlug={trek.slug}
-                  pricePerPerson={trek.price ?? 0}
-                  maxCapacity={20}
-                  advanceAmount={trek.advanceAmount ?? 0}
-                  whatsappGroupLink={trek.whatsappGroupLink}
-                  scheduledDate={trek.scheduledDate}
-                />
-              ) : (
-                <TrekNotifyWidget
-                  trekName={trek.name}
-                  pricePerPerson={trek.price ?? 0}
-                  whatsappGroupLink={trek.whatsappGroupLink}
-                />
-              )}
+          {/* Day-by-Day Itinerary */}
+          {trek.itinerary && trek.itinerary.length > 0 && (
+            <div className="bg-white rounded-3xl p-5 border border-[#d6e2d4] shadow-sm">
+              <h3 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] mb-4 flex items-center gap-1.5">
+                <Calendar size={14} className="text-[#2D6A4F]" /> Day-by-Day Itinerary
+              </h3>
+              <div className="space-y-4">
+                {trek.itinerary.map((day, i) => (
+                  <div key={i} className="flex gap-3.5">
+                    {/* Timeline indicator */}
+                    <div className="flex flex-col items-center">
+                      <div className="w-7 h-7 rounded-full bg-[#1b3d26] text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
+                        {day.day}
+                      </div>
+                      {i < trek.itinerary.length - 1 && (
+                        <div className="w-0.5 bg-[#d6e2d4] flex-1 mt-1.5" />
+                      )}
+                    </div>
+
+                    {/* Step details */}
+                    <div className="flex-1 pb-4">
+                      <h4 className="text-xs font-bold text-[#102416]">{day.title}</h4>
+                      <p className="text-[12px] text-[#3d5343] mt-1 leading-relaxed">{day.description}</p>
+                      {(day.distance || day.duration) && (
+                        <div className="flex gap-2 mt-2">
+                          {day.distance && (
+                            <span className="text-[10px] font-bold text-[#2D6A4F] bg-[#edf3eb] px-2 py-0.5 rounded-full border border-[#d6e2d4]">
+                              📍 {day.distance}
+                            </span>
+                          )}
+                          {day.duration && (
+                            <span className="text-[10px] font-bold text-[#2D6A4F] bg-[#edf3eb] px-2 py-0.5 rounded-full border border-[#d6e2d4]">
+                              ⏱ {day.duration}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+          )}
+
+          {/* What to Bring Checklist */}
+          {trek.thingsToBring && trek.thingsToBring.length > 0 && (
+            <div className="bg-white rounded-3xl p-5 border border-[#d6e2d4] shadow-sm">
+              <h3 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] mb-3 flex items-center gap-1.5">
+                <Package size={14} className="text-[#2D6A4F]" /> Packing &amp; Gear Checklist
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                {trek.thingsToBring.map((item: string, i: number) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 p-2.5 bg-[#edf3eb] rounded-xl text-xs font-semibold text-[#142e1b] border border-[#dce7da]"
+                  >
+                    <Check size={13} className="text-[#2D6A4F] shrink-0 stroke-[2.5]" />
+                    <span className="truncate">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Google Maps Location Card */}
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3.5 p-4 bg-white rounded-3xl border border-[#d6e2d4] shadow-sm active:scale-[0.98] transition-transform group"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-[#dce7da] flex items-center justify-center shrink-0">
+              <MapPin size={22} className="text-[#2D6A4F]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-[#102416] truncate">{trek.startPoint || trek.name}</p>
+              <p className="text-xs text-[#526b58]">{trek.region}, Maharashtra</p>
+              <p className="text-xs font-bold text-[#2D6A4F] mt-1 group-hover:underline flex items-center gap-1">
+                Open in Google Maps <ChevronRight size={13} />
+              </p>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-[#edf3eb] flex items-center justify-center shrink-0 group-hover:bg-[#dce7da] transition-colors">
+              <ChevronRight size={16} className="text-[#2D6A4F]" />
+            </div>
+          </a>
+
+          {/* Weather Widget */}
+          <div>
+            <WeatherWidget region={trek.region} bestSeason={trek.bestSeason} />
           </div>
+
+          {/* Booking & Registration Section */}
+          <div id="booking-section" className="scroll-mt-24 pt-2">
+            <h3 className="text-sm font-bold text-[#102416] mb-3">
+              Reserve Your Slot
+            </h3>
+            <TrekBookingWidget
+              trekId={trek.id}
+              trekName={trek.name}
+              trekSlug={trek.slug}
+              pricePerPerson={trek.price ?? 0}
+              maxCapacity={20}
+              advanceAmount={trek.advanceAmount ?? 0}
+              whatsappGroupLink={trek.whatsappGroupLink}
+              scheduledDate={trek.scheduledDate ?? undefined}
+              hideStickyBar={true}
+            />
+          </div>
+
+          {/* Nearby Stays & Activities */}
+          <div className="pt-2">
+            <h3 className="text-sm font-bold text-[#102416] mb-3">
+              Nearby Stays &amp; Experiences in {trek.region}
+            </h3>
+            <NearbyListings region={trek.region} currentSlug={trek.slug} />
+          </div>
+
         </div>
+
+        {/* ── 3. Sticky Bottom Action Bar (Matching destination slug exactly) ── */}
+        <TrekStickyBar
+          price={trek.price}
+          scheduledDate={trek.scheduledDate}
+          whatsappGroupLink={trek.whatsappGroupLink}
+          trekName={trek.name}
+        />
+
       </div>
     </div>
   );

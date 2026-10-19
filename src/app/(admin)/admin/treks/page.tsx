@@ -562,8 +562,8 @@ export default function AdminTreksPage() {
                 />
                 <p className="text-[10px] text-gray-400 mt-1">
                   {form.scheduledDate
-                    ? "✅ Trek is bookable — real booking widget will show."
-                    : "⏳ No date set — trek shows 'Coming Soon' with WhatsApp notify + group enquiry buttons instead."}
+                    ? "✅ Fixed departure date scheduled."
+                    : "📅 No fixed date set — open booking / flexible dates."}
                 </p>
                 {form.scheduledDate && (
                   <button
@@ -571,7 +571,7 @@ export default function AdminTreksPage() {
                     onClick={() => setField("scheduledDate", "")}
                     className="text-[11px] text-red-500 font-semibold mt-1.5 hover:underline"
                   >
-                    Clear date (mark as Coming Soon)
+                    Clear date
                   </button>
                 )}
               </div>
@@ -759,8 +759,8 @@ export default function AdminTreksPage() {
                         📅 {new Date(trek.scheduledDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                     ) : (
-                      <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded-full">
-                        ⏳ Coming Soon
+                      <span className="text-[10px] text-kokan-earth/60 font-semibold bg-kokan-earth/5 px-1.5 py-0.5 rounded-full">
+                        📅 Open Dates
                       </span>
                     )}
                     {trek.advanceAmount > 0 && (

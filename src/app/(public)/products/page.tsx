@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import ProductFilters, { FilterState } from "@/components/products/ProductFilters";
 import ProductCard from "@/components/products/ProductCard";
 import TrendingNow from "@/components/TrendingNow";
-import { Search, SlidersHorizontal, X, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, SlidersHorizontal, X, ChevronDown, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { Product } from "@/types/product";
 import { PRODUCT_CATEGORIES } from "@/constants/productCategories";
 import Link from "next/link";
@@ -145,6 +145,14 @@ export default function ProductsPage() {
       {/* ── Top Navbar ── */}
       <div className="bg-kokan-green sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center gap-3">
+          {/* Back button */}
+          <Link
+            href="/?tab=products"
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 bg-white/15 text-white rounded-xl text-xs font-semibold hover:bg-white/25 transition-colors border border-white/20"
+          >
+            <ArrowLeft size={14} /> Back
+          </Link>
+
           <Link href="/" className="hidden sm:block flex-shrink-0">
             <span className="text-white font-display font-bold text-lg">
               Visit<span className="text-kokan-sand">Kokan</span>

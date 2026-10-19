@@ -12,31 +12,25 @@ import { PRODUCT_CATEGORIES } from "@/constants/productCategories";
 
 const BANNERS = [
   {
-    title: "Limited Season Offer",
-    highlight: "Pure Kokum Sherbet",
-    sub: "Straight from Sindhudurg farms",
-    cta: "Shop Beverages →",
-    href: "/products?category=beverages",
-    bg: "from-kokan-green to-emerald-700",
-    emoji: "🍹",
-  },
-  {
-    title: "Harvest Special",
-    highlight: "Alphonso Mangoes",
-    sub: "Ratnagiri GI certified Hapus",
-    cta: "Shop Fruits →",
+    title: "Alphonso Mangoes",
+    sub: "Ratnagiri GI-Certified Hapus",
+    cta: "Shop Fruits",
     href: "/products?category=fruits",
-    bg: "from-amber-500 to-orange-600",
-    emoji: "🥭",
+    image: "/images/banners/alphonso-mangoes.jpg",
   },
   {
-    title: "Monsoon Sale",
-    highlight: "Konkan Cashews",
-    sub: "Fresh this season from Goa border",
-    cta: "Shop Nuts →",
+    title: "Pure Kokum Sherbet",
+    sub: "Fresh Sindhudurg Agal & Drinks",
+    cta: "Shop Beverages",
+    href: "/products?category=beverages",
+    image: "/images/banners/kokum-sherbet.jpg",
+  },
+  {
+    title: "Konkan Cashews",
+    sub: "Jumbo Roasted & Salted Kaju",
+    cta: "Shop Nuts",
     href: "/products?category=nuts",
-    bg: "from-kokan-earth to-amber-800",
-    emoji: "🥜",
+    image: "/images/banners/konkan-cashews.jpg",
   },
 ];
 
@@ -192,35 +186,61 @@ export default function ProductsTab() {
 
       <div className="max-w-7xl mx-auto px-4 py-5 space-y-8">
         {/* Banner */}
-        <div className="relative rounded-2xl overflow-hidden">
-          {BANNERS.map((banner, i) => (
-            <div
-              key={i}
-              className={`transition-all duration-500 ${i === activeBanner ? "block" : "hidden"}`}
-            >
-              <div className={`bg-gradient-to-r ${banner.bg} p-6 rounded-2xl flex items-center justify-between`}>
-                <div>
-                  <p className="text-white/70 text-xs font-medium uppercase tracking-wider mb-1">{banner.title}</p>
-                  <h3 className="text-white font-playfair font-bold text-xl mb-2">{banner.highlight}</h3>
-                  <p className="text-white/70 text-xs mb-3">{banner.sub}</p>
+        <div>
+          <div className="relative h-48 sm:h-56 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm">
+            {BANNERS.map((banner, i) => (
+              <div
+                key={i}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  i === activeBanner ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
+                }`}
+              >
+                {/* Background image */}
+                <Image
+                  src={banner.image}
+                  alt={banner.title}
+                  fill
+                  priority={i === 0}
+                  className="object-cover"
+                />
+
+                {/* Left gradient overlay — keeps text readable while product photo stays vibrant */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+
+                {/* Content: Name on left side top, Explore button at bottom */}
+                <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-between items-start max-w-[70%] sm:max-w-sm">
+                  {/* Left Top */}
+                  <div>
+                    <span className="text-amber-300/95 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] drop-shadow-sm block mb-1">
+                      {banner.sub}
+                    </span>
+                    <h3 className="text-white font-display font-bold text-xl sm:text-3xl leading-[1.15] drop-shadow-md tracking-tight">
+                      {banner.title}
+                    </h3>
+                  </div>
+
+                  {/* Left Bottom: Frosted transparent explore button */}
                   <Link
                     href={banner.href}
-                    className="inline-block bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/35 shadow-sm transition-all hover:scale-105 active:scale-95"
                   >
-                    {banner.cta}
+                    {banner.cta} <ChevronRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
-                <div className="text-6xl">{banner.emoji}</div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
           {/* Banner dots */}
-          <div className="flex justify-center gap-1.5 mt-2">
+          <div className="flex justify-center items-center gap-1.5 mt-2.5">
             {BANNERS.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setActiveBanner(i)}
-                className={`rounded-full transition-all ${i === activeBanner ? "w-5 h-1.5 bg-kokan-green" : "w-1.5 h-1.5 bg-kokan-sand/40"}`}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`rounded-full transition-all duration-300 ${
+                  i === activeBanner ? "w-5 h-1.5 bg-kokan-green" : "w-1.5 h-1.5 bg-kokan-sand/40 hover:bg-kokan-sand/60"
+                }`}
               />
             ))}
           </div>

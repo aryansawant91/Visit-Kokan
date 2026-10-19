@@ -37,6 +37,8 @@ export interface Trek {
   bestSeason: string;
   price?: number;  
   scheduledDate?: string | null;        // base price per person
+  advanceAmount?: number;
+  whatsappGroupLink?: string;
   groupSize?: string;      // e.g. "2-15 people"
   addedBy: string;
   approved: boolean;

@@ -29,20 +29,45 @@ const DESTINATIONS = [
 ];
 
 const BANNERS = [
-  { title: "Monsoon Special", highlight: "Trek Season is Here", sub: "Best treks in Sahyadri range", cta: "Explore Treks", href: "/treks", bg: "from-emerald-700 to-kokan-green", emoji: "🧗" },
-  { title: "Weekend Getaway", highlight: "Hidden Beach Stays", sub: "Beachside homestays from ₹999/night", cta: "Find Homestays", href: "/listings", bg: "from-kokan-earth to-amber-700", emoji: "🏡" },
-  { title: "Explore Kokan", highlight: "Top Destinations", sub: "Discover 50+ coastal gems", cta: "View Destinations", href: "/destinations", bg: "from-blue-600 to-teal-600", emoji: "🏖️" },
+  {
+    title: "Top Destinations",
+    sub: "Explore 50+ Coastal Gems",
+    cta: "Explore",
+    href: "/destinations",
+    image: "/images/banners/explore-destinations.jpg",
+  },
+  {
+    title: "Trek Season is Here",
+    sub: "Lush Sahyadri Forts & Trails",
+    cta: "Explore",
+    href: "/treks",
+    image: "/images/banners/monsoon-treks.jpg",
+  },
+  {
+    title: "Hidden Beach Stays",
+    sub: "Authentic Coastal Homestays",
+    cta: "Explore",
+    href: "/listings",
+    image: "/images/banners/coastal-getaways.jpg",
+  },
+  {
+    title: "Untouched Kokan",
+    sub: "Historic Forts & Secret Coves",
+    cta: "Explore",
+    href: "/trip-planner",
+    image: "/images/banners/travel-art.jpg",
+  },
 ];
 
 const difficultyColor: Record<string, string> = {
-  easy:     "bg-green-100 text-green-700",
+  easy: "bg-green-100 text-green-700",
   moderate: "bg-amber-100 text-amber-700",
-  hard:     "bg-red-100 text-red-700",
-  expert:   "bg-red-200 text-red-800",
+  hard: "bg-red-100 text-red-700",
+  expert: "bg-red-200 text-red-800",
   // capitalised fallbacks (just in case)
-  Easy:     "bg-green-100 text-green-700",
+  Easy: "bg-green-100 text-green-700",
   Moderate: "bg-amber-100 text-amber-700",
-  Hard:     "bg-red-100 text-red-700",
+  Hard: "bg-red-100 text-red-700",
 };
 
 function HorizontalScroll({ children }: { children: React.ReactNode }) {
@@ -110,8 +135,11 @@ function TrekCard({ trek }: { trek: Trek }) {
           <div className="flex items-center justify-between mt-2">
             <span className="text-kokan-green font-bold text-sm">
               ₹{trek.price?.toLocaleString("en-IN")}
+              <span className="text-[11px] text-kokan-earth/40 font-normal"> / person</span>
             </span>
-            <span className="text-xs text-kokan-earth/40">/ person</span>
+            <span className="text-xs font-bold text-kokan-green bg-kokan-green/10 px-2 py-0.5 rounded-md">
+              Book
+            </span>
           </div>
         </div>
       </div>
@@ -133,10 +161,10 @@ function TrekCardSkeleton() {
 }
 
 export default function TravelTab() {
-  const [activeBanner, setActiveBanner]     = useState(0);
+  const [activeBanner, setActiveBanner] = useState(0);
   const [activeCategory, setActiveCategory] = useState("all");
-  const [treks, setTreks]                   = useState<Trek[]>([]);
-  const [treksLoading, setTreksLoading]     = useState(true);
+  const [treks, setTreks] = useState<Trek[]>([]);
+  const [treksLoading, setTreksLoading] = useState(true);
 
   // Auto-rotate banner
   useEffect(() => {
@@ -164,11 +192,10 @@ export default function TravelTab() {
             <button
               key={c.value}
               onClick={() => setActiveCategory(c.value)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
-                activeCategory === c.value
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${activeCategory === c.value
                   ? "bg-kokan-green text-white"
                   : "bg-kokan-sand/20 text-kokan-earth/70 hover:bg-kokan-sand/30"
-              }`}
+                }`}
             >
               {c.emoji} {c.label}
             </button>
@@ -180,30 +207,62 @@ export default function TravelTab() {
 
         {/* Banner */}
         <div>
-          {BANNERS.map((banner, i) => (
-            <div key={i} className={i === activeBanner ? "block" : "hidden"}>
-              <div className={`bg-gradient-to-r ${banner.bg} p-6 rounded-2xl flex items-center justify-between`}>
-                <div>
-                  <p className="text-white/70 text-xs font-medium uppercase tracking-wider mb-1">{banner.title}</p>
-                  <h3 className="text-white font-playfair font-bold text-xl mb-2">{banner.highlight}</h3>
-                  <p className="text-white/70 text-xs mb-3">{banner.sub}</p>
+          <div className="relative h-48 sm:h-56 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm">
+            {BANNERS.map((banner, i) => (
+              <div
+                key={i}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  i === activeBanner ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
+                }`}
+              >
+                {/* Background image */}
+                <Image
+                  src={banner.image}
+                  alt={banner.title}
+                  fill
+                  priority={i === 0}
+                  className="object-cover"
+                />
+
+                {/* Left gradient overlay — keeps text readable while right side stays completely vibrant */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+
+                {/* Content: Name on left side top, Explore button at bottom */}
+                <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-between items-start max-w-[70%] sm:max-w-sm">
+                  {/* Left Top */}
+                  <div>
+                    <span className="text-amber-300/95 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] drop-shadow-sm block mb-1">
+                      {banner.sub}
+                    </span>
+                    <h3 className="text-white font-display font-bold text-xl sm:text-3xl leading-[1.15] drop-shadow-md tracking-tight">
+                      {banner.title}
+                    </h3>
+                  </div>
+
+                  {/* Left Bottom: Frosted transparent explore button */}
                   <Link
                     href={banner.href}
-                    className="inline-block bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/35 shadow-sm transition-all hover:scale-105 active:scale-95"
                   >
-                    {banner.cta}
+                    {banner.cta} <ChevronRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
-                <div className="text-6xl">{banner.emoji}</div>
               </div>
-            </div>
-          ))}
-          <div className="flex justify-center gap-1.5 mt-2">
+            ))}
+          </div>
+
+          {/* Dots Indicator */}
+          <div className="flex justify-center items-center gap-1.5 mt-2.5">
             {BANNERS.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setActiveBanner(i)}
-                className={`rounded-full transition-all ${i === activeBanner ? "w-5 h-1.5 bg-kokan-green" : "w-1.5 h-1.5 bg-kokan-sand/40"}`}
+                aria-label={`Go to banner ${i + 1}`}
+                className={`rounded-full transition-all duration-300 ${
+                  i === activeBanner
+                    ? "w-5 h-1.5 bg-kokan-green"
+                    : "w-1.5 h-1.5 bg-kokan-sand/40 hover:bg-kokan-sand/60"
+                }`}
               />
             ))}
           </div>
@@ -240,10 +299,10 @@ export default function TravelTab() {
             {treksLoading
               ? Array.from({ length: 4 }).map((_, i) => <TrekCardSkeleton key={i} />)
               : treks.length > 0
-              ? treks.map((trek) => <TrekCard key={trek.id} trek={trek} />)
-              : (
-                <p className="text-sm text-kokan-earth/40 py-4">No treks available right now.</p>
-              )
+                ? treks.map((trek) => <TrekCard key={trek.id} trek={trek} />)
+                : (
+                  <p className="text-sm text-kokan-earth/40 py-4">No treks available right now.</p>
+                )
             }
           </HorizontalScroll>
         </div>
@@ -255,14 +314,14 @@ export default function TravelTab() {
           </h2>
           <div className="grid grid-cols-4 gap-3">
             {[
-              { label: "Beaches",     emoji: "🏖️", href: "/destinations?category=beach" },
-              { label: "Treks",       emoji: "🧗", href: "/treks" },
-              { label: "Homestays",   emoji: "🏡", href: "/listings?category=homestay" },
-              { label: "Food Tours",  emoji: "🍛", href: "/listings?category=food" },
-              { label: "Water Sports",emoji: "🤿", href: "/listings?category=water" },
-              { label: "Forts",       emoji: "🏰", href: "/destinations?category=fort" },
-              { label: "Temples",     emoji: "🛕", href: "/destinations?category=temple" },
-              { label: "Blogs",       emoji: "📝", href: "/blogs" },
+              { label: "Beaches", emoji: "🏖️", href: "/destinations?category=beach" },
+              { label: "Treks", emoji: "🧗", href: "/treks" },
+              { label: "Homestays", emoji: "🏡", href: "/listings?category=homestay" },
+              { label: "Food Tours", emoji: "🍛", href: "/listings?category=food" },
+              { label: "Water Sports", emoji: "🤿", href: "/listings?category=water" },
+              { label: "Forts", emoji: "🏰", href: "/destinations?category=fort" },
+              { label: "Temples", emoji: "🛕", href: "/destinations?category=temple" },
+              { label: "Blogs", emoji: "📝", href: "/blogs" },
             ].map((item) => (
               <Link
                 key={item.label}

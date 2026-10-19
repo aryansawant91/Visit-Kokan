@@ -23,6 +23,7 @@ export interface UserProfile {
   photoURL?: string
   role: UserRole
   phone?: string
+  tripsBooked?: number
   emailVerified: boolean
   isActive: boolean
   createdAt?: unknown

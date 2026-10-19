@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Trek } from "@/types/trek";
 import { TREK_CATEGORIES, TREK_DIFFICULTIES, TREK_REGIONS } from "@/constants/trekConstants";
-import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Clock, Mountain, ChevronRight, Star, Zap } from "lucide-react";
+import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Clock, ChevronRight, ChevronLeft } from "lucide-react";
 
 const VALID_COUPONS = [
   { code: "TREK50",   discount: 50,  description: "₹50 off on any trek" },
@@ -72,15 +72,9 @@ function TrekCard({ trek, featured = false }: { trek: Trek; featured?: boolean }
               ₹{trek.price?.toLocaleString("en-IN")}
               <span className="text-white/60 font-normal text-[11px]">/person</span>
             </span>
-            {trek.scheduledDate ? (
-              <span className="flex items-center gap-0.5 bg-white/15 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-1 rounded-lg">
-                Book <ChevronRight className="w-3 h-3" />
-              </span>
-            ) : (
-              <span className="flex items-center gap-0.5 bg-amber-400/90 text-amber-950 text-[10px] font-bold px-2 py-1 rounded-lg">
-                ⏳ Coming Soon
-              </span>
-            )}
+            <span className="flex items-center gap-0.5 bg-white/15 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-1 rounded-lg group-hover:bg-white/25 transition-colors">
+              Book <ChevronRight className="w-3 h-3" />
+            </span>
           </div>
         </div>
       </div>
@@ -98,6 +92,9 @@ function TreksPageInner() {
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [selectedRegion, setSelectedRegion]         = useState("all");
   const [showFilterSheet, setShowFilterSheet]       = useState(false);
+  const [currentPage, setCurrentPage]               = useState(1);
+
+  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
     const cat  = searchParams.get("category");
@@ -130,8 +127,28 @@ function TreksPageInner() {
   const hasFilters  = selectedCategory !== "all" || selectedDifficulty !== "all" || selectedRegion !== "all" || !!search;
   const activeCount = [selectedCategory !== "all", selectedDifficulty !== "all", selectedRegion !== "all"].filter(Boolean).length;
 
+  const itemsToPaginate = hasFilters ? filtered : rest;
+  const totalPages = Math.max(1, Math.ceil(itemsToPaginate.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedItems = itemsToPaginate.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    const el = document.getElementById("treks-grid-top");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 320, behavior: "smooth" });
+    }
+  };
+
   const clearFilters = () => {
-    setSearch(""); setSelectedCategory("all"); setSelectedDifficulty("all"); setSelectedRegion("all"); setShowFilterSheet(false);
+    setSearch("");
+    setSelectedCategory("all");
+    setSelectedDifficulty("all");
+    setSelectedRegion("all");
+    setShowFilterSheet(false);
+    setCurrentPage(1);
   };
 
   return (
@@ -154,12 +171,21 @@ function TreksPageInner() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kokan-earth/40" />
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search treks or regions..."
               className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm bg-white border border-[#e8d5bc] focus:outline-none focus:ring-2 focus:ring-kokan-earth/20 text-kokan-earth placeholder:text-kokan-earth/40 shadow-sm"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2">
+              <button
+                onClick={() => {
+                  setSearch("");
+                  setCurrentPage(1);
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2"
+              >
                 <X className="w-4 h-4 text-kokan-earth/40" />
               </button>
             )}
@@ -184,7 +210,10 @@ function TreksPageInner() {
         <div className="border-t border-[#e8d5bc]/60">
           <div className="max-w-7xl mx-auto px-3 py-2 flex items-center gap-2 overflow-x-auto scrollbar-hide">
             <button
-              onClick={() => setSelectedCategory("all")}
+              onClick={() => {
+                setSelectedCategory("all");
+                setCurrentPage(1);
+              }}
               className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                 selectedCategory === "all"
                   ? "bg-kokan-earth text-white"
@@ -196,7 +225,10 @@ function TreksPageInner() {
             {TREK_CATEGORIES.map((c) => (
               <button
                 key={c.value}
-                onClick={() => setSelectedCategory(selectedCategory === c.value ? "all" : c.value)}
+                onClick={() => {
+                  setSelectedCategory(selectedCategory === c.value ? "all" : c.value);
+                  setCurrentPage(1);
+                }}
                 className={`flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   selectedCategory === c.value
                     ? "bg-kokan-earth text-white"
@@ -249,25 +281,25 @@ function TreksPageInner() {
             <span className="flex items-center gap-1 bg-kokan-earth/10 text-kokan-earth text-xs font-medium px-2.5 py-1 rounded-full border border-kokan-earth/20">
               {TREK_CATEGORIES.find(c => c.value === selectedCategory)?.emoji}{" "}
               {TREK_CATEGORIES.find(c => c.value === selectedCategory)?.label}
-              <button onClick={() => setSelectedCategory("all")}><X size={11} /></button>
+              <button onClick={() => { setSelectedCategory("all"); setCurrentPage(1); }}><X size={11} /></button>
             </span>
           )}
           {selectedDifficulty !== "all" && (
             <span className="flex items-center gap-1 bg-kokan-earth/10 text-kokan-earth text-xs font-medium px-2.5 py-1 rounded-full border border-kokan-earth/20">
               {DIFFICULTY_CONFIG[selectedDifficulty]?.emoji} {selectedDifficulty}
-              <button onClick={() => setSelectedDifficulty("all")}><X size={11} /></button>
+              <button onClick={() => { setSelectedDifficulty("all"); setCurrentPage(1); }}><X size={11} /></button>
             </span>
           )}
           {selectedRegion !== "all" && (
             <span className="flex items-center gap-1 bg-kokan-earth/10 text-kokan-earth text-xs font-medium px-2.5 py-1 rounded-full border border-kokan-earth/20">
               📍 {selectedRegion}
-              <button onClick={() => setSelectedRegion("all")}><X size={11} /></button>
+              <button onClick={() => { setSelectedRegion("all"); setCurrentPage(1); }}><X size={11} /></button>
             </span>
           )}
           {search && (
             <span className="flex items-center gap-1 bg-kokan-earth/10 text-kokan-earth text-xs font-medium px-2.5 py-1 rounded-full border border-kokan-earth/20">
               🔍 &quot;{search}&quot;
-              <button onClick={() => setSearch("")}><X size={11} /></button>
+              <button onClick={() => { setSearch(""); setCurrentPage(1); }}><X size={11} /></button>
             </span>
           )}
           <button onClick={clearFilters} className="text-xs text-red-500 font-semibold px-2 py-1">Clear all</button>
@@ -313,21 +345,73 @@ function TreksPageInner() {
               </div>
             )}
 
-            {/* Results count */}
-            <div className="flex items-center justify-between mb-3">
+            {/* Results header */}
+            <div id="treks-grid-top" className="flex items-center justify-between mb-3 scroll-mt-24">
               <p className="text-xs font-semibold text-kokan-earth/50">
-                {hasFilters ? filtered.length : rest.length} trek{(hasFilters ? filtered.length : rest.length) !== 1 ? "s" : ""}
+                {itemsToPaginate.length} trek{itemsToPaginate.length !== 1 ? "s" : ""}
+                {totalPages > 1 && (
+                  <span className="ml-1 text-kokan-green font-bold">
+                    (Page {currentPage} of {totalPages})
+                  </span>
+                )}
               </p>
             </div>
 
-            {/* Main grid */}
+            {/* Main grid — 2 col mobile, 3 col sm, 4 col desktop */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {(hasFilters ? filtered : rest).map((t, i) => (
-                <div key={t.id} className={i === 0 && !hasFilters ? "col-span-2 sm:col-span-1" : ""}>
+              {paginatedItems.map((t, i) => (
+                <div key={t.id} className={i === 0 && !hasFilters && currentPage === 1 ? "col-span-2 sm:col-span-1" : ""}>
                   <TrekCard trek={t} />
                 </div>
               ))}
             </div>
+
+            {/* ── Pagination Controls: Previous & Next with Page Numbers (After 10 treks slide right) ── */}
+            {totalPages > 1 && (
+              <div className="mt-8 pt-6 border-t border-[#e8d5bc]/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-xs text-kokan-earth/60 font-medium order-2 sm:order-1">
+                  Showing <span className="font-bold text-kokan-earth">{startIndex + 1}</span> to{" "}
+                  <span className="font-bold text-kokan-earth">
+                    {Math.min(startIndex + ITEMS_PER_PAGE, itemsToPaginate.length)}
+                  </span>{" "}
+                  of <span className="font-bold text-kokan-earth">{itemsToPaginate.length}</span> treks
+                </p>
+
+                <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                  <button
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-[#e8d5bc] text-kokan-earth hover:bg-kokan-cream transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+                  >
+                    <ChevronLeft size={15} /> Previous
+                  </button>
+
+                  <div className="flex items-center gap-1 mx-1">
+                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => handlePageChange(p)}
+                        className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                          p === currentPage
+                            ? "bg-kokan-green text-white shadow-sm"
+                            : "bg-white text-kokan-earth/70 border border-[#e8d5bc] hover:bg-kokan-cream"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-semibold bg-kokan-green text-white hover:bg-kokan-teal transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+                  >
+                    Next <ChevronRight size={15} />
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -346,7 +430,10 @@ function TreksPageInner() {
                 <p className="text-[11px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-2.5">Difficulty</p>
                 <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => setSelectedDifficulty("all")}
+                    onClick={() => {
+                      setSelectedDifficulty("all");
+                      setCurrentPage(1);
+                    }}
                     className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${selectedDifficulty === "all" ? "bg-kokan-earth text-white" : "bg-gray-100 text-gray-600"}`}
                   >
                     All Levels
@@ -354,7 +441,10 @@ function TreksPageInner() {
                   {TREK_DIFFICULTIES.map((d) => (
                     <button
                       key={d.value}
-                      onClick={() => setSelectedDifficulty(d.value)}
+                      onClick={() => {
+                        setSelectedDifficulty(d.value);
+                        setCurrentPage(1);
+                      }}
                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${selectedDifficulty === d.value ? "bg-kokan-earth text-white" : "bg-gray-100 text-gray-600"}`}
                     >
                       {d.emoji} {d.label}
@@ -366,7 +456,10 @@ function TreksPageInner() {
                 <p className="text-[11px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-2.5">Region</p>
                 <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => setSelectedRegion("all")}
+                    onClick={() => {
+                      setSelectedRegion("all");
+                      setCurrentPage(1);
+                    }}
                     className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${selectedRegion === "all" ? "bg-kokan-earth text-white" : "bg-gray-100 text-gray-600"}`}
                   >
                     All Regions
@@ -374,7 +467,10 @@ function TreksPageInner() {
                   {TREK_REGIONS.map((r) => (
                     <button
                       key={r}
-                      onClick={() => setSelectedRegion(r)}
+                      onClick={() => {
+                        setSelectedRegion(r);
+                        setCurrentPage(1);
+                      }}
                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${selectedRegion === r ? "bg-kokan-earth text-white" : "bg-gray-100 text-gray-600"}`}
                     >
                       {r}

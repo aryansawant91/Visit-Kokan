@@ -10,7 +10,7 @@ import {
   ShoppingCart, Check, Star, MapPin,
   Heart, Shield, Truck, RotateCcw, Zap,
   ZoomIn, X, ChevronLeft, ChevronRight, Play,
-  Package, Copy, Clock,
+  Package, Copy, Clock, ArrowLeft,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -262,6 +262,16 @@ export default function ProductDetailPage() {
       )}
 
       <div className="max-w-6xl mx-auto px-4 py-6 pb-28 lg:pb-6">
+        {/* Back button */}
+        <div className="mb-4">
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-kokan-sand/40 text-kokan-earth rounded-xl text-xs font-semibold hover:bg-kokan-cream/50 transition-colors shadow-sm"
+          >
+            <ArrowLeft size={13} /> Back to Products
+          </Link>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
           {/* ── LEFT: Media ── */}
