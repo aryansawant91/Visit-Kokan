@@ -93,16 +93,28 @@ const places: Seed[] = [
     {
         name: "Diveagar",
         slug: "diveagar",
-        shortDescription: "A quiet, casuarina-lined beach village known for the Suvarna Ganesh Temple.",
+        shortDescription:
+            "A serene coastal hamlet in Raigad renowned for its 5-km stretch of untouched golden sands bordered by dense casuarina groves, and home to the historic Suvarna Ganesh Temple.",
         description:
-            "Diveagar is a peaceful beach village in Shrivardhan taluka, far from the crowds of the more popular Raigad beaches. Its wide, clean shoreline is backed by casuarina and coconut groves, and the village is best known for the Suvarna Ganesh Temple, whose Ganesh idol is adorned with gold.",
+            "Diveagar is a tranquil coastal sanctuary located in the Shrivardhan taluka of Raigad district, celebrated for its expansive 5-kilometer shoreline of hard-packed sands where gentle waves meet dense casuarina and betel nut orchards. Historically renowned following the dramatic 1997 discovery of a pure gold Ganesha mask buried in a local wadi, the village combines deep spiritual heritage with unspoiled Konkani charm. Days here move at an unhurried coastal rhythm, whether you are enjoying quad biking and parasailing on the breezy flats or relishing authentic home-cooked Surmai thalis and hot Ukdiche Modak under coconut palms.",
         category: "beach",
         region: "Raigad",
-        images: IMG.beachC,
-        highlights: ["Diveagar Beach", "Suvarna Ganesh Temple", "Casuarina Groves", "Quiet Beach Stays", "Konkani Village Life"],
+        images: [
+            "https://upload.wikimedia.org/wikipedia/commons/8/89/Diveagar_beach.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/6/68/Diveagar_Ganpati_Temple.JPG",
+            "https://upload.wikimedia.org/wikipedia/commons/2/25/Diveagar_beach_another_view.jpg",
+        ],
+        highlights: [
+            "Suvarna Ganesh idol adorned with intricate craftsmanship and gold leaf",
+            "5-km wide shoreline with firm white sands perfect for sunset strolls",
+            "Dense green canopy of coastal Suru (casuarina) and betel nut plantations",
+            "12th-century Rupnarayan Temple with black-stone Vishnu idol",
+            "Thrilling beach water sports including parasailing, jet skiing, and ATV quad rides",
+            "Winter migratory bird sightings and occasional Olive Ridley sea turtle nesting",
+        ],
         bestSeason: "October to March",
         howToReach:
-            "Reach Mangaon on the Konkan Railway, then take a taxi or state bus towards Shrivardhan and Diveagar. By road, take NH66 south from Mumbai and turn off towards Shrivardhan.",
+            "Nearest railway station is Mangaon (48 km) on the Konkan Railway. By road via NH66 from Mumbai (180 km) or via Tamhini Ghat from Pune (160 km). Or take the vehicle ferry from Agardanda to Dighi Jetty (15 km from Diveagar).",
     },
     {
         name: "Shrivardhan",
@@ -333,18 +345,31 @@ const places: Seed[] = [
             "Nearest railway station is Kankavli on the Konkan Railway. From Kankavli take a taxi or bus to Devgad.",
     },
     {
-        name: "Kunkeshwar",
-        slug: "kunkeshwar",
-        shortDescription: "An ancient Shiva temple beside the sea, called the Kashi of the south Konkan.",
+        name: "Kunkeshwar Beach",
+        slug: "kunkeshwar-beach",
+        shortDescription:
+            "A beautiful coastal destination in Devgad taluka of Sindhudurg, famous for its serene Arabian Sea shoreline, the ancient Kunkeshwar Shiva Temple, and the timeless charm of traditional Malvani life.",
         description:
-            "Kunkeshwar in Devgad taluka is home to a beautiful old Shiva temple that stands on the edge of a quiet beach, often called the Kashi of the south Konkan. Visitors combine a darshan with a walk on the long, uncrowded shoreline and sunset views over the sea.",
-        category: "temple",
+            "Kunkeshwar is a peaceful coastal haven nestled along the Arabian Sea in Sindhudurg district, Maharashtra. Known as the 'Kashi of South Konkan', this destination brings together the raw beauty of the Konkan coastline and the spiritual grandeur of its historic Shiva temple. Believed to date back to the 11th or 12th century, the Kunkeshwar Temple stands close to the sea, its traditional stone architecture carrying centuries of devotion and coastal history.",
+        category: "beach",
         region: "Sindhudurg",
-        images: IMG.templeA,
-        highlights: ["Kunkeshwar Temple", "Beachfront Temple", "Quiet Beach", "Sunset Views", "Pilgrimage Stop"],
+        images: [
+            "https://upload.wikimedia.org/wikipedia/commons/b/b8/Kunakeshwar.JPG",
+            "https://upload.wikimedia.org/wikipedia/commons/9/92/Kunkeshwar_seashore_kokan.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/9/9a/Approaching_Kunkeshwar_%285363568029%29.jpg",
+        ],
+        highlights: [
+            "Historic Kunkeshwar Shiva Temple, popularly known as the Kashi of South Konkan",
+            "A scenic Arabian Sea shoreline ideal for peaceful walks and sunset watching",
+            "Traditional stone temple architecture reflecting historic Yadava-era influences",
+            "Beautiful views of the temple and sea",
+            "Authentic Malvani cuisine featuring fresh seafood, coconut-based curries, and Solkadhi",
+            "Convenient access to Devgad Fort, lighthouse, and nearby beaches",
+            "Annual Mahashivratri celebrations and pilgrimage traditions",
+        ],
         bestSeason: "October to March",
         howToReach:
-            "Nearest railway station is Kankavli on the Konkan Railway. From there take a taxi or bus towards Devgad and Kunkeshwar.",
+            "Nearest railway stations are Kankavli (52 km) and Nandgaon (45 km) on the Konkan Railway. By road via NH66 from Mumbai (440 km) or via Kolhapur from Pune.",
     },
     {
         name: "Sawantwadi",
