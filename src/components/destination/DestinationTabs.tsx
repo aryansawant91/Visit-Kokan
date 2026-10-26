@@ -17,6 +17,8 @@ import {
   Ship,
   Info,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Compass,
   Waves,
   Castle,
@@ -28,8 +30,7 @@ import {
   Fish,
   Wind,
   Umbrella,
-  ShieldCheck,
-  CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
 import WeatherWidget from "./WeatherWidget";
 import NearbyListings from "./NearbyListings";
@@ -75,6 +76,11 @@ export default function DestinationTabs({
   mapsUrl,
 }: DestinationTabsProps) {
   const [activeTab, setActiveTab] = useState<string>("section-overview");
+  const [showAllWarnings, setShowAllWarnings] = useState(false);
+  const [showAllPlaces, setShowAllPlaces] = useState(false);
+  const [showAllActivities, setShowAllActivities] = useState(false);
+  const [showAllFood, setShowAllFood] = useState(false);
+
   const isClickingRef = useRef(false);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const tabContainerRef = useRef<HTMLDivElement | null>(null);
@@ -135,7 +141,7 @@ export default function DestinationTabs({
 
     const element = document.getElementById(id);
     if (element) {
-      const stickyBarOffset = 64; // Height of sticky bar + small buffer
+      const stickyBarOffset = 64; // Height of sticky bar + buffer
       const y =
         element.getBoundingClientRect().top +
         window.pageYOffset -
@@ -148,10 +154,22 @@ export default function DestinationTabs({
     }, 600);
   };
 
+  const cleanDistance = (dist?: string) => {
+    if (!dist) return "";
+    return dist
+      .replace(/^approximately\s+/i, "~")
+      .replace(/\s*away$/i, "")
+      .trim();
+  };
+
+  const getPlaceUrl = (name: string) => {
+    const q = encodeURIComponent(`${name} ${dest.region || "Konkan"} Maharashtra`);
+    return `https://www.google.com/maps/search/?api=1&query=${q}`;
+  };
+
   return (
     <div className="space-y-4">
       {/* ── Flipkart-Style Sticky Pill Tabs Bar ── */}
-      {/* Sticks cleanly beneath header, full horizontal scroll without awkward cutoffs */}
       <div className="sticky top-0 z-30 bg-[#edf3eb]/95 backdrop-blur-md py-2.5 -mx-5 px-5 border-b border-[#d6e2d4]/80 shadow-xs">
         <div
           ref={tabContainerRef}
@@ -313,7 +331,7 @@ export default function DestinationTabs({
         )}
       </section>
 
-      {/* ── 3. SECTION: TO-DO & FOOD (Compact List Blocks) ── */}
+      {/* ── 3. SECTION: TO-DO & FOOD (Compact, Engaging List Blocks) ── */}
       <section id="section-activities" className="scroll-mt-20 space-y-3.5">
         {/* Things to Do */}
         {dest.thingsToDo && dest.thingsToDo.length > 0 && (
@@ -322,7 +340,10 @@ export default function DestinationTabs({
               <Compass size={13} className="text-[#2D6A4F]" /> Top Things to Do
             </h2>
             <div className="space-y-2">
-              {dest.thingsToDo.map((todo: string, idx: number) => (
+              {(showAllActivities
+                ? dest.thingsToDo
+                : dest.thingsToDo.slice(0, 4)
+              ).map((todo: string, idx: number) => (
                 <div
                   key={idx}
                   className="p-2.5 bg-[#f8faf7] rounded-xl border border-[#e2eae0] flex items-start gap-2.5"
@@ -336,6 +357,19 @@ export default function DestinationTabs({
                 </div>
               ))}
             </div>
+
+            {dest.thingsToDo.length > 4 && (
+              <button
+                onClick={() => setShowAllActivities(!showAllActivities)}
+                className="text-xs font-bold text-[#2D6A4F] hover:underline flex items-center gap-1 mt-2.5 pt-1.5 border-t border-[#edf3eb] w-full justify-center"
+              >
+                {showAllActivities ? (
+                  <>Show less <ChevronUp size={12} /></>
+                ) : (
+                  <>View all {dest.thingsToDo.length} activities ({dest.thingsToDo.length - 4} more) <ChevronDown size={12} /></>
+                )}
+              </button>
+            )}
           </div>
         )}
 
@@ -346,7 +380,10 @@ export default function DestinationTabs({
               <Utensils size={13} className="text-[#B7895A]" /> Authentic Food to Taste
             </h2>
             <div className="space-y-2">
-              {dest.foodToTry.map((food: string, idx: number) => (
+              {(showAllFood
+                ? dest.foodToTry
+                : dest.foodToTry.slice(0, 4)
+              ).map((food: string, idx: number) => (
                 <div
                   key={idx}
                   className="p-2.5 bg-[#fcf9f5] rounded-xl border border-[#efe6dc] text-xs text-[#423326] leading-relaxed flex items-start gap-2.5"
@@ -356,6 +393,19 @@ export default function DestinationTabs({
                 </div>
               ))}
             </div>
+
+            {dest.foodToTry.length > 4 && (
+              <button
+                onClick={() => setShowAllFood(!showAllFood)}
+                className="text-xs font-bold text-[#B7895A] hover:underline flex items-center gap-1 mt-2.5 pt-1.5 border-t border-[#fcf4ec] w-full justify-center"
+              >
+                {showAllFood ? (
+                  <>Show less <ChevronUp size={12} /></>
+                ) : (
+                  <>View all {dest.foodToTry.length} specialities ({dest.foodToTry.length - 4} more) <ChevronDown size={12} /></>
+                )}
+              </button>
+            )}
           </div>
         )}
       </section>
@@ -443,66 +493,147 @@ export default function DestinationTabs({
         </a>
       </section>
 
-      {/* ── 5. SECTION: IMPORTANT TRAVELER ADVISORY (Compact Flipkart Alert Box) ── */}
+      {/* ── 5. SECTION: TRAVELER ADVISORY (Compact, High-Impact Safety Alert) ── */}
       {dest.warnings && dest.warnings.length > 0 && (
         <section id="section-advisory" className="scroll-mt-20">
-          <div className="bg-[#fffbeb] rounded-xl p-3 sm:p-3.5 border border-[#fed7aa] shadow-xs">
-            <h2 className="text-xs font-bold tracking-wider uppercase text-[#c2410c] mb-2 flex items-center gap-1.5">
-              <AlertTriangle size={13} className="text-[#ea580c]" /> Important Traveler Advisory
-            </h2>
-            <ul className="space-y-1.5">
-              {dest.warnings.map((warning: string, idx: number) => (
-                <li
-                  key={idx}
-                  className="text-xs text-[#7c2d12] flex items-start gap-2 leading-relaxed"
-                >
-                  <span className="text-[#ea580c] font-black text-xs leading-none mt-0.5">
-                    •
-                  </span>
-                  <span>{warning}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="bg-[#fffbeb] rounded-xl p-3.5 border border-[#fed7aa] shadow-xs">
+            <div className="flex items-center justify-between mb-2.5">
+              <h2 className="text-xs font-bold tracking-wider uppercase text-[#c2410c] flex items-center gap-1.5">
+                <AlertTriangle size={13} className="text-[#ea580c]" /> Traveler Safety Advisory
+              </h2>
+              <span className="text-[10px] font-bold text-[#ea580c] bg-[#fed7aa]/50 px-2 py-0.5 rounded-full">
+                Important
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {(showAllWarnings ? dest.warnings : dest.warnings.slice(0, 3)).map(
+                (warning: string, idx: number) => (
+                  <div
+                    key={idx}
+                    className="p-2 bg-white/70 rounded-lg border border-[#fde68a] text-xs text-[#7c2d12] flex items-start gap-2 leading-relaxed"
+                  >
+                    <span className="text-[#ea580c] font-black text-xs shrink-0 mt-0.5">
+                      •
+                    </span>
+                    <span className="flex-1">{warning}</span>
+                  </div>
+                )
+              )}
+            </div>
+
+            {dest.warnings.length > 3 && (
+              <button
+                onClick={() => setShowAllWarnings(!showAllWarnings)}
+                className="text-xs font-bold text-[#c2410c] hover:underline flex items-center gap-1 mt-2.5 pt-1.5 border-t border-[#fed7aa]/60 w-full justify-center transition-colors"
+              >
+                {showAllWarnings ? (
+                  <>Show fewer safety tips <ChevronUp size={12} /></>
+                ) : (
+                  <>View all {dest.warnings.length} safety points ({dest.warnings.length - 3} more) <ChevronDown size={12} /></>
+                )}
+              </button>
+            )}
           </div>
         </section>
       )}
 
-      {/* ── 6. SECTION: STAYS & NEARBY PLACES (Flipkart "Similar" Style) ── */}
+      {/* ── 6. SECTION: STAYS & NEARBY PLACES ── */}
       <section id="section-stays" className="scroll-mt-20 space-y-3.5">
-        {/* Where to Stay */}
+        {/* Where to Stay — Categorized & Structured */}
         {dest.stayOptions && (
-          <div className="bg-white rounded-xl p-3.5 border border-[#d6e2d4] shadow-xs">
-            <h2 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] mb-1.5 flex items-center gap-1.5">
-              <Bed size={13} className="text-[#2D6A4F]" /> Stay Options
+          <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-[#d6e2d4] shadow-xs space-y-3">
+            <h2 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] flex items-center gap-1.5">
+              <Bed size={13} className="text-[#2D6A4F]" /> Stay Options & Recommendations
             </h2>
-            <p className="text-xs text-[#3d5343] leading-relaxed">
+
+            {/* Quick Category Badges */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="p-2 bg-[#f8faf7] rounded-lg border border-[#e2eae0] text-center">
+                <span className="text-base block mb-0.5">🏨</span>
+                <span className="text-[10px] font-bold text-[#142e1b] block">Beachfront</span>
+                <span className="text-[9px] text-[#63806a]">Resorts & MTDC</span>
+              </div>
+              <div className="p-2 bg-[#f8faf7] rounded-lg border border-[#e2eae0] text-center">
+                <span className="text-base block mb-0.5">🏡</span>
+                <span className="text-[10px] font-bold text-[#142e1b] block">Homestays</span>
+                <span className="text-[9px] text-[#63806a]">Local Meals</span>
+              </div>
+              <div className="p-2 bg-[#f8faf7] rounded-lg border border-[#e2eae0] text-center">
+                <span className="text-base block mb-0.5">🛏️</span>
+                <span className="text-[10px] font-bold text-[#142e1b] block">Budget Inns</span>
+                <span className="text-[9px] text-[#63806a]">Near Temple</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#3d5343] leading-relaxed pt-1">
               {dest.stayOptions}
             </p>
           </div>
         )}
 
-        {/* Nearby Places to Visit */}
+        {/* Nearby Places to Visit — With Actionable "View" Button! */}
         {dest.nearbyPlaces && dest.nearbyPlaces.length > 0 && (
-          <div className="bg-white rounded-xl p-3.5 border border-[#d6e2d4] shadow-xs">
-            <h2 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] mb-2.5 flex items-center gap-1.5">
-              <Compass size={13} className="text-[#2D6A4F]" /> Nearby Places to Visit
-            </h2>
-            <div className="space-y-2">
-              {dest.nearbyPlaces.map((place: any, idx: number) => (
+          <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-[#d6e2d4] shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] flex items-center gap-1.5">
+                <Compass size={13} className="text-[#2D6A4F]" /> Nearby Places to Visit
+              </h2>
+              <span className="text-[10px] font-semibold text-[#66826c]">
+                Tap &lsquo;View&rsquo; to navigate
+              </span>
+            </div>
+
+            <div className="space-y-2.5">
+              {(showAllPlaces
+                ? dest.nearbyPlaces
+                : dest.nearbyPlaces.slice(0, 4)
+              ).map((place: any, idx: number) => (
                 <div
                   key={idx}
-                  className="p-2.5 bg-[#f8faf7] rounded-xl border border-[#e0e9df] flex items-start justify-between gap-2.5"
+                  className="p-3 bg-[#f8faf7] rounded-xl border border-[#e0e9df] flex items-start justify-between gap-3 hover:border-[#2D6A4F]/40 transition-colors"
                 >
-                  <div>
-                    <p className="text-xs font-bold text-[#142e1b]">{place.name}</p>
-                    <p className="text-[11px] text-[#556e5a] mt-0.5 leading-snug">{place.why}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <p className="text-xs font-bold text-[#142e1b]">{place.name}</p>
+                      {place.distance && (
+                        <span className="px-2 py-0.5 bg-white text-[#2D6A4F] font-bold text-[10px] rounded-md border border-[#d6e2d4] shrink-0 shadow-2xs">
+                          {cleanDistance(place.distance)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-[#556e5a] leading-relaxed line-clamp-2">
+                      {place.why}
+                    </p>
                   </div>
-                  <span className="px-2 py-0.5 bg-white text-[#2D6A4F] font-bold text-[10px] rounded-md border border-[#d6e2d4] shrink-0">
-                    {place.distance}
-                  </span>
+
+                  {/* Actionable View Button as Requested by User */}
+                  <a
+                    href={getPlaceUrl(place.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 bg-[#142607] hover:bg-[#2D6A4F] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shrink-0 shadow-xs active:scale-95 transition-all mt-0.5"
+                    aria-label={`View ${place.name} on map`}
+                  >
+                    <span>View</span>
+                    <ExternalLink size={11} />
+                  </a>
                 </div>
               ))}
             </div>
+
+            {dest.nearbyPlaces.length > 4 && (
+              <button
+                onClick={() => setShowAllPlaces(!showAllPlaces)}
+                className="text-xs font-bold text-[#2D6A4F] hover:underline flex items-center gap-1 mt-3 pt-2 border-t border-[#edf3eb] w-full justify-center transition-colors"
+              >
+                {showAllPlaces ? (
+                  <>Show fewer places <ChevronUp size={12} /></>
+                ) : (
+                  <>View all {dest.nearbyPlaces.length} nearby places ({dest.nearbyPlaces.length - 4} more) <ChevronDown size={12} /></>
+                )}
+              </button>
+            )}
           </div>
         )}
 
