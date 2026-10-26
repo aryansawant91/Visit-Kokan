@@ -28,6 +28,7 @@ function isPublic(pathname: string): boolean {
   if (pathname.startsWith('/api/')) return true
   if (pathname.startsWith('/_next/')) return true
   if (pathname.startsWith('/icons/') || pathname.startsWith('/images/')) return true
+  if (pathname.startsWith('/.well-known/')) return true
   if (pathname === '/favicon.ico') return true
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))
 }

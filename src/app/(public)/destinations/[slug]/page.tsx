@@ -37,9 +37,89 @@ async function getDestination(slug: string) {
           .get();
       }
 
+      // Check -fort variants if still empty
+      if (snap.empty && slug.endsWith("-fort")) {
+        snap = await adminDb
+          .collection("destinations")
+          .where("slug", "==", slug.replace(/-fort$/, ""))
+          .where("approved", "==", true)
+          .limit(1)
+          .get();
+      } else if (snap.empty && !slug.endsWith("-fort")) {
+        snap = await adminDb
+          .collection("destinations")
+          .where("slug", "==", `${slug}-fort`)
+          .where("approved", "==", true)
+          .limit(1)
+          .get();
+      }
+
+      // Specific known aliases
+      if (snap.empty) {
+        const aliasMap: Record<string, string> = {
+          "devgad": "devgad-beach",
+          "vijaydurg": "vijaydurg-fort",
+          "korlai": "korlai-fort",
+          "revdanda": "revdanda-fort-beach",
+          "revdanda-beach": "revdanda-fort-beach",
+          "korlai-revdanda": "korlai-fort",
+          "harihareshwar-beach": "harihareshwar",
+          "anjarle-beach": "anjarle",
+          "velas": "velas-beach",
+          "bankot": "bankot-fort",
+          "kelshi": "kelshi-beach",
+          "shrivardhan-beach": "shrivardhan",
+          "devbag-beach": "devbag",
+          "tarkarli-beach": "tarkarli",
+          "bhogwe": "bhogwe-beach",
+          "bhogave": "bhogwe-beach",
+          "bhogave-beach": "bhogwe-beach",
+          "velneshwar-beach": "velneshwar",
+          "harnai-beach": "harnai",
+          "achara": "achra",
+          "achara-beach": "achra",
+          "achra-beach": "achra",
+          "aare-ware": "aare-ware-beach",
+          "are-ware": "aare-ware-beach",
+          "are-ware-beach": "aare-ware-beach",
+          "parshuram-temple-chiplun": "chiplun-parshuram",
+          "parshuram-temple": "chiplun-parshuram",
+          "parshuram": "chiplun-parshuram",
+          "chiplun": "chiplun-parshuram",
+          "marleshwar-temple-waterfall": "marleshwar",
+          "marleshwar-temple": "marleshwar",
+          "marleshwar-waterfall": "marleshwar",
+          "amboli-hill-station": "amboli",
+          "kashid-beach": "kashid",
+          "guhagar-beach": "guhagar",
+          "murud-janjira-fort": "murud-janjira",
+        };
+        const targetAlias = aliasMap[slug];
+        if (targetAlias) {
+          snap = await adminDb
+            .collection("destinations")
+            .where("slug", "==", targetAlias)
+            .where("approved", "==", true)
+            .limit(1)
+            .get();
+        }
+      }
+
       if (!snap.empty) {
         const doc = snap.docs[0];
-        return { id: doc.id, ...doc.data() } as any;
+        const data = doc.data();
+        // Convert any Firestore Timestamps and non-plain values into plain JSON-serializable types
+        return JSON.parse(
+          JSON.stringify({ id: doc.id, ...data }, (_k, v) => {
+            if (v && typeof v === "object" && typeof v.toDate === "function") {
+              return v.toDate().toISOString();
+            }
+            if (v && typeof v === "object" && typeof v._seconds === "number") {
+              return new Date(v._seconds * 1000).toISOString();
+            }
+            return v;
+          })
+        ) as any;
       }
     }
   } catch (err: any) {
@@ -83,9 +163,23 @@ function parseSeason(rawSeason?: string) {
   return { short: rawSeason.trim(), detail: "" };
 }
 
-export default async function DestinationPage({ params }: { params: { slug: string } }) {
+export default async function DestinationPage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams?: { from?: string; fromPage?: string; page?: string };
+}) {
   const dest = await getDestination(params.slug);
   if (!dest) notFound();
+
+  const fromSlug = searchParams?.from;
+  const fromPage = searchParams?.fromPage || searchParams?.page;
+  const backHref = fromSlug
+    ? `/destinations/${fromSlug}`
+    : fromPage
+    ? `/destinations?page=${fromPage}`
+    : "/destinations";
 
   const category = DESTINATION_CATEGORIES.find((c) => c.value === dest.category);
   const allImages: string[] = [
@@ -116,7 +210,9 @@ export default async function DestinationPage({ params }: { params: { slug: stri
         <HeroCarousel
           images={allImages}
           name={dest.name}
-          backHref="/destinations"
+          backHref={backHref}
+          fromSlug={fromSlug}
+          fromPage={fromPage}
           category={category}
           region={dest.region}
           slug={dest.slug}

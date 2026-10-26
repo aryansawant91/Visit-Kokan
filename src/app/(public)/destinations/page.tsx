@@ -1,15 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Destination } from "@/types/destination";
 import { DESTINATION_CATEGORIES, DESTINATION_REGIONS } from "@/constants/destinationConstants";
 import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Star, ChevronRight, ChevronLeft } from "lucide-react";
 
-function DestinationCard({ destination, featured = false }: { destination: Destination; featured?: boolean }) {
+function DestinationCard({
+  destination,
+  featured = false,
+  page = 1,
+  onCardClick,
+}: {
+  destination: Destination;
+  featured?: boolean;
+  page?: number;
+  onCardClick?: () => void;
+}) {
   return (
-    <Link href={`/destinations/${destination.slug}`} className="block group">
+    <Link
+      href={`/destinations/${destination.slug}?fromPage=${page}`}
+      onClick={onCardClick}
+      className="block group"
+    >
       <div className={`relative rounded-2xl overflow-hidden shadow-sm ${featured ? "h-52 sm:h-64" : "h-44 sm:h-52"}`}>
         {destination.coverImage || destination.images?.[0] ? (
           <Image
@@ -47,7 +61,7 @@ function DestinationCard({ destination, featured = false }: { destination: Desti
             <div className="flex items-center gap-0.5 text-white/70 text-[11px]">
               <MapPin className="w-3 h-3" /> {destination.region}
             </div>
-            {destination.rating > 0 && (
+            {(destination.rating ?? 0) > 0 && (
               <div className="flex items-center gap-0.5 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                 <Star className="w-2.5 h-2.5 fill-amber-300 text-amber-300" /> {destination.rating?.toFixed(1)}
               </div>
@@ -70,8 +84,59 @@ export default function DestinationsPage() {
   const [selectedRegion, setSelectedRegion]     = useState("all");
   const [showFilterSheet, setShowFilterSheet]   = useState(false);
   const [currentPage, setCurrentPage]           = useState(1);
+  const featuredScrollerRef                     = useRef<HTMLDivElement | null>(null);
 
   const ITEMS_PER_PAGE = 10;
+
+  const saveNavState = (pageToSave = currentPage) => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("destinations_currentPage", String(pageToSave));
+      sessionStorage.setItem("destinations_scrollY", String(window.scrollY));
+      if (featuredScrollerRef.current) {
+        sessionStorage.setItem(
+          "destinations_featured_scroll",
+          String(featuredScrollerRef.current.scrollLeft)
+        );
+      }
+    }
+  };
+
+  // Restore page from query param or sessionStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const pParam = sp.get("page") || sp.get("fromPage");
+    const savedPage = pParam
+      ? parseInt(pParam, 10)
+      : parseInt(sessionStorage.getItem("destinations_currentPage") || "1", 10);
+
+    if (savedPage && savedPage > 1) {
+      setCurrentPage(savedPage);
+    }
+  }, []);
+
+  // Restore scroll position after destinations finish loading
+  useEffect(() => {
+    if (loading || typeof window === "undefined") return;
+
+    const savedY = parseInt(sessionStorage.getItem("destinations_scrollY") || "0", 10);
+    const savedFeaturedScroll = parseInt(
+      sessionStorage.getItem("destinations_featured_scroll") || "0",
+      10
+    );
+
+    if (savedY > 0 || savedFeaturedScroll > 0) {
+      const timer = setTimeout(() => {
+        if (savedY > 0) {
+          window.scrollTo({ top: savedY, behavior: "instant" as ScrollBehavior });
+        }
+        if (savedFeaturedScroll > 0 && featuredScrollerRef.current) {
+          featuredScrollerRef.current.scrollLeft = savedFeaturedScroll;
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   useEffect(() => {
     fetch("/api/destinations")
@@ -92,13 +157,20 @@ export default function DestinationsPage() {
   const hasFilters = selectedCategory !== "all" || selectedRegion !== "all" || !!search;
   const activeCount = [selectedCategory !== "all", selectedRegion !== "all"].filter(Boolean).length;
 
-  const itemsToPaginate = hasFilters ? filtered : rest;
+  // Include all filtered destinations in pagination so the full catalog is browsable
+  const itemsToPaginate = filtered;
   const totalPages = Math.max(1, Math.ceil(itemsToPaginate.length / ITEMS_PER_PAGE));
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedItems = itemsToPaginate.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("destinations_currentPage", String(newPage));
+      const url = new URL(window.location.href);
+      url.searchParams.set("page", String(newPage));
+      window.history.replaceState(null, "", url.toString());
+    }
     const el = document.getElementById("destinations-grid-top");
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
@@ -108,7 +180,17 @@ export default function DestinationsPage() {
   };
 
   const clearFilters = () => {
-    setSearch(""); setSelectedCategory("all"); setSelectedRegion("all"); setShowFilterSheet(false); setCurrentPage(1);
+    setSearch("");
+    setSelectedCategory("all");
+    setSelectedRegion("all");
+    setShowFilterSheet(false);
+    setCurrentPage(1);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("destinations_currentPage", "1");
+      const url = new URL(window.location.href);
+      url.searchParams.delete("page");
+      window.history.replaceState(null, "", url.toString());
+    }
   };
 
   return (
@@ -278,10 +360,18 @@ export default function DestinationsPage() {
                   </h2>
                   <span className="text-xs text-kokan-earth/40">{featured.length} places</span>
                 </div>
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:overflow-visible">
+                <div
+                  ref={featuredScrollerRef}
+                  className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:overflow-visible"
+                >
                   {featured.map((d) => (
                     <div key={d.id} className="flex-shrink-0 w-[68vw] sm:w-auto">
-                      <DestinationCard destination={d} featured />
+                      <DestinationCard
+                        destination={d}
+                        featured
+                        page={currentPage}
+                        onCardClick={() => saveNavState(currentPage)}
+                      />
                     </div>
                   ))}
                 </div>
@@ -304,7 +394,11 @@ export default function DestinationsPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {paginatedItems.map((d, i) => (
                 <div key={d.id} className={i === 0 && !hasFilters && currentPage === 1 ? "col-span-2 sm:col-span-1" : ""}>
-                  <DestinationCard destination={d} />
+                  <DestinationCard
+                    destination={d}
+                    page={currentPage}
+                    onCardClick={() => saveNavState(currentPage)}
+                  />
                 </div>
               ))}
             </div>

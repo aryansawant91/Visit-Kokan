@@ -31,7 +31,18 @@ async function getTrek(slug: string): Promise<Trek | null> {
 
       if (!snap.empty) {
         const doc = snap.docs[0];
-        return { id: doc.id, ...doc.data() } as Trek;
+        const data = doc.data();
+        return JSON.parse(
+          JSON.stringify({ id: doc.id, ...data }, (_k, v) => {
+            if (v && typeof v === "object" && typeof v.toDate === "function") {
+              return v.toDate().toISOString();
+            }
+            if (v && typeof v === "object" && typeof v._seconds === "number") {
+              return new Date(v._seconds * 1000).toISOString();
+            }
+            return v;
+          })
+        ) as Trek;
       }
     }
   } catch (err: any) {

@@ -126,6 +126,14 @@ export default function TrekHeroCarousel({
     }
   };
 
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(backHref);
+    }
+  };
+
   const prev = useCallback(() => {
     setCurrent((i) => (i - 1 + displayImages.length) % displayImages.length);
   }, [displayImages.length]);
@@ -187,7 +195,7 @@ export default function TrekHeroCarousel({
         <div className="absolute top-5 inset-x-0 px-4 flex items-center justify-between z-20">
           {/* Back button */}
           <button
-            onClick={() => router.push(backHref)}
+            onClick={handleBack}
             aria-label="Go back"
             className="w-11 h-11 rounded-full bg-black/25 backdrop-blur-md border border-white/25 text-white flex items-center justify-center hover:bg-black/40 active:scale-95 transition-all shadow-md"
           >

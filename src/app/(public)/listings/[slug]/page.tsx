@@ -23,7 +23,18 @@ async function getListing(slug: string) {
 
     if (snap.empty) return null;
     const doc = snap.docs[0];
-    return { id: doc.id, ...doc.data() } as any;
+    const data = doc.data();
+    return JSON.parse(
+      JSON.stringify({ id: doc.id, ...data }, (_k, v) => {
+        if (v && typeof v === "object" && typeof v.toDate === "function") {
+          return v.toDate().toISOString();
+        }
+        if (v && typeof v === "object" && typeof v._seconds === "number") {
+          return new Date(v._seconds * 1000).toISOString();
+        }
+        return v;
+      })
+    ) as any;
   } catch (err: any) {
     console.error("getListing error:", err.message);
     return null;

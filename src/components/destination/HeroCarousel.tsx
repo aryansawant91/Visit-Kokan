@@ -17,6 +17,8 @@ interface Props {
   images: string[];
   name: string;
   backHref?: string;
+  fromSlug?: string;
+  fromPage?: string;
   category?: { emoji: string; label: string; value: string } | null;
   region: string;
   slug: string;
@@ -26,6 +28,8 @@ export default function HeroCarousel({
   images,
   name,
   backHref = "/destinations",
+  fromSlug,
+  fromPage,
   category,
   region,
   slug,
@@ -124,6 +128,32 @@ export default function HeroCarousel({
     }
   };
 
+  const handleBack = () => {
+    // 1. If we arrived from a specific previous destination (?from=slug)
+    if (fromSlug) {
+      if (typeof window !== "undefined" && window.history.length > 1) {
+        router.back();
+      } else {
+        router.push(`/destinations/${fromSlug}`);
+      }
+      return;
+    }
+
+    // 2. If the user navigated here from another page in this session
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    // 3. Fallback to default destination list preserving the page slide
+    if (fromPage) {
+      router.push(`/destinations?page=${fromPage}`);
+      return;
+    }
+
+    router.push(backHref);
+  };
+
   const prev = useCallback(() => {
     setCurrent((i) => (i - 1 + displayImages.length) % displayImages.length);
   }, [displayImages.length]);
@@ -185,7 +215,7 @@ export default function HeroCarousel({
         <div className="absolute top-5 inset-x-0 px-4 flex items-center justify-between z-20">
           {/* Back button */}
           <button
-            onClick={() => router.push(backHref)}
+            onClick={handleBack}
             aria-label="Go back"
             className="w-11 h-11 rounded-full bg-black/25 backdrop-blur-md border border-white/25 text-white flex items-center justify-center hover:bg-black/40 active:scale-95 transition-all shadow-md"
           >

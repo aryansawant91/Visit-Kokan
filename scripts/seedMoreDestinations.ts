@@ -78,14 +78,27 @@ const IMG = {
 interface Seed {
     name: string;
     slug: string;
+    tagline?: string;
     shortDescription: string;
     description: string;
     category: "beach" | "fort" | "waterfall" | "temple" | "village" | "island" | "trek" | "other";
     region: string;
     images: string[];
+    coverImage?: string;
     highlights: string[];
     bestSeason: string;
-    howToReach: string;
+    howToReach: string | { byRoad?: string; byTrain?: string; byFerry?: string; tip?: string };
+    thingsToDo?: string[];
+    foodToTry?: string[];
+    nearbyPlaces?: any[];
+    stayOptions?: string;
+    entryFee?: string;
+    timings?: string;
+    bestTimeToVisit?: string;
+    warnings?: string[];
+    tags?: string[];
+    featured?: boolean;
+    approved?: boolean;
 }
 
 const places: Seed[] = [
@@ -117,18 +130,97 @@ const places: Seed[] = [
             "Nearest railway station is Mangaon (48 km) on the Konkan Railway. By road via NH66 from Mumbai (180 km) or via Tamhini Ghat from Pune (160 km). Or take the vehicle ferry from Agardanda to Dighi Jetty (15 km from Diveagar).",
     },
     {
-        name: "Shrivardhan",
+        name: "Shrivardhan Beach",
         slug: "shrivardhan",
-        shortDescription: "A heritage coastal town, ancestral home of the Peshwas, with a calm beach.",
+        tagline: "Where golden shores meet the proud heritage of the Peshwas",
+        shortDescription: "A historic coastal haven in Raigad district, famed for its sprawling palm-lined beach promenade, ancestral Maratha Peshwa legacy, water sports, and fresh coastal Malvani cuisine.",
         description:
-            "Shrivardhan is a small coastal town in Raigad and the ancestral place of the Peshwa family. It combines a calm, uncrowded beach with old Konkan houses, temples and fresh seafood, and is easy to combine with neighbouring Diveagar and Harihareshwar.",
+            "Cradled along the Raigad coastline between gentle hills and the Arabian Sea, Shrivardhan is a historic beach getaway steeped in Maratha coastal lore. Renowned as the birthplace of Balaji Vishwanath, the first Peshwa, the town gracefully balances its rich past with a relaxed seaside atmosphere. A wide crescent shoreline of soft black and golden sand is lined with a modern paved beach promenade, making it ideal for peaceful barefoot walks, cycling, and stunning sunset views. Beyond the waves, ancient shrines like the historic Laxminarayan Temple and traditional betel nut wadis invite travellers to slow down and relish authentic Konkan hospitality.",
         category: "beach",
         region: "Raigad",
-        images: IMG.beachB,
-        highlights: ["Shrivardhan Beach", "Peshwa Heritage", "Old Konkan Houses", "Fresh Seafood", "Temple Visits"],
+        images: [
+            "https://upload.wikimedia.org/wikipedia/commons/4/4b/Srivardhan_beach.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/8/8f/Shrivardhan_Beach_2.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/c/c1/Shrivardhan_Beach_4.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/0/0a/Peshwa_Balaji_Vishwanath.jpg"
+        ],
+        coverImage: "https://upload.wikimedia.org/wikipedia/commons/4/4b/Srivardhan_beach.jpg",
+        highlights: [
+            "Long crescent beach with soft dark sands and a modern paved walking promenade",
+            "Ancestral birthplace of the Maratha Peshwa dynasty, featuring the Balaji Vishwanath memorial",
+            "Historic Laxminarayan Temple showcasing traditional Peshwa-era wooden architecture",
+            "Exciting seasonal water sports including parasailing, banana rides, and jet skiing",
+            "Convenient gateway connecting Diveagar (18 km) and sacred Harihareshwar (18 km)"
+        ],
         bestSeason: "October to March",
-        howToReach:
-            "Nearest railway station is Mangaon on the Konkan Railway, from where taxis and buses run to Shrivardhan. By road it is reached via NH66 and the Mangaon–Shrivardhan road.",
+        howToReach: {
+            byRoad: "185 km from Mumbai via NH66 (Mangaon–Mhasla, 4.5 hrs); 160 km from Pune via Tamhini Ghat (4 hrs).",
+            byTrain: "Mangaon Railway Station (48 km) on the Konkan Railway. Regular state buses and private taxis connect directly to Shrivardhan in 1 hour.",
+            byFerry: "Dighi to Agardanda ferry connects north towards Murud-Janjira; Bagmandla ferry connects south towards Bankot and Velas.",
+            tip: "Combine Shrivardhan with Diveagar and Harihareshwar for a complete 3-beach Konkan circuit."
+        },
+        thingsToDo: [
+            "Stroll along the landscaped seaside promenade during sunrise and sunset",
+            "Visit the historic Laxminarayan Temple and the Balaji Vishwanath Peshwa Smarak",
+            "Enjoy beach water sports such as jet skiing, speed boating, and parasailing",
+            "Take a scenic 20-minute coastal drive to Harihareshwar's cliffside Shiva shrine",
+            "Feast on authentic home-cooked Malvani fish thalis and fresh solkadhi"
+        ],
+        foodToTry: [
+            "Malvani Surmai & Pomfret Thali — Fresh local catch served with spicy coconut curry, solkadhi, and rice",
+            "Prawn Masala Fry — Succulent Arabian Sea prawns tossed in fiery regional spices",
+            "Solkadhi — Tangy pink digestive drink prepared from fresh coconut milk and wild kokum",
+            "Rice Bhakri with Kalva (Clams) Sukka — Soft rice flatbread with spicy dry shellfish masala",
+            "Ukadiche Modak — Traditional steamed rice dumplings with coconut and organic jaggery filling"
+        ],
+        nearbyPlaces: [
+            {
+                name: "Harihareshwar Beach & Temple",
+                distance: "18 km",
+                why: "Ancient cliffside Shiva shrine and dramatic rocky pradakshina trail known as Dakshin Kashi.",
+                slug: "harihareshwar"
+            },
+            {
+                name: "Diveagar Beach",
+                distance: "18 km",
+                why: "Vast white-sand beach known for watersports, seagulls, and the sacred Suvarna Ganesh Temple.",
+                slug: "diveagar"
+            },
+            {
+                name: "Bankot Fort",
+                distance: "35 km (via ferry)",
+                why: "Historic laterite fortress guarding the mouth of the Savitri River with sweeping ocean panoramas.",
+                slug: "bankot-fort"
+            },
+            {
+                name: "Velas Beach",
+                distance: "38 km (via ferry)",
+                why: "Protected eco-village celebrated for community Olive Ridley sea turtle conservation and festival.",
+                slug: "velas-beach"
+            }
+        ],
+        stayOptions: "MTDC resort, boutique coastal hotels, and welcoming family homestays nestled amidst betel nut orchards along the beach road.",
+        entryFee: "Beach and temple access is free. Water sports and beach activities have separate operator charges.",
+        timings: "Beach open 24/7. Water sports operate 8:00 AM to 6:30 PM. Temples open 6:00 AM to 8:30 PM.",
+        bestTimeToVisit: "Early mornings for peaceful promenade walks; 4:30 PM to 6:30 PM for water sports and golden-hour sunsets.",
+        warnings: [
+            "⚠️ Sea Caution: Respect lifeguard flags and avoid deep swimming during sudden high swells.",
+            "🏄 Water Sports: Verify safety lifejackets and licensed operators before taking water rides.",
+            "💵 Payment Connectivity: Keep sufficient cash as local shacks and auto-rickshaws may face network glitches."
+        ],
+        tags: [
+            "beach",
+            "shrivardhan",
+            "peshwa-history",
+            "raigad",
+            "sunset",
+            "promenade",
+            "family",
+            "malvani-food",
+            "weekend-getaway"
+        ],
+        featured: true,
+        approved: true,
     },
     {
         name: "Kolad",
@@ -289,32 +381,54 @@ const places: Seed[] = [
 
     // ───────────────────────────── SINDHUDURG ─────────────────────────────
     {
-        name: "Devbag",
+        name: "Devbag Beach",
         slug: "devbag",
-        shortDescription: "Where the Karli river meets the sea, with a sandbar called Tsunami Island.",
+        tagline: "Where the River Meets the Arabian Sea",
+        shortDescription: "Discover a beautiful coastal paradise near Malvan, famous for its golden shoreline, Karli River confluence, seasonal dolphin boat rides, and tranquil Konkan charm.",
         description:
-            "Devbag lies at the confluence of the Karli river and the Arabian Sea near Malvan, creating a calm estuary beach with spectacular views. A sandbar nearby, known locally as Tsunami Island, is a popular boat-ride stop, and Devbag is a hub for water sports and diving close to Tarkarli.",
+            "Devbag Beach is a scenic coastal destination near Malvan in Sindhudurg district, Maharashtra. Known for its peaceful shoreline and unique location between the Arabian Sea and the Karli River backwaters, Devbag offers an authentic Konkan experience filled with natural beauty, fishing traditions, and coastal adventures. One of its major attractions is Devbag Sangam Point, where the Karli River meets the Arabian Sea, creating a beautiful stretch of sand and water. Visitors can enjoy boat rides, seasonal dolphin-watching excursions, coastal photography, and water sports at nearby backwater spots.",
         category: "beach",
         region: "Sindhudurg",
-        images: IMG.beachA,
-        highlights: ["Karli River Sangam", "Tsunami Island", "Water Sports", "Scuba & Snorkeling", "Sunset Views"],
-        bestSeason: "October to March",
-        howToReach:
-            "Nearest railway station is Kudal on the Konkan Railway. From Kudal take a taxi or bus to Malvan and continue to Devbag.",
+        images: [
+            "https://upload.wikimedia.org/wikipedia/commons/d/db/Devbag_Beach.JPG",
+            "https://upload.wikimedia.org/wikipedia/commons/4/41/Devbag_Backwaters.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/8/89/360_Degree_Panoramic_view_of_Devbag_-_Confluence_of_River_Karli_and_the_Arabian_Sea.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/b/b5/Sangam_at_devbagh_photo_by_Rahul_kharade_%28bhandup%29_-_panoramio_%281%29.jpg"
+        ],
+        coverImage: "https://upload.wikimedia.org/wikipedia/commons/d/db/Devbag_Beach.JPG",
+        highlights: ["Karli River Sangam", "Seasonal Dolphin Cruises", "Karli Backwater Boating", "Malvani Seafood", "Sunset Views"],
+        bestSeason: "November to May",
+        howToReach: {
+            byRoad: "Approximately 10–15 km from Malvan town via local coastal roads. Connected via NH66 through Kudal or Kankavli from Mumbai (~500 km) and Pune (~390 km).",
+            byTrain: "Kudal Railway Station (KR) is the closest major railhead (~35–40 km). Local taxis, auto-rickshaws, and MSRTC buses connect Kudal to Malvan and Devbag.",
+            byFerry: "Local boat transfers and river cruises operate across the Karli backwaters and to Sangam Point, subject to weather and tides.",
+            tip: "Plan boat trips during morning high tide for the best water clarity and dolphin sighting opportunities. Check return boat timings with local boatmen."
+        },
     },
     {
         name: "Sindhudurg Fort",
         slug: "sindhudurg-fort",
-        shortDescription: "Shivaji Maharaj's island sea fort off Malvan, reached by a short boat ride.",
+        tagline: "The Sea Fortress of Chhatrapati Shivaji Maharaj",
+        shortDescription: "A majestic 17th-century island fortress built in the Arabian Sea by Chhatrapati Shivaji Maharaj, renowned for formidable laterite bastions, maritime history, and sweeping ocean panoramas.",
         description:
-            "Sindhudurg Fort was built by Chhatrapati Shivaji Maharaj in the 1660s on a rocky island just off Malvan to guard the Konkan coast. A short boat ride from Malvan jetty brings you to massive sea-facing walls, a temple dedicated to Shivaji Maharaj inside the fort, and handprint and footprint imprints traditionally attributed to him.",
+            "Sindhudurg Fort is one of Maharashtra's most celebrated historic sea fortresses, situated on Kurte Island just off the coast of Malvan in Sindhudurg district. Commissioned in 1664 by Chhatrapati Shivaji Maharaj to counter foreign naval powers and protect the Maratha maritime frontier, this engineering wonder spans over 48 acres surrounded by the roaring Arabian Sea. Its imposing 30-foot-high ramparts and 42 bastions were anchored using lead molten foundations that have withstood ocean waves for over 350 years. Visitors reach the fort via a 15-minute ferry boat from Malvan jetty.",
         category: "fort",
         region: "Sindhudurg",
-        images: IMG.fortB,
-        highlights: ["Boat Ride from Malvan Jetty", "Shivaji Maharaj Temple", "Sea-Facing Bastions", "Historic Imprints", "Panoramic Sea Views"],
+        images: [
+            "https://upload.wikimedia.org/wikipedia/commons/0/0b/Sindhudurg_Fort_India.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/9/96/Entrance_of_Sindhudurg_fort_%285363545571%29.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/e/ec/Sindhudurg_Fort%2C_Back_Wall.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/6/6a/Sindhudurg_fort_interior.jpg"
+        ],
+        coverImage: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Sindhudurg_Fort_India.jpg",
+        highlights: ["48-Acre Sea Fortress", "42 Laterite Bastions", "Shri Shivrajeshwar Temple", "Historic Hand & Footprints", "Ferry from Malvan Jetty"],
         bestSeason: "October to March",
-        howToReach:
-            "Nearest railway station is Kudal on the Konkan Railway. Reach Malvan by taxi or bus, then take a short boat from Malvan jetty to the fort.",
+        howToReach: {
+            byRoad: "Reach Malvan town by road from Mumbai (~500 km), Pune (~385 km), or Goa (~140 km). Drive to Malvan Port / Bandar Jetty where ferry tickets are issued.",
+            byTrain: "Kudal Railway Station (KR) is ~35 km from Malvan jetty. Regular ST buses and private cabs ply between Kudal and Malvan.",
+            byFerry: "Passenger ferry boats run frequently from Malvan Jetty directly to the fort gate, taking ~15 minutes each way (subject to sea conditions).",
+            tip: "Ferry services halt during high tide or heavy monsoon seas. Confirm the departure of the last return ferry (typically around 5:00 PM) before walking deep into the fort."
+        },
     },
     {
         name: "Vijaydurg",

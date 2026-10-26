@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import {
   Sparkles,
   MapPin,
@@ -30,7 +31,7 @@ import {
   Fish,
   Wind,
   Umbrella,
-  ExternalLink,
+  ArrowRight,
 } from "lucide-react";
 import WeatherWidget from "./WeatherWidget";
 import NearbyListings from "./NearbyListings";
@@ -162,9 +163,63 @@ export default function DestinationTabs({
       .trim();
   };
 
-  const getPlaceUrl = (name: string) => {
-    const q = encodeURIComponent(`${name} ${dest.region || "Konkan"} Maharashtra`);
-    return `https://www.google.com/maps/search/?api=1&query=${q}`;
+  const getPlaceDestinationSlug = (name: string, placeSlug?: string) => {
+    if (placeSlug) return placeSlug;
+    const n = name.toLowerCase();
+
+    // Direct mappings to site destination pages
+    if (n.includes("aare-ware") || n.includes("are ware")) return "aare-ware-beach";
+    if (n.includes("jaigad")) return "jaigad-fort";
+    if (n.includes("ratnagiri")) return "ratnagiri";
+    if (n.includes("bhandarpule")) return "bhandarpule-beach";
+    if (n.includes("prachin konkan")) return "prachin-konkan";
+    if (n.includes("malgund")) return "malgund";
+    if (n.includes("kolaba")) return "kolaba-fort";
+    if (n.includes("varsoli")) return "varsoli-beach";
+    if (n.includes("akshi")) return "akshi-beach";
+    if (n.includes("nagaon")) return "nagaon-beach";
+    if (n.includes("kihim")) return "kihim-beach";
+    if (n.includes("awas")) return "awas-beach";
+    if (n.includes("kashid")) return "kashid";
+    if (n.includes("korlai")) return "korlai-fort";
+    if (n.includes("revdanda")) return "revdanda-fort-beach";
+    if (n.includes("devgad beach")) return "devgad-beach";
+    if (n.includes("devgad harbour") || n.includes("devgad harbor") || n.includes("devgad port")) return "devgad-harbour";
+    if (n.includes("devgad fort")) return "devgad-fort";
+    if (n.includes("devgad")) return "devgad-beach";
+    if (n.includes("mithmumbari") || n.includes("mithmumbare")) return "mithmumbari-beach";
+    if (n.includes("vijaydurg")) return "vijaydurg-fort";
+    if (n.includes("sindhudurg")) return "sindhudurg-fort";
+    if (n.includes("devbag")) return "devbag";
+    if (n.includes("tarkarli")) return "tarkarli";
+    if (n.includes("bhogwe") || n.includes("bhogave")) return "bhogwe-beach";
+    if (n.includes("malvan")) return "malvan";
+    if (n.includes("harihareshwar")) return "harihareshwar";
+    if (n.includes("shrivardhan") || n.includes("srivardhan")) return "shrivardhan";
+    if (n.includes("diveagar")) return "diveagar";
+    if (n.includes("murud")) return "murud-janjira";
+    if (n.includes("velneshwar")) return "velneshwar";
+    if (n.includes("guhagar")) return "guhagar";
+    if (n.includes("kunkeshwar")) return "kunkeshwar-beach";
+    if (n.includes("alibaug") || n.includes("alibag")) return "alibaug-beach";
+    if (n.includes("ganpatipule")) return "ganpatipule-beach";
+    if (n.includes("velas")) return "velas-beach";
+    if (n.includes("bankot")) return "bankot-fort";
+    if (n.includes("kelshi")) return "kelshi-beach";
+    if (n.includes("anjarle")) return "anjarle";
+    if (n.includes("mandangad")) return "mandangad";
+    if (n.includes("harnai") || n.includes("suvarnadurg")) return "harnai";
+    if (n.includes("dapoli")) return "dapoli";
+    if (n.includes("kolad")) return "kolad";
+    if (n.includes("sawantwadi")) return "sawantwadi";
+    if (n.includes("amboli")) return "amboli";
+    if (n.includes("achara") || n.includes("achra")) return "achra";
+    if (n.includes("marleshwar")) return "marleshwar";
+    if (n.includes("raigad")) return "raigad-fort";
+    if (n.includes("parshuram") || n.includes("chiplun")) return "chiplun-parshuram";
+    if (n.includes("vengurla")) return "vengurla";
+
+    return n.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   };
 
   return (
@@ -607,17 +662,15 @@ export default function DestinationTabs({
                     </p>
                   </div>
 
-                  {/* Actionable View Button as Requested by User */}
-                  <a
-                    href={getPlaceUrl(place.name)}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  {/* Actionable View Button navigating to destination on our site */}
+                  <Link
+                    href={`/destinations/${getPlaceDestinationSlug(place.name, place.slug)}${dest.slug ? `?from=${dest.slug}` : ""}`}
                     className="px-3 py-1.5 bg-[#142607] hover:bg-[#2D6A4F] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shrink-0 shadow-xs active:scale-95 transition-all mt-0.5"
-                    aria-label={`View ${place.name} on map`}
+                    aria-label={`View ${place.name} on Visit Kokan`}
                   >
                     <span>View</span>
-                    <ExternalLink size={11} />
-                  </a>
+                    <ArrowRight size={12} />
+                  </Link>
                 </div>
               ))}
             </div>
