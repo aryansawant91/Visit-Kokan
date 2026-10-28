@@ -204,33 +204,33 @@ Format:
   "summary": "Brief 1-2 line response to show in chat",
   "data": {
     "title": "Trip title e.g. 2 Day Konkan Adventure",
-    "subtitle": "e.g. Mumbai → Kankavli → Tarkarli",
+    "subtitle": "e.g. Mumbai → Mangaon → Raigad Fort OR Mumbai → Kankavli → Tarkarli",
     "totalBudget": "e.g. ₹2,000 - ₹3,500 per person",
     "transportSummary": {
       "type": "train",
-      "name": "Tutari Express",
-      "number": "10103",
+      "name": "Jan Shatabdi Express",
+      "number": "12051",
       "from": "Mumbai CSMT",
-      "to": "Kankavli",
-      "duration": "8h 25m",
-      "cost": "₹450 (Sleeper) / ₹1,200 (3AC)",
-      "departs": "23:05",
-      "arrives": "07:30"
+      "to": "Mangaon",
+      "duration": "2h 40m",
+      "cost": "₹120 (2S) / ₹380 (CC)",
+      "departs": "05:25",
+      "arrives": "08:05"
     },
     "days": [
       {
         "day": 1,
-        "title": "Day title e.g. Arrival & Beach Exploration",
+        "title": "Day title e.g. Arrival & Fort Exploration",
         "stops": [
           {
-            "time": "07:30 AM",
-            "place": "Kankavli Railway Station",
+            "time": "08:05 AM",
+            "place": "Mangaon Railway Station",
             "type": "transport",
-            "description": "Arrive at Kankavli via Tutari Express (10103). Board pre-booked auto/taxi to Tarkarli.",
-            "cost": "₹800 auto/taxi",
+            "description": "Arrive at Mangaon via Jan Shatabdi Express (12051). Board local auto/cab to Raigad base at Pachad (45 km).",
+            "cost": "₹600 cab/auto",
             "contact": null,
             "whatsapp": null,
-            "mapsQuery": "Kankavli Railway Station Maharashtra",
+            "mapsQuery": "Mangaon Railway Station Maharashtra",
             "duration": "1 hour"
           },
           {
@@ -259,22 +259,32 @@ Format:
       }
     ],
     "tips": [
-      "Carry cash — very few ATMs near beaches",
+      "Carry cash — very few ATMs near beaches or fort base",
       "Book train tickets in advance on IRCTC",
-      "Avoid visiting forts in afternoon heat"
+      "Avoid climbing forts during peak afternoon heat"
     ]
   }
 }
 
 IMPORTANT RULES FOR JSON:
 - type must be "itinerary"
-- If user travels from Mumbai or Pune, ALWAYS include "transportSummary" using verified train or road route from the context.
-- Train numbers and timings MUST EXACTLY MATCH the VERIFIED TRANSPORT DATABASE provided. NEVER invent, hallucinate, or change train numbers or timings!
-- If Tutari Express is used: departs Mumbai CSMT 23:05, arrives Kankavli 07:30. Day 1 starts with morning arrival at 07:30 AM.
-- If Jan Shatabdi Express is used: departs Mumbai CSMT 05:25, arrives Kankavli 13:55 (01:55 PM). Day 1 starts with afternoon arrival at 02:00 PM.
+- If user travels from Mumbai or Pune, ALWAYS include "transportSummary" using verified train, ferry, or road route from the context.
+- DYNAMIC NEAREST STATION & GATEWAY SELECTION (CRITICAL GEOGRAPHIC RULE):
+  You MUST pick the nearest station or gateway for the SPECIFIC destination using the "DESTINATION TO NEAREST RAILWAY STATION & GATEWAY DIRECTORY" in context:
+  * RAIGAD FORT / MAHAD: Nearest station is MANGAON (MNG), or direct Road via NH66. NEVER SEND RAIGAD TRAVELERS TO KANKAVLI (which is 350 km away in Sindhudurg)!
+    - Jan Shatabdi Express (12051): from: "Mumbai CSMT", to: "Mangaon", departs: "05:25", arrives: "08:05", duration: "2h 40m", cost: "₹120 (2S) / ₹380 (CC)". Best for same-day or weekend fort trek!
+    - Tutari Express (10103): from: "Mumbai CSMT", to: "Mangaon", departs: "23:05", arrives: "02:10", duration: "3h 05m", cost: "₹160 (SL) / ₹500 (3AC)".
+    - Road Route: Mumbai -> Raigad Fort via NH66 (140 km, 3.5 hrs, toll approx ₹150, fuel ₹750).
+  * ALIBAUG / KASHID / NAGAON: Do NOT use train! Set "type": "ferry" (Gateway to Mandwa, 1 hr, ₹250) or "road" via NH66 (95 km, 2.5-3 hrs).
+  * DAPOLI / HARNAI: Station is KHED (KHED). Tutari arr 03:30, Jan Shatabdi arr 09:20.
+  * CHIPLUN / GUHAGAR: Station is CHIPLUN (CHI). Tutari arr 04:45, Jan Shatabdi arr 10:20.
+  * GANPATIPULE / RATNAGIRI: Station is RATNAGIRI (RN). Tutari arr 06:15, Jan Shatabdi arr 11:45.
+  * MALVAN / TARKARLI / SINDHUDURG FORT: Station is KANKAVLI (KKW) or KUDAL (KUDL). Tutari arr 07:30 / 08:15.
+  * SAWANTWADI / AMBOLI: Station is SAWANTWADI ROAD (SWV). Tutari arr 08:45, Jan Shatabdi arr 15:07.
+- Train numbers, timings, station names, and fares in "transportSummary" MUST match the destination station, NOT the train's final destination. Day 1 timing must begin around arrival at that station.
 - If road route is used: include distance, duration, toll, and departure advice in transportSummary.
-- All stops must have mapsQuery for Google Maps
-- cost should always be in Indian Rupees
-- Keep descriptions short but specific
-- type field for each stop must be one of: transport, sightseeing, food, stay, activity
+- All stops must have mapsQuery for Google Maps.
+- cost should always be in Indian Rupees.
+- Keep descriptions short but specific.
+- type field for each stop must be one of: transport, sightseeing, food, stay, activity.
 `;

@@ -109,6 +109,39 @@ export function getArrivalAtStation(
   return stop?.arrival || stop?.departure || null;
 }
 
+export const KONKAN_DESTINATION_GATEWAYS = `
+VERIFIED DESTINATION TO NEAREST RAILWAY STATION & GATEWAY DIRECTORY:
+- Raigad Fort / Mahad / Pachad:
+  * Nearest Station: Mangaon (MNG) (approx 45 km, 1 hr by auto/cab to Raigad base). NEVER USE Kankavli (which is 350 km south in Sindhudurg)!
+  * Jan Shatabdi Express (12051): CSMT dep 05:25 -> Mangaon arr 08:05 (duration 2h 40m, Fare: ₹120 2S / ₹380 CC). Ideal for 1-day or weekend trip!
+  * Tutari Express (10103): CSMT dep 23:05 -> Mangaon arr 02:10 (duration 3h 05m, Fare: ₹160 SL / ₹500 3AC).
+  * Road: Mumbai to Raigad Fort via NH66 (140 km, 3.5 hrs via Vadkhal-Mangaon-Mahad-Pachad).
+- Alibaug / Mandwa / Nagaon / Kashid / Kihim:
+  * Gateway: Ferry from Gateway of India to Mandwa Jetty (1 hr, ₹250) then 20 min local auto/bus, OR Road via NH66 (95 km, 2.5-3 hrs). NO direct railway station!
+- Murud-Janjira:
+  * Nearest Station: Roha (ROHA) (approx 40 km) or Mangaon. Or Road via Alibaug (165 km, 3.5-4 hrs).
+- Dapoli / Harnai / Anjarle / Velas:
+  * Nearest Station: Khed (KHED) (approx 30 km).
+  * Tutari Express: arr Khed 03:30 (Fare: ₹220 SL / ₹600 3AC).
+  * Jan Shatabdi: arr Khed 09:20 (Fare: ₹160 2S / ₹480 CC).
+- Chiplun / Guhagar / Parshuram:
+  * Nearest Station: Chiplun (CHI).
+  * Tutari Express: arr Chiplun 04:45. Jan Shatabdi: arr Chiplun 10:20.
+- Ganpatipule / Ratnagiri / Jaigad:
+  * Nearest Station: Ratnagiri (RN) (Ganpatipule is 28 km).
+  * Tutari Express: arr Ratnagiri 06:15. Jan Shatabdi: arr Ratnagiri 11:45 (Fare: ₹330 SL / ₹900 3AC).
+- Devgad / Vijaydurg / Kunkeshwar:
+  * Nearest Station: Kankavli (KKW) (approx 45-50 km).
+  * Tutari Express: arr Kankavli 07:30. Jan Shatabdi: arr Kankavli 13:55.
+- Malvan / Tarkarli / Sindhudurg Fort / Devbag:
+  * Nearest Station: Kankavli (KKW) (48 km) or Kudal (KUDL) (45 km).
+  * Tutari Express: arr Kankavli 07:30 / arr Kudal 08:15 (Fare: ₹450 SL / ₹1,200 3AC).
+  * Jan Shatabdi: arr Kankavli 13:55 / arr Kudal 14:35.
+- Sawantwadi / Vengurla / Amboli:
+  * Nearest Station: Sawantwadi Road (SWV).
+  * Tutari Express: arr Sawantwadi 08:45. Jan Shatabdi: arr Sawantwadi 15:07.
+`;
+
 // Format transport context for Groq prompt
 export function formatTransportContext(trains: Train[], roads: Road[]): string {
   const trainInfo = (trains || [])
@@ -144,6 +177,8 @@ ${r.ferryOption ? `Ferry option: ${r.ferryOption}` : ""}
 
   return `
 === VERIFIED KONKAN TRANSPORT DATABASE (USE EXACT VALUES - NEVER HALLUCINATE OR GUESS TIMINGS) ===
+
+${KONKAN_DESTINATION_GATEWAYS}
 
 REAL KONKAN RAILWAY TRAIN TIMINGS:
 ${trainInfo || "No train data available"}

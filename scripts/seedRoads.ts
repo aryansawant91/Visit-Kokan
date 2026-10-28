@@ -17,6 +17,25 @@ const db = admin.firestore();
 
 const roads = [
     {
+        slug: "mumbai-raigad-fort",
+        from: "Mumbai",
+        to: "Raigad Fort",
+        distance: "140 km",
+        duration: "3.5-4 hrs",
+        via: "NH66 via Panvel, Pen bypass, Mangaon, Mahad, Pachad",
+        ferryOption: null,
+        tip: "Start early (5:30 AM) via NH66. Turn off at Mahad towards Pachad for Raigad ropeway.",
+        tollApprox: "₹150",
+        fuelApprox: "₹750",
+        mapsQuery: "Raigad Fort Maharashtra",
+        bestDepartTime: "5:00 AM - 6:00 AM",
+        breakpoints: [
+            { place: "Vadkhal Naka", km: 65, note: "Breakfast stop for poha & chai" },
+            { place: "Mangaon", km: 115, note: "Nearest Konkan Railway hub" },
+            { place: "Mahad", km: 135, note: "Turn off NH66 towards Pachad (Raigad base)" },
+        ],
+    },
+    {
         slug: "mumbai-alibaug",
         from: "Mumbai",
         to: "Alibaug",
