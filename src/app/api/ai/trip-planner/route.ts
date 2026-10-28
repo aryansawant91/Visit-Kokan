@@ -82,14 +82,26 @@ export async function POST(req: NextRequest) {
         })),
     ];
 
-    const completion = await groq.chat.completions.create({
-      model: "openai/gpt-oss-120b",
-      messages: groqMessages,
-      temperature: 0.7,
-      max_tokens: 4096,
-    });
+    let completion;
+    try {
+      completion = await groq.chat.completions.create({
+        model: "qwen/qwen3.8-27b",
+        messages: groqMessages,
+        temperature: 0.7,
+        max_tokens: 4096,
+      });
+    } catch (primaryErr) {
+      console.warn("⚠️ Primary model qwen/qwen3.8-27b failed, falling back to openai/gpt-oss-120b:", primaryErr);
+      completion = await groq.chat.completions.create({
+        model: "openai/gpt-oss-120b",
+        messages: groqMessages,
+        temperature: 0.7,
+        max_tokens: 4096,
+      });
+    }
 
-    const raw = completion.choices[0]?.message?.content || "";
+    const choice = completion.choices[0];
+    const raw = choice?.message?.content || (choice?.message as unknown as { reasoning?: string })?.reasoning || "";
 
     // Always try to parse JSON first
     try {

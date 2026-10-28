@@ -78,6 +78,14 @@ export default function AIChatWidget() {
                 if (data.itinerary) {
                     setTimeout(() => setActiveItinerary(data.itinerary), 300);
                 }
+            } else if (data.error) {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        role: "assistant",
+                        content: `⚠️ ${data.error}. Please tap send again to retry.`,
+                    },
+                ]);
             } else {
                 throw new Error("No response");
             }
