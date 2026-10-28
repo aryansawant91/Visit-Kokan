@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import WeatherWidget from "./WeatherWidget";
 import NearbyListings from "./NearbyListings";
+import TideStatusCard from "@/components/travel/TideStatusCard";
 
 interface DestinationTabsProps {
   dest: any;
@@ -254,6 +255,9 @@ export default function DestinationTabs({
 
       {/* ── 1. SECTION: OVERVIEW (Flipkart "Description" Box) ── */}
       <section id="section-overview" className="scroll-mt-20 space-y-3.5">
+        {/* Real-time Tide & Sea Fort accessibility tracker (for coastal/island forts) */}
+        <TideStatusCard fortSlugOrName={dest.slug || dest.name} />
+
         {dest.description && (
           <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-[#d6e2d4] shadow-xs">
             <h2 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] mb-2 flex items-center gap-1.5">

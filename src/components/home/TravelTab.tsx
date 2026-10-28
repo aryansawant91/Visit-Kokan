@@ -19,13 +19,107 @@ const TRAVEL_CATEGORIES = [
   { label: "Temples", emoji: "🛕", value: "temples" },
 ];
 
-const DESTINATIONS = [
-  { name: "Tarkarli", region: "Sindhudurg", tag: "Beach + Scuba", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&q=80", slug: "tarkarli", rating: 4.8 },
-  { name: "Alibaug", region: "Raigad", tag: "Forts + Beach", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80", slug: "alibaug", rating: 4.6 },
-  { name: "Ganpatipule", region: "Ratnagiri", tag: "Temple + Sea", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80", slug: "ganpatipule", rating: 4.7 },
-  { name: "Malvan", region: "Sindhudurg", tag: "Seafood + History", image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=80", slug: "malvan", rating: 4.9 },
-  { name: "Dapoli", region: "Ratnagiri", tag: "Offbeat + Serene", image: "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=400&q=80", slug: "dapoli", rating: 4.5 },
-  { name: "Harihareshwar", region: "Raigad", tag: "Spiritual + Coast", image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80", slug: "harihareshwar", rating: 4.6 },
+export interface DestinationItem {
+  name: string;
+  region: string;
+  tag: string;
+  image: string;
+  slug: string;
+  rating: number;
+  category?: string;
+}
+
+const FALLBACK_DESTINATIONS: DestinationItem[] = [
+  {
+    name: "Tarkarli",
+    region: "Sindhudurg",
+    tag: "Beach + Scuba",
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d3/Tarkarli_beach.JPG",
+    slug: "tarkarli",
+    rating: 4.8,
+    category: "beach",
+  },
+  {
+    name: "Alibaug",
+    region: "Raigad",
+    tag: "Forts + Beach",
+    image: "https://upload.wikimedia.org/wikipedia/commons/2/26/Alibag_Beach.JPG",
+    slug: "alibaug-beach",
+    rating: 4.6,
+    category: "beach",
+  },
+  {
+    name: "Ganpatipule",
+    region: "Ratnagiri",
+    tag: "Temple + Sea",
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/60/GANPATIPULE_BEACH_%281%29.jpg",
+    slug: "ganpatipule-beach",
+    rating: 4.7,
+    category: "beach",
+  },
+  {
+    name: "Malvan",
+    region: "Sindhudurg",
+    tag: "Seafood + History",
+    image: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Leaving_Malvan_jetty_for_Sindhudurg_fort_%285363541711%29.jpg",
+    slug: "malvan",
+    rating: 4.9,
+    category: "beach",
+  },
+  {
+    name: "Dapoli",
+    region: "Ratnagiri",
+    tag: "Offbeat + Serene",
+    image: "https://upload.wikimedia.org/wikipedia/commons/2/28/Dapoli_Village_Top_View.jpg",
+    slug: "dapoli",
+    rating: 4.5,
+    category: "beach",
+  },
+  {
+    name: "Harihareshwar",
+    region: "Raigad",
+    tag: "Spiritual + Coast",
+    image: "https://upload.wikimedia.org/wikipedia/commons/4/47/Harihareshwar_beach.jpg",
+    slug: "harihareshwar",
+    rating: 4.6,
+    category: "beach",
+  },
+  {
+    name: "Murud-Janjira",
+    region: "Raigad",
+    tag: "Sea Fort",
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/6a/Murud_Janjira_Fort.jpg",
+    slug: "murud-janjira-fort",
+    rating: 4.8,
+    category: "fort",
+  },
+  {
+    name: "Raigad Fort",
+    region: "Raigad",
+    tag: "Heritage Fort",
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Maha_Darwaja_Raigad_fort.jpg",
+    slug: "raigad-fort",
+    rating: 4.9,
+    category: "fort",
+  },
+  {
+    name: "Kashid",
+    region: "Raigad",
+    tag: "White Sand Beach",
+    image: "https://upload.wikimedia.org/wikipedia/commons/b/b2/Kashid_Beach.jpg",
+    slug: "kashid-beach",
+    rating: 4.7,
+    category: "beach",
+  },
+  {
+    name: "Velas",
+    region: "Ratnagiri",
+    tag: "Turtle Festival",
+    image: "https://upload.wikimedia.org/wikipedia/commons/4/4c/Olive_Ridley_Sea_Turtle_Hatchlings.jpg",
+    slug: "velas-beach",
+    rating: 4.7,
+    category: "beach",
+  },
 ];
 
 const BANNERS = [
@@ -78,17 +172,23 @@ function HorizontalScroll({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DestinationCard({ dest }: { dest: typeof DESTINATIONS[0] }) {
+function DestinationCard({ dest }: { dest: DestinationItem }) {
   return (
     <Link href={`/destinations/${dest.slug}`} className="flex-shrink-0 snap-start">
       <div className="w-40 sm:w-48 rounded-2xl overflow-hidden border border-kokan-sand/20 hover:shadow-md transition-all">
         <div className="relative h-28">
-          <Image src={dest.image} alt={dest.name} fill className="object-cover" />
+          <Image
+            src={dest.image}
+            alt={dest.name}
+            fill
+            sizes="(max-width: 640px) 160px, 192px"
+            className="object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-2 left-2">
-            <p className="text-white font-semibold text-sm">{dest.name}</p>
+          <div className="absolute bottom-2 left-2 right-2">
+            <p className="text-white font-semibold text-sm truncate">{dest.name}</p>
             <p className="text-white/70 text-xs flex items-center gap-0.5">
-              <MapPin className="w-2.5 h-2.5" /> {dest.region}
+              <MapPin className="w-2.5 h-2.5 flex-shrink-0" /> {dest.region}
             </p>
           </div>
           <div className="absolute top-2 right-2 bg-white/90 text-xs font-bold text-yellow-600 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
@@ -101,6 +201,17 @@ function DestinationCard({ dest }: { dest: typeof DESTINATIONS[0] }) {
         </div>
       </div>
     </Link>
+  );
+}
+
+function DestinationCardSkeleton() {
+  return (
+    <div className="flex-shrink-0 w-40 sm:w-48 rounded-2xl overflow-hidden border border-kokan-sand/20">
+      <div className="h-28 bg-kokan-sand/20 animate-pulse" />
+      <div className="bg-white px-3 py-2 space-y-1">
+        <div className="h-3 bg-kokan-sand/20 rounded animate-pulse w-3/4" />
+      </div>
+    </div>
   );
 }
 
@@ -163,6 +274,8 @@ function TrekCardSkeleton() {
 export default function TravelTab() {
   const [activeBanner, setActiveBanner] = useState(0);
   const [activeCategory, setActiveCategory] = useState("all");
+  const [destinations, setDestinations] = useState<DestinationItem[]>(FALLBACK_DESTINATIONS);
+  const [destinationsLoading, setDestinationsLoading] = useState(true);
   const [treks, setTreks] = useState<Trek[]>([]);
   const [treksLoading, setTreksLoading] = useState(true);
 
@@ -170,6 +283,28 @@ export default function TravelTab() {
   useEffect(() => {
     const timer = setInterval(() => setActiveBanner((i) => (i + 1) % BANNERS.length), 4000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Fetch seeded destinations from Firestore via API
+  useEffect(() => {
+    fetch("/api/destinations")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: DestinationItem[] = data.map((d: any) => ({
+            name: d.name?.replace(/\s+(Beach|Fort|Museum)$/i, "") || d.name,
+            region: d.region || "Konkan",
+            tag: d.category === "beach" ? "Beach" : d.category === "fort" ? "Historic Fort" : d.category === "temple" ? "Temple" : "Explore",
+            image: d.coverImage || d.images?.[0] || "https://upload.wikimedia.org/wikipedia/commons/d/d3/Tarkarli_beach.JPG",
+            slug: d.slug,
+            rating: d.rating ? Number(d.rating) : 4.8,
+            category: d.category || "all",
+          }));
+          setDestinations(mapped);
+        }
+        setDestinationsLoading(false);
+      })
+      .catch(() => setDestinationsLoading(false));
   }, []);
 
   // Fetch seeded treks from Firestore via API
@@ -182,6 +317,14 @@ export default function TravelTab() {
       })
       .catch(() => setTreksLoading(false));
   }, []);
+
+  const filteredDestinations = destinations.filter((dest) => {
+    if (activeCategory === "all") return true;
+    if (activeCategory === "beaches" || activeCategory === "beach") return dest.category === "beach";
+    if (activeCategory === "forts" || activeCategory === "fort") return dest.category === "fort";
+    if (activeCategory === "temples" || activeCategory === "temple") return dest.category === "temple";
+    return true;
+  });
 
   return (
     <div className="bg-kokan-cream/20">
@@ -279,9 +422,16 @@ export default function TravelTab() {
             </Link>
           </div>
           <HorizontalScroll>
-            {DESTINATIONS.map((dest) => (
-              <DestinationCard key={dest.slug} dest={dest} />
-            ))}
+            {destinationsLoading
+              ? Array.from({ length: 6 }).map((_, i) => <DestinationCardSkeleton key={i} />)
+              : filteredDestinations.length > 0
+                ? filteredDestinations.map((dest) => (
+                    <DestinationCard key={dest.slug} dest={dest} />
+                  ))
+                : (
+                    <p className="text-sm text-kokan-earth/40 py-4">No destinations found for this category.</p>
+                  )
+            }
           </HorizontalScroll>
         </div>
 

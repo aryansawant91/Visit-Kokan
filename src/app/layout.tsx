@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { CartProvider } from '@/context/CartContext'
+import AIChatWidget from "@/components/ai/AIChatWidget";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -43,6 +44,7 @@ export default function RootLayout({
             {children}
           </CartProvider>
         </AuthProvider>
+        <AIChatWidget />
       </body>
     </html>
   )
