@@ -22,7 +22,8 @@ import {
   Info,
   Train,
   Car,
-  Waves
+  Waves,
+  Ticket
 } from "lucide-react";
 import { ItineraryData } from "./ItineraryModal";
 
@@ -492,6 +493,16 @@ export default function AIPlanTripView() {
 
                   {/* Actions: WhatsApp / PDF / Copy */}
                   <div className="flex items-center gap-2 flex-wrap">
+                    <a
+                      href={itinerary.transportSummary?.type === "ferry" ? "https://m2mferries.com" : "https://www.irctc.co.in/nget/train-search"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-1.5 rounded-full bg-[#B7895A] hover:bg-[#a37546] text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all active:scale-95"
+                    >
+                      <Ticket size={13} />
+                      <span>Book Tickets</span>
+                      <ExternalLink size={11} />
+                    </a>
                     <button
                       onClick={handleWhatsAppShare}
                       className="px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-colors"
@@ -593,6 +604,73 @@ export default function AIPlanTripView() {
                         💰 Fare Estimate: {itinerary.transportSummary.cost}
                       </p>
                     )}
+
+                    {/* Quick Booking & Navigation Bar */}
+                    <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-emerald-200/60 flex-wrap">
+                      {itinerary.transportSummary.type === "train" ? (
+                        <>
+                          <a
+                            href="https://www.irctc.co.in/nget/train-search"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3.5 py-1.5 bg-[#2D6A4F] hover:bg-[#245740] text-white rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all active:scale-95"
+                          >
+                            <Ticket size={12} />
+                            <span>Book IRCTC Train</span>
+                            <ExternalLink size={11} />
+                          </a>
+                          <a
+                            href="https://konkanrailway.com/VisualTrain/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                            <span>Live Map</span>
+                          </a>
+                          <a
+                            href="https://www.railyatri.in/pnr-status"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-xs font-medium transition-colors"
+                          >
+                            <span>📋 PNR Status</span>
+                          </a>
+                        </>
+                      ) : itinerary.transportSummary.type === "ferry" ? (
+                        <>
+                          <a
+                            href="https://m2mferries.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3.5 py-1.5 bg-[#2D6A4F] hover:bg-[#245740] text-white rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all active:scale-95"
+                          >
+                            <Ticket size={12} />
+                            <span>Book Ferry Tickets</span>
+                            <ExternalLink size={11} />
+                          </a>
+                          <a
+                            href="https://book.pnpferries.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold transition-colors"
+                          >
+                            <span>PNP Speedboat</span>
+                          </a>
+                        </>
+                      ) : (
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(itinerary.transportSummary.from)}&destination=${encodeURIComponent(itinerary.transportSummary.to)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3.5 py-1.5 bg-[#2D6A4F] hover:bg-[#245740] text-white rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all active:scale-95"
+                        >
+                          <Compass size={12} />
+                          <span>Open Driving Route</span>
+                          <ExternalLink size={11} />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )}
 

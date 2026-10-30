@@ -303,7 +303,13 @@ IMPORTANT RULES FOR JSON:
 - Train numbers, timings, station names, and fares in "transportSummary" MUST match the destination station, NOT the train's final destination. Day 1 timing must begin around arrival at that station.
 - If road route is used: include distance, duration, toll, and departure advice in transportSummary.
 - All stops must have mapsQuery for Google Maps.
-- cost should always be in Indian Rupees.
+- cost should always be in Indian Rupees matching real Konkan rates:
+  * TRAINS (from Mumbai/Pune): Mangaon: ₹160 SL / ₹500 3AC | Khed: ₹220 SL / ₹600 3AC | Chiplun: ₹245 SL / ₹660 3AC | Ratnagiri: ₹330 SL / ₹900 3AC | Kankavli/Kudal: ₹450 SL / ₹1,200 3AC | Jan Shatabdi: 2S ₹120-₹240, CC ₹380-₹780.
+  * FERRIES: Gateway of India to Mandwa: ₹180 – ₹250 / person | M2M Ro-Pax: ₹220 passenger | Malvan to Sindhudurg Fort boat: ₹100 – ₹120 return | Murud to Janjira sailboat: ₹80 – ₹100 return.
+  * LOCAL AUTOS/CABS: Mangaon to Raigad base (45km): ₹600 – ₹800 auto | Mandwa to Alibaug (20km): ₹150 auto | Kankavli to Tarkarli (48km): ₹700 – ₹900 auto | Ratnagiri to Ganpatipule: ₹450 – ₹600 auto.
+  * SIGHTS: Raigad Ropeway: ₹360 return | Tarkarli Scuba: ₹1,200 – ₹1,800 | Water sports combo: ₹800 – ₹1,200.
+  * FOOD & STAYS: Surmai Thali: ₹220 – ₹320 | Veg Thali: ₹100 – ₹140 | Budget Homestay: ₹1,200 – ₹1,800/night | Resort: ₹3,000 – ₹5,000/night.
+  * "totalBudget": MUST realistically sum up travel + stays + food (e.g. 1-day trek: ₹1,800 – ₹2,500/person; 2-day beach weekend: ₹3,500 – ₹5,500/person). NEVER inflate or guess unrealistic prices!
 - Keep descriptions short but specific.
 - type field for each stop must be one of: transport, sightseeing, food, stay, activity.
 - REALISTIC HUMAN PACING & TIME CONTINUITY (STRICT ENFORCEMENT):
