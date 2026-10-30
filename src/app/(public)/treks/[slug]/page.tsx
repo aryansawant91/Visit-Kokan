@@ -16,6 +16,7 @@ import TrekHeroCarousel from "@/components/trek/TrekHeroCarousel";
 import TrekStickyBar from "@/components/trek/TrekStickyBar";
 import TrekJsonLd from "@/components/trek/TrekJsonLd";
 import TrekBookingWidget from "@/components/trek/TrekBookingWidget";
+import DurgTrekGuide from "@/components/trek/DurgTrekGuide";
 import { adminDb } from "@/lib/firebaseAdmin";
 
 async function getTrek(slug: string): Promise<Trek | null> {
@@ -204,19 +205,8 @@ export default async function TrekPage({ params }: { params: { slug: string } })
             </div>
           )}
 
-          {/* ── Detailed Content Cards ── */}
-
-          {/* About Section */}
-          {trek.description && (
-            <div className="bg-white rounded-3xl p-5 border border-[#d6e2d4] shadow-sm">
-              <h3 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] mb-2 flex items-center gap-1.5">
-                <Sparkles size={14} className="text-[#B7895A]" /> About This Trek
-              </h3>
-              <p className="text-[13px] text-[#3d5343] leading-relaxed">
-                {trek.description}
-              </p>
-            </div>
-          )}
+          {/* ── Durg App Style Comprehensive Trail & Fort Guide ── */}
+          <DurgTrekGuide trek={trek} />
 
           {/* Quick Trek Facts / Specs (2x2 or 2x3 Grid) */}
           <div className="grid grid-cols-2 gap-2.5">

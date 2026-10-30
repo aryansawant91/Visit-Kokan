@@ -17,6 +17,22 @@ export interface TrekItineraryDay {
   duration?: string;
 }
 
+export interface TrekHowToReach {
+  byTrain?: string;
+  byBus?: string;
+  byRoad?: string;
+  distanceFromMumbai?: string;
+  nearestRailwayStation?: string;
+}
+
+export interface TrekWeatherStats {
+  temp?: string;
+  wind?: string;
+  rainProb?: string;
+  uv?: string;
+  visibility?: string;
+}
+
 export interface Trek {
   id: string;
   slug: string;
@@ -30,6 +46,19 @@ export interface Trek {
   maxAltitude?: string;    // e.g. "800m"
   startPoint: string;
   endPoint: string;
+  baseVillage?: string;
+  elevation?: string;
+  trailType?: string;
+  trailDistance?: string;
+  trailDuration?: string;
+  history?: string;
+  howToReach?: TrekHowToReach;
+  fortAttractions?: string[];
+  weatherStats?: TrekWeatherStats;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
   images: string[];
   highlights: string[];
   itinerary: TrekItineraryDay[];
