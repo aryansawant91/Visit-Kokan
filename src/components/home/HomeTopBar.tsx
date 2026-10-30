@@ -34,19 +34,19 @@ export default function HomeTopBar() {
           </span>
         </Link>
 
-        {/* Search bar */}
-        <form onSubmit={handleSearch} className="flex-1 flex items-center bg-white rounded-lg overflow-hidden shadow-sm">
-          <Search className="w-4 h-4 text-kokan-earth/40 ml-3 flex-shrink-0" />
+        {/* Modern Pill Search Bar */}
+        <form onSubmit={handleSearch} className="flex-1 flex items-center bg-white rounded-full pl-3 pr-1 py-1 shadow-xs border border-white/80 focus-within:ring-2 focus-within:ring-emerald-400/30 transition-all">
+          <Search className="w-4 h-4 text-[#2D6A4F] flex-shrink-0" />
           <input
             type="text"
             placeholder="Search products, treks, destinations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm text-kokan-earth outline-none placeholder:text-kokan-earth/40 bg-transparent"
+            className="flex-1 px-2.5 py-1 text-xs sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 bg-transparent font-medium"
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-kokan-sand text-white text-xs font-semibold hover:bg-kokan-earth transition-colors"
+            className="px-3.5 py-1.5 bg-gradient-to-r from-[#B7895A] to-[#C77B3F] hover:brightness-105 active:scale-95 text-white text-xs font-semibold rounded-full transition-all shadow-2xs"
           >
             Search
           </button>
