@@ -97,7 +97,7 @@ function TreksPageInner() {
   const [showFilterSheet, setShowFilterSheet]       = useState(false);
   const [currentPage, setCurrentPage]               = useState(1);
 
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 8;
 
   useEffect(() => {
     const cat  = searchParams.get("category");
@@ -130,7 +130,7 @@ function TreksPageInner() {
   const hasFilters  = selectedCategory !== "all" || selectedDifficulty !== "all" || selectedRegion !== "all" || !!search;
   const activeCount = [selectedCategory !== "all", selectedDifficulty !== "all", selectedRegion !== "all"].filter(Boolean).length;
 
-  const itemsToPaginate = hasFilters ? filtered : rest;
+  const itemsToPaginate = filtered;
   const totalPages = Math.max(1, Math.ceil(itemsToPaginate.length / ITEMS_PER_PAGE));
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedItems = itemsToPaginate.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -386,35 +386,45 @@ function TreksPageInner() {
                   of <span className="font-bold text-kokan-earth">{itemsToPaginate.length}</span> treks
                 </p>
 
-                <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                <div className="flex items-center gap-1.5 order-1 sm:order-2 flex-wrap justify-center">
                   <button
                     onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-[#e8d5bc] text-kokan-earth hover:bg-kokan-cream transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+                    className="flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-semibold bg-white border border-[#e8d5bc] text-kokan-earth hover:bg-kokan-cream transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm cursor-pointer"
                   >
-                    <ChevronLeft size={15} /> Previous
+                    <ChevronLeft size={15} /> Prev
                   </button>
 
-                  <div className="flex items-center gap-1 mx-1">
-                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => handlePageChange(p)}
-                        className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
-                          p === currentPage
-                            ? "bg-kokan-green text-white shadow-sm"
-                            : "bg-white text-kokan-earth/70 border border-[#e8d5bc] hover:bg-kokan-cream"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-1 mx-1 flex-wrap justify-center">
+                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((p) => {
+                      if (totalPages > 7) {
+                        if (p !== 1 && p !== totalPages && Math.abs(p - currentPage) > 1) {
+                          if (p === 2 || p === totalPages - 1) {
+                            return <span key={p} className="text-kokan-earth/40 text-xs px-1">…</span>;
+                          }
+                          return null;
+                        }
+                      }
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => handlePageChange(p)}
+                          className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            p === currentPage
+                              ? "bg-kokan-green text-white shadow-sm"
+                              : "bg-white text-kokan-earth/70 border border-[#e8d5bc] hover:bg-kokan-cream"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <button
                     onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
-                    className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-semibold bg-kokan-green text-white hover:bg-kokan-teal transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+                    className="flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-semibold bg-kokan-green text-white hover:bg-kokan-teal transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm cursor-pointer"
                   >
                     Next <ChevronRight size={15} />
                   </button>
