@@ -33,6 +33,21 @@ export interface TrekWeatherStats {
   visibility?: string;
 }
 
+export interface BaseVillageInfo {
+  name: string;
+  marathiName: string;
+  isPrimary?: boolean;
+  difficulty: string;
+  distanceFromBase: string;
+  trailDuration: string;
+  popularFor: string;
+  routeDescription: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+}
+
 export interface Trek {
   id: string;
   slug: string;
@@ -47,6 +62,7 @@ export interface Trek {
   startPoint: string;
   endPoint: string;
   baseVillage?: string;
+  baseVillages?: BaseVillageInfo[];
   elevation?: string;
   trailType?: string;
   trailDistance?: string;

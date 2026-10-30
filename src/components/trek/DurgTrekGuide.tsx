@@ -25,25 +25,42 @@ import {
   Package,
   Layers,
   Flag,
-  Share2
+  Share2,
+  Route
 } from "lucide-react";
-import { Trek } from "@/types/trek";
+import { Trek, BaseVillageInfo } from "@/types/trek";
 
 interface Props {
   trek: Trek;
 }
 
 export default function DurgTrekGuide({ trek }: Props) {
-  const [activeTab, setActiveTab] = useState<"about" | "reach" | "itinerary" | "trail">("about");
+  const [activeTab, setActiveTab] = useState<"about" | "routes" | "reach" | "trail" | "itinerary">("about");
   const [historyExpanded, setHistoryExpanded] = useState(false);
-  const [reachExpanded, setReachExpanded] = useState(false);
+  const [selectedVillageIndex, setSelectedVillageIndex] = useState(0);
 
-  const baseVillageName = trek.baseVillage || trek.startPoint || "Base Village";
-  
-  // Navigation URL
-  const navUrl = trek.coordinates
-    ? `https://www.google.com/maps/dir/?api=1&destination=${trek.coordinates.lat},${trek.coordinates.lng}`
-    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${baseVillageName} ${trek.name} Maharashtra`)}`;
+  const baseVillages: BaseVillageInfo[] = trek.baseVillages && trek.baseVillages.length > 0
+    ? trek.baseVillages
+    : [
+        {
+          name: trek.baseVillage || trek.startPoint || "Base Village",
+          marathiName: "मुख्य पायथा गाव",
+          isPrimary: true,
+          difficulty: trek.difficulty || "Moderate",
+          distanceFromBase: trek.distance || "5.0 km",
+          trailDuration: trek.duration || "3 - 4 Hours",
+          popularFor: "Main standard trekking trail to the summit",
+          routeDescription: `Starting point for ${trek.name}. The trail ascends via the main historic path with marked stone stairs and scenic viewpoints.`,
+          coordinates: trek.coordinates || { lat: 18.2758, lng: 73.6231 }
+        }
+      ];
+
+  const currentVillage = baseVillages[selectedVillageIndex] || baseVillages[0];
+
+  // Dynamic Navigation URL for selected base village
+  const navUrl = currentVillage.coordinates
+    ? `https://www.google.com/maps/dir/?api=1&destination=${currentVillage.coordinates.lat},${currentVillage.coordinates.lng}`
+    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${currentVillage.name} ${trek.name} Maharashtra`)}`;
 
   const weather = trek.weatherStats || {
     temp: "25°C",
@@ -54,33 +71,32 @@ export default function DurgTrekGuide({ trek }: Props) {
   };
 
   const elevation = trek.elevation || trek.maxAltitude || "Sahyadri Peak";
-  const trailDistance = trek.trailDistance || trek.distance || "5.0 Km";
-  const trailDuration = trek.trailDuration || "3 to 4 Hrs Ascent";
-  const trailType = trek.trailType || (trek.category === "fort" ? "Historical Hill Fort" : "Sahyadri Mountain Trail");
+  const trailDistance = currentVillage.distanceFromBase || trek.distance || "5.0 Km";
+  const trailDuration = currentVillage.trailDuration || trek.trailDuration || "3 to 4 Hrs";
 
   return (
-    <div className="space-y-4">
-      {/* ── DURG APP STYLE TRAIL METRICS CARD ── */}
-      <div className="bg-white rounded-3xl p-5 border border-[#cadbc7] shadow-sm overflow-hidden">
+    <div className="space-y-5">
+      {/* ── 1. DURG APP STYLE TRAIL METRICS & WEATHER CARD ── */}
+      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#cadbc7] shadow-sm overflow-hidden">
         
-        {/* Top Header: Title & Offline Trail Guide Pill */}
+        {/* Header & Badges */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
             <div className="flex items-center gap-1.5 text-[#2D6A4F] text-[11px] font-extrabold uppercase tracking-widest">
-              <Castle size={13} />
-              <span>Durg Sahyadri Expedition Guide</span>
+              <Castle size={14} />
+              <span>Durg Sahyadri Fort Guide</span>
             </div>
-            <h3 className="text-lg font-black text-[#0f2416] mt-0.5">
+            <h3 className="text-xl sm:text-2xl font-black text-[#0f2416] tracking-tight mt-0.5">
               {trek.name}
             </h3>
-            <p className="text-xs text-[#526b58] font-medium flex items-center gap-1 mt-0.5">
-              <MapPin size={12} className="text-[#2D6A4F]" /> {trek.region}, Maharashtra
+            <p className="text-xs text-[#526b58] font-medium flex items-center gap-1 mt-1">
+              <MapPin size={13} className="text-[#2D6A4F]" /> {trek.region}, Maharashtra
             </p>
           </div>
 
-          <div className="flex flex-col items-end gap-1">
-            <span className="px-3 py-1 rounded-full bg-emerald-50 text-[#1f4e38] text-[10px] font-extrabold border border-emerald-200 shadow-2xs flex items-center gap-1">
-              <Compass size={11} className="animate-spin text-[#2D6A4F]" /> Verified Trail
+          <div className="flex flex-col items-end gap-1.5">
+            <span className="px-3 py-1 rounded-full bg-emerald-50 text-[#1f4e38] text-[11px] font-extrabold border border-emerald-200 shadow-2xs flex items-center gap-1.5">
+              <Compass size={12} className="text-[#2D6A4F]" /> Verified Trail
             </span>
             <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">
               Weekend 10 PM Batch
@@ -88,8 +104,8 @@ export default function DurgTrekGuide({ trek }: Props) {
           </div>
         </div>
 
-        {/* 4-Column Trail Metrics Strip (exact Durg App style) */}
-        <div className="grid grid-cols-4 gap-2 py-3 px-2.5 bg-[#f3f7f2] rounded-2xl border border-[#d6e3d3] text-center mb-3">
+        {/* 4-Column Trail Metrics Strip (Durg App style) */}
+        <div className="grid grid-cols-4 gap-2 py-3.5 px-3 bg-[#f3f7f2] rounded-2xl border border-[#d6e3d3] text-center mb-3">
           <div className="border-r border-[#cadbc7]/60 pr-1">
             <p className="text-[10px] text-[#69846f] font-bold uppercase tracking-wider">Distance</p>
             <p className="text-xs sm:text-sm font-black text-[#0f2416] mt-0.5 truncate">{trailDistance}</p>
@@ -108,8 +124,8 @@ export default function DurgTrekGuide({ trek }: Props) {
           </div>
         </div>
 
-        {/* Live Weather Metrics Strip (Durg App exact reproduction) */}
-        <div className="flex items-center justify-between text-[11px] font-semibold text-[#3d5343] py-2 px-3 bg-[#edf3eb] rounded-xl border border-[#d6e3d3] overflow-x-auto gap-2 scrollbar-none mb-4">
+        {/* Live Weather Metrics Strip */}
+        <div className="flex items-center justify-between text-[11px] font-semibold text-[#3d5343] py-2 px-3.5 bg-[#edf3eb] rounded-xl border border-[#d6e3d3] overflow-x-auto gap-2 scrollbar-none mb-4">
           <span className="flex items-center gap-1 font-bold text-[#0f2416] shrink-0">
             <Sun size={13} className="text-amber-500" /> {weather.temp || "25°C"}
           </span>
@@ -127,56 +143,143 @@ export default function DurgTrekGuide({ trek }: Props) {
           </span>
         </div>
 
-        {/* Base Village Spotlight with direct link & Start Navigation button */}
-        <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-[#edf6ee] to-teal-50 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-          <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2D6A4F] block">
-              Base Village
-            </span>
-            <span className="text-sm font-black text-[#0f2416] flex items-center gap-1.5 mt-0.5">
-              <Flag size={14} className="text-emerald-600" /> {baseVillageName}
-            </span>
-            {trek.distance && (
-              <p className="text-[11px] text-[#526b58] font-medium mt-0.5">
-                📍 {trek.distance}
-              </p>
+        {/* ── INTERACTIVE MULTIPLE BASE VILLAGES SELECTOR ── */}
+        <div className="p-4 bg-gradient-to-br from-emerald-50/90 via-[#edf6ee] to-teal-50/80 rounded-2xl border border-emerald-200">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-lg bg-[#2D6A4F] text-white flex items-center justify-center text-xs font-bold">
+                <Flag size={12} />
+              </span>
+              <div>
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#142e1b]">
+                  Base Villages &amp; Trailheads
+                </h4>
+                <p className="text-[11px] text-[#526b58]">
+                  {baseVillages.length > 1
+                    ? `This fort has ${baseVillages.length} distinct ascent routes. Select a base village below:`
+                    : "Primary base village and trailhead"}
+                </p>
+              </div>
+            </div>
+
+            {baseVillages.length > 1 && (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#142e1b] text-[10px] font-black shrink-0">
+                {baseVillages.length} Routes
+              </span>
             )}
           </div>
 
-          {/* Durg App Style Primary Navigation Button */}
-          <a
-            href={navUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-[#1E4D38] to-[#2D6A4F] hover:brightness-110 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group cursor-pointer"
-          >
-            <Navigation size={14} className="text-emerald-300 group-hover:rotate-45 transition-transform" />
-            <span>Start Navigation</span>
-            <ChevronRight size={13} className="opacity-70" />
-          </a>
+          {/* Base Village Selection Pills */}
+          {baseVillages.length > 1 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-3 scrollbar-none">
+              {baseVillages.map((village, idx) => {
+                const isSelected = idx === selectedVillageIndex;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedVillageIndex(idx)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 cursor-pointer border ${
+                      isSelected
+                        ? "bg-[#1E4D38] text-white border-[#1E4D38] shadow-sm"
+                        : "bg-white text-[#1f422b] border-[#cadbc7] hover:bg-[#e4eee3]"
+                    }`}
+                  >
+                    <span>{isSelected ? "📍" : "⚪"}</span>
+                    <span>{village.name}</span>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded ${
+                      isSelected ? "bg-white/20 text-white" : "bg-emerald-50 text-[#2D6A4F]"
+                    }`}>
+                      {village.difficulty.split(" ")[0]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Active Village Details Card */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3.5 border border-[#cadbc7]/70 space-y-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h5 className="text-sm font-black text-[#0f2416]">
+                    {currentVillage.name}
+                  </h5>
+                  {currentVillage.marathiName && (
+                    <span className="text-xs text-[#526b58] font-semibold">
+                      ({currentVillage.marathiName})
+                    </span>
+                  )}
+                  {currentVillage.isPrimary && (
+                    <span className="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded-full">
+                      Primary Route
+                    </span>
+                  )}
+                </div>
+                <p className="text-[12px] text-[#2c4031] font-medium mt-0.5">
+                  🌟 {currentVillage.popularFor}
+                </p>
+              </div>
+
+              {/* Badges */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="px-2.5 py-1 rounded-lg bg-[#edf3eb] text-[#142e1b] text-[11px] font-bold border border-[#d6e3d3]">
+                  📏 {currentVillage.distanceFromBase}
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-[#edf3eb] text-[#142e1b] text-[11px] font-bold border border-[#d6e3d3]">
+                  ⏱️ {currentVillage.trailDuration}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-[12px] text-[#3d5343] leading-relaxed border-t border-[#edf3eb] pt-2">
+              {currentVillage.routeDescription}
+            </p>
+
+            {/* Direct Google Maps Navigation to this specific village */}
+            <div className="pt-1 flex flex-col sm:flex-row items-center gap-2.5">
+              <a
+                href={navUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:flex-1 px-4 py-2.5 bg-gradient-to-r from-[#1E4D38] to-[#2D6A4F] hover:brightness-110 active:scale-98 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group cursor-pointer"
+              >
+                <Navigation size={14} className="text-emerald-300 group-hover:rotate-45 transition-transform" />
+                <span>Start Navigation to {currentVillage.name} Base</span>
+                <ChevronRight size={13} className="opacity-70" />
+              </a>
+
+              <span className="text-[11px] text-[#526b58] font-medium text-center">
+                GPS: {currentVillage.coordinates?.lat.toFixed(4)}, {currentVillage.coordinates?.lng.toFixed(4)}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── INTERACTIVE DURG GUIDE TABS (Exact UX for full trek info) ── */}
-      <div className="bg-white rounded-3xl p-5 border border-[#cadbc7] shadow-sm">
+      {/* ── 2. DURG KNOWLEDGE BASE TABS (For Those Seeking Full Information) ── */}
+      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#cadbc7] shadow-sm">
         
-        {/* Segmented Tab Header Bar */}
+        {/* Segmented Navigation Tab Bar */}
         <div className="flex gap-1.5 p-1 bg-[#edf3eb] rounded-2xl border border-[#d6e3d3] mb-5 overflow-x-auto scrollbar-none">
           <button
+            type="button"
             onClick={() => setActiveTab("about")}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === "about"
                 ? "bg-white text-[#1b3d26] shadow-sm border border-[#cadbc7]"
                 : "text-[#526b58] hover:text-[#0f2416]"
             }`}
           >
             <Sparkles size={13} className={activeTab === "about" ? "text-amber-500" : ""} />
-            <span>About &amp; History</span>
+            <span>History &amp; Heritage</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab("reach")}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === "reach"
                 ? "bg-white text-[#1b3d26] shadow-sm border border-[#cadbc7]"
                 : "text-[#526b58] hover:text-[#0f2416]"
@@ -187,37 +290,38 @@ export default function DurgTrekGuide({ trek }: Props) {
           </button>
 
           <button
-            onClick={() => setActiveTab("itinerary")}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center justify-center gap-1.5 ${
-              activeTab === "itinerary"
-                ? "bg-white text-[#1b3d26] shadow-sm border border-[#cadbc7]"
-                : "text-[#526b58] hover:text-[#0f2416]"
-            }`}
-          >
-            <Calendar size={13} className={activeTab === "itinerary" ? "text-emerald-600" : ""} />
-            <span>1-Night Plan</span>
-          </button>
-
-          <button
+            type="button"
             onClick={() => setActiveTab("trail")}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === "trail"
                 ? "bg-white text-[#1b3d26] shadow-sm border border-[#cadbc7]"
                 : "text-[#526b58] hover:text-[#0f2416]"
             }`}
           >
             <Castle size={13} className={activeTab === "trail" ? "text-teal-600" : ""} />
-            <span>Key Sights</span>
+            <span>Fort Sights</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("itinerary")}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === "itinerary"
+                ? "bg-white text-[#1b3d26] shadow-sm border border-[#cadbc7]"
+                : "text-[#526b58] hover:text-[#0f2416]"
+            }`}
+          >
+            <Calendar size={13} className={activeTab === "itinerary" ? "text-emerald-600" : ""} />
+            <span>10 PM Plan</span>
           </button>
         </div>
 
-        {/* ── TAB 1: ABOUT & DEEP HISTORY (Durg App style) ── */}
+        {/* ── TAB 1: DEEP HISTORY & MARATHA HERITAGE (Durg App format) ── */}
         {activeTab === "about" && (
           <div className="space-y-4">
-            {/* Overview Intro */}
             <div>
               <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#2D6A4F] mb-1.5 flex items-center gap-1.5">
-                <Castle size={14} /> Overview
+                <Castle size={14} /> Citadel Overview
               </h4>
               <p className="text-[13px] text-[#2c4031] leading-relaxed">
                 {trek.description}
@@ -228,12 +332,13 @@ export default function DurgTrekGuide({ trek }: Props) {
             {trek.history && (
               <div className="p-4 bg-[#f8faf7] rounded-2xl border border-[#dce7da]">
                 <h4 className="text-xs font-black uppercase tracking-wider text-[#142e1b] mb-2 flex items-center gap-1.5">
-                  <span>📜</span> Fort History &amp; Maratha Heritage
+                  <span>📜</span> Fort History &amp; Maratha Chronicles
                 </h4>
-                <div className={`text-[13px] text-[#3d5343] leading-relaxed ${!historyExpanded ? "line-clamp-4" : ""}`}>
+                <div className={`text-[13px] text-[#3d5343] leading-relaxed ${!historyExpanded ? "line-clamp-5" : ""}`}>
                   {trek.history}
                 </div>
                 <button
+                  type="button"
                   onClick={() => setHistoryExpanded(!historyExpanded)}
                   className="mt-2 text-xs font-bold text-[#2D6A4F] hover:underline flex items-center gap-1 cursor-pointer"
                 >
@@ -250,43 +355,51 @@ export default function DurgTrekGuide({ trek }: Props) {
               </div>
             )}
 
-            {/* High Altitude & Sahyadri Facts */}
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
-              <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
-                <span className="text-[10px] uppercase font-bold text-[#2D6A4F] block">Summit Altitude</span>
-                <span className="text-xs font-bold text-[#102416] mt-0.5 block">{elevation}</span>
+            {/* Highlights Chips */}
+            {trek.highlights && trek.highlights.length > 0 && (
+              <div className="pt-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D6A4F] mb-2.5">
+                  Key Historical Highlights
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {trek.highlights.map((h, i) => (
+                    <div
+                      key={i}
+                      className="p-3 bg-[#edf3eb] rounded-xl border border-[#cadbc7] text-xs font-semibold text-[#142e1b] flex items-center gap-2"
+                    >
+                      <CheckCircle2 size={14} className="text-[#2D6A4F] shrink-0" />
+                      <span>{h}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
-                <span className="text-[10px] uppercase font-bold text-[#2D6A4F] block">Trek Difficulty</span>
-                <span className="text-xs font-bold text-[#102416] mt-0.5 block uppercase">{trek.difficulty || "Moderate"}</span>
-              </div>
-            </div>
+            )}
           </div>
         )}
 
-        {/* ── TAB 2: HOW TO REACH (Durg App exact format) ── */}
+        {/* ── TAB 2: HOW TO REACH (Road, Train, Bus) ── */}
         {activeTab === "reach" && (
           <div className="space-y-4">
             <div>
               <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#2D6A4F] mb-1">
-                Route to {baseVillageName}
+                Transit Directions to {currentVillage.name}
               </h4>
               <p className="text-xs text-[#526b58]">
-                Clear transit options from Mumbai and Pune to the trek starting base.
+                Clear step-by-step route directions from Mumbai and Pune.
               </p>
             </div>
 
-            {/* By Road (Driving / Trek Bus) */}
+            {/* By Road */}
             <div className="p-4 bg-[#f8faf7] rounded-2xl border border-[#dce7da]">
               <div className="flex items-center gap-2 mb-2 text-[#142e1b] font-bold text-xs">
                 <div className="w-6 h-6 rounded-lg bg-[#2D6A4F] text-white flex items-center justify-center">
                   <Car size={13} />
                 </div>
-                <span>By Road (Car / Private Bus)</span>
+                <span>By Road (Self Drive &amp; Private Bus)</span>
               </div>
               <p className="text-[12px] text-[#3d5343] leading-relaxed">
                 {trek.howToReach?.byRoad ||
-                  `From Mumbai (${trek.distance || "200 km"}): Drive via National Highway directly to ${baseVillageName}. Roads are paved with safe village parking.`}
+                  `From Mumbai (${trek.distance || "180 km"}): Drive via National Highway directly to ${currentVillage.name}. Roads are paved with safe village parking available at the base.`}
               </p>
             </div>
 
@@ -296,11 +409,11 @@ export default function DurgTrekGuide({ trek }: Props) {
                 <div className="w-6 h-6 rounded-lg bg-[#2D6A4F] text-white flex items-center justify-center">
                   <Train size={13} />
                 </div>
-                <span>By Train (Public Railway)</span>
+                <span>By Train (Suburban &amp; Express Railway)</span>
               </div>
               <p className="text-[12px] text-[#3d5343] leading-relaxed">
                 {trek.howToReach?.byTrain ||
-                  `Take suburban or express train from Mumbai to nearest major railhead, then connect via shared auto or local ST bus to ${baseVillageName}.`}
+                  `Take train from Mumbai to nearest railhead, then connect via shared auto or local ST bus to ${currentVillage.name}.`}
               </p>
             </div>
 
@@ -314,24 +427,58 @@ export default function DurgTrekGuide({ trek }: Props) {
               </div>
               <p className="text-[12px] text-[#3d5343] leading-relaxed">
                 {trek.howToReach?.byBus ||
-                  `Regular MSRTC red buses operate from major bus depots (Swargate / Kalyan / Panvel / Mahad) directly to ${baseVillageName}.`}
+                  `Regular MSRTC red buses operate from major bus depots directly or via connecting shuttles to ${currentVillage.name}.`}
               </p>
             </div>
 
-            {/* Open Google Maps Button */}
+            {/* 1-Click GPS Navigation */}
             <a
               href={navUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-3 bg-[#edf3eb] hover:bg-[#e2ede0] text-[#1b3d26] text-xs font-bold rounded-xl border border-[#cadbc7] transition-all flex items-center justify-center gap-2 group"
+              className="w-full py-3 bg-[#edf3eb] hover:bg-[#e2ede0] text-[#1b3d26] text-xs font-bold rounded-xl border border-[#cadbc7] transition-all flex items-center justify-center gap-2 group cursor-pointer"
             >
               <Navigation size={14} className="text-[#2D6A4F] group-hover:rotate-45 transition-transform" />
-              <span>Open Turn-by-Turn GPS Navigation</span>
+              <span>Open Turn-by-Turn GPS Navigation in Google Maps</span>
             </a>
           </div>
         )}
 
-        {/* ── TAB 3: 1-NIGHT ITINERARY (10 PM Mumbai Departure) ── */}
+        {/* ── TAB 3: FORT ATTRACTIONS & SUMMIT SIGHTS ── */}
+        {activeTab === "trail" && (
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#2D6A4F] mb-1">
+                Historic Fort Points &amp; Summit Sights
+              </h4>
+              <p className="text-xs text-[#526b58]">
+                Significant gates, bastions, temples, and natural viewpoints to explore.
+              </p>
+            </div>
+
+            {trek.fortAttractions && trek.fortAttractions.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {trek.fortAttractions.map((pt, i) => (
+                  <div
+                    key={i}
+                    className="p-3 bg-[#edf3eb] rounded-xl border border-[#d6e3d3] flex items-center gap-3 text-xs font-bold text-[#102416]"
+                  >
+                    <span className="w-6 h-6 rounded-lg bg-white border border-[#cadbc7] flex items-center justify-center text-[11px] font-black text-[#2D6A4F] shrink-0">
+                      {i + 1}
+                    </span>
+                    <span className="truncate">{pt}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 bg-[#edf3eb] rounded-xl text-xs text-center text-[#526b58]">
+                Summit features ancient caves, water tanks, rock bastions, and panoramic viewpoints.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TAB 4: 1-NIGHT EXPEDITION PLAN (10 PM Mumbai Departure) ── */}
         {activeTab === "itinerary" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -340,7 +487,7 @@ export default function DurgTrekGuide({ trek }: Props) {
                   Weekend Expedition Itinerary
                 </h4>
                 <p className="text-[11px] text-[#526b58]">
-                  Departs Mumbai at 10:00 PM Saturday · Returns Sunday Night
+                  Departs Mumbai 10:00 PM Saturday · Returns Sunday Night
                 </p>
               </div>
               <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-[#142e1b] text-[10px] font-black">
@@ -374,61 +521,8 @@ export default function DurgTrekGuide({ trek }: Props) {
 
             <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 font-semibold flex items-center gap-2">
               <span>💡</span>
-              <span>All transport leaves Mumbai at 10:00 PM with pickups from Borivali, Andheri, Sion, Chembur, and Vashi.</span>
+              <span>All transport leaves Mumbai at 10:00 PM with pickups: Borivali, Andheri, Sion, Chembur, Vashi, and Panvel.</span>
             </div>
-          </div>
-        )}
-
-        {/* ── TAB 4: FORT ATTRACTIONS & KEY SIGHTS (Durg Style) ── */}
-        {activeTab === "trail" && (
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#2D6A4F] mb-1">
-                Historic Fort Points &amp; Sights
-              </h4>
-              <p className="text-xs text-[#526b58]">
-                Significant gates, bastions, temples, and viewpoints on the summit.
-              </p>
-            </div>
-
-            {trek.fortAttractions && trek.fortAttractions.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {trek.fortAttractions.map((pt, i) => (
-                  <div
-                    key={i}
-                    className="p-3 bg-[#edf3eb] rounded-xl border border-[#d6e3d3] flex items-center gap-2.5 text-xs font-bold text-[#102416]"
-                  >
-                    <span className="w-6 h-6 rounded-lg bg-white border border-[#cadbc7] flex items-center justify-center text-[10px] text-[#2D6A4F] shrink-0">
-                      {i + 1}
-                    </span>
-                    <span className="truncate">{pt}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 bg-[#edf3eb] rounded-xl text-xs text-center text-[#526b58]">
-                Summit features natural caves, water tanks, rock bastions, and panoramic viewpoints.
-              </div>
-            )}
-
-            {/* What to Bring checklist preview */}
-            {trek.thingsToBring && trek.thingsToBring.length > 0 && (
-              <div className="pt-2">
-                <span className="text-[11px] font-bold text-[#2D6A4F] uppercase tracking-wider block mb-2">
-                  🎒 Required Trek Gear
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {trek.thingsToBring.map((item, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2.5 py-1 bg-white rounded-lg text-[11px] font-semibold text-[#142e1b] border border-[#cadbc7]"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
