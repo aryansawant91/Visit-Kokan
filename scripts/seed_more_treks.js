@@ -709,3 +709,4 @@ async function seedMoreTreks() {
 }
 
 seedMoreTreks();
+

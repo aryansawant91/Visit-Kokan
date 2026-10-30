@@ -119,3 +119,4 @@ export function getMarathiTrek(slugOrName: string): MarathiTrekContent | null {
   if (lower.includes("sudhagad") || lower.includes("bhorapgad")) return MARATHI_TREKS["sudhagad-fort-trek"];
   return null;
 }
+

@@ -72,3 +72,4 @@ export function getMarathiDestination(slugOrName: string): MarathiDestinationCon
   if (lower.includes("janjira") || lower.includes("murud")) return MARATHI_DESTINATIONS["murud-janjira"];
   return null;
 }
+
