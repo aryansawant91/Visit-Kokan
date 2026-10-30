@@ -1,106 +1,134 @@
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY || "",
-});
-
-// In-memory cache for fast instant response
+// In-memory cache so identical text is translated once and served in 0ms
 const translationCache = new Map<string, string>();
+
+/**
+ * Free dedicated translation engine (MyMemory API)
+ * Does NOT consume any Groq API tokens or LLM credits!
+ */
+async function translateWithFreeEngine(text: string): Promise<string> {
+  const trimmed = text.trim();
+  if (!trimmed) return "";
+
+  // Split into chunks if longer than 400 chars to avoid URL length limits
+  if (trimmed.length > 400) {
+    const segments = trimmed.match(/[^.!?\n]+[.!?\n]+|\S+/g) || [trimmed];
+    const results: string[] = [];
+    let currentChunk = "";
+
+    for (const segment of segments) {
+      if ((currentChunk + " " + segment).length > 380) {
+        if (currentChunk.trim()) {
+          const trans = await fetchChunk(currentChunk.trim());
+          results.push(trans);
+        }
+        currentChunk = segment;
+      } else {
+        currentChunk = currentChunk ? currentChunk + " " + segment : segment;
+      }
+    }
+
+    if (currentChunk.trim()) {
+      const trans = await fetchChunk(currentChunk.trim());
+      results.push(trans);
+    }
+
+    return results.join(" ");
+  }
+
+  return await fetchChunk(trimmed);
+}
+
+async function fetchChunk(chunk: string): Promise<string> {
+  const cacheKey = `mr:${chunk}`;
+  if (translationCache.has(cacheKey)) {
+    return translationCache.get(cacheKey)!;
+  }
+
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+      chunk
+    )}&langpair=en|mr`;
+
+    const res = await fetch(url, {
+      headers: { "User-Agent": "VisitKokanApp/1.0 (contact@visitkokan.in)" },
+      next: { revalidate: 86400 }, // Cache on edge
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      const translated = json.responseData?.translatedText;
+      if (translated && typeof translated === "string" && !translated.startsWith("MYMEMORY WARNING")) {
+        translationCache.set(cacheKey, translated);
+        return translated;
+      }
+    }
+  } catch (err) {
+    console.warn("Free translation engine failed for chunk:", err);
+  }
+
+  // Fallback to original chunk if service is unavailable
+  return chunk;
+}
 
 export async function POST(req: NextRequest) {
   try {
-    if (!process.env.GROQ_API_KEY) {
-      return NextResponse.json({ error: "API key not configured" }, { status: 500 });
-    }
-
-    const { text, texts, context } = await req.json();
+    const { text, texts } = await req.json();
 
     if (!text && (!texts || !Array.isArray(texts) || texts.length === 0)) {
       return NextResponse.json({ error: "Missing text or texts array" }, { status: 400 });
     }
 
-    // Handle single text
+    // ── 1. Single Text Translation ──
     if (text && typeof text === "string") {
       const cacheKey = `mr:${text.trim()}`;
       if (translationCache.has(cacheKey)) {
-        return NextResponse.json({ translation: translationCache.get(cacheKey), cached: true });
+        return NextResponse.json({
+          translation: translationCache.get(cacheKey),
+          source: "cache",
+          creditsUsed: 0,
+        });
       }
 
-      const promptContext = context ? `Context: ${context}\n` : "";
-      const completion = await (groq.chat.completions.create as any)({
-        model: "openai/gpt-oss-20b",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a master Marathi translator and travel historian specializing in Maharashtra, Konkan, and Sahyadri forts. Translate the provided text into natural, culturally rich, and engaging Marathi (शुद्ध, ओघवती आणि प्रमाण मराठी). Maintain all historical proper nouns, fort names, and figures accurately. Return ONLY the Marathi translation without explanations, quotes, or conversational preamble.",
-          },
-          {
-            role: "user",
-            content: `${promptContext}Translate this text into Marathi:\n\n${text}`,
-          },
-        ],
-        temperature: 0.2,
-        max_tokens: 2500,
-        reasoning_effort: "low",
-      });
-
-      const translated = completion.choices[0]?.message?.content?.trim() || text;
+      // Translate using FREE engine (0 Groq credits)
+      const translated = await translateWithFreeEngine(text);
       translationCache.set(cacheKey, translated);
-      return NextResponse.json({ translation: translated, cached: false });
+
+      return NextResponse.json({
+        translation: translated,
+        source: "free-engine",
+        creditsUsed: 0,
+      });
     }
 
-    // Handle batch texts array
+    // ── 2. Batch Texts Translation ──
     if (Array.isArray(texts)) {
       const results: string[] = [];
-      const missingIndices: number[] = [];
-      const missingTexts: string[] = [];
 
-      texts.forEach((t: string, idx: number) => {
-        const cacheKey = `mr:${t.trim()}`;
-        if (translationCache.has(cacheKey)) {
-          results[idx] = translationCache.get(cacheKey)!;
-        } else {
-          missingIndices.push(idx);
-          missingTexts.push(t);
+      for (let i = 0; i < texts.length; i++) {
+        const item = texts[i];
+        if (!item || typeof item !== "string") {
+          results.push("");
+          continue;
         }
-      });
 
-      if (missingTexts.length > 0) {
-        const batchPrompt = missingTexts
-          .map((t, i) => `[ITEM ${i + 1}]\n${t}`)
-          .join("\n\n---\n\n");
-
-        const completion = await (groq.chat.completions.create as any)({
-          model: "openai/gpt-oss-20b",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are an expert Marathi translator for Maharashtra & Konkan tourism. Translate each numbered item into fluent, authentic, and culturally rich Marathi (शुद्ध आणि प्रमाण मराठी). Keep the exact same `[ITEM X]` markers so translations can be mapped back accurately. Return ONLY the translated items.",
-            },
-            {
-              role: "user",
-              content: `Translate these items to Marathi:\n\n${batchPrompt}`,
-            },
-          ],
-          temperature: 0.2,
-          max_tokens: 3500,
-          reasoning_effort: "low",
-        });
-
-        const output = completion.choices[0]?.message?.content || "";
-        const parts = output.split(/\[ITEM \d+\]/i).map((s: string) => s.trim()).filter(Boolean);
-
-        missingIndices.forEach((origIdx, mIdx) => {
-          const trans = parts[mIdx] || missingTexts[mIdx];
-          results[origIdx] = trans;
-          translationCache.set(`mr:${missingTexts[mIdx].trim()}`, trans);
-        });
+        const cacheKey = `mr:${item.trim()}`;
+        if (translationCache.has(cacheKey)) {
+          results.push(translationCache.get(cacheKey)!);
+        } else {
+          const trans = await translateWithFreeEngine(item);
+          translationCache.set(cacheKey, trans);
+          results.push(trans);
+        }
       }
 
-      return NextResponse.json({ translations: results });
+      return NextResponse.json({
+        translations: results,
+        source: "free-engine",
+        creditsUsed: 0,
+      });
     }
 
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
