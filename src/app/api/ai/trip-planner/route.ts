@@ -85,19 +85,29 @@ export async function POST(req: NextRequest) {
     let completion;
     try {
       completion = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+        model: "qwen/qwen3.8-27b",
         messages: groqMessages,
         temperature: 0.7,
         max_tokens: 4096,
       });
     } catch (primaryErr) {
-      console.warn("⚠️ Primary model llama-3.3-70b-versatile failed, falling back to llama-3.1-8b-instant:", primaryErr);
-      completion = await groq.chat.completions.create({
-        model: "llama-3.1-8b-instant",
-        messages: groqMessages,
-        temperature: 0.7,
-        max_tokens: 4096,
-      });
+      console.warn("⚠️ Primary model qwen/qwen3.8-27b failed, falling back to openai/gpt-oss-20b:", primaryErr);
+      try {
+        completion = await groq.chat.completions.create({
+          model: "openai/gpt-oss-20b",
+          messages: groqMessages,
+          temperature: 0.7,
+          max_tokens: 4096,
+        });
+      } catch (secErr) {
+        console.warn("⚠️ Secondary model openai/gpt-oss-20b failed, falling back to openai/gpt-oss-120b:", secErr);
+        completion = await groq.chat.completions.create({
+          model: "openai/gpt-oss-120b",
+          messages: groqMessages,
+          temperature: 0.7,
+          max_tokens: 4096,
+        });
+      }
     }
 
     const choice = completion.choices[0];
