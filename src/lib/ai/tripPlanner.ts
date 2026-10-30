@@ -222,9 +222,9 @@ Format:
   "type": "itinerary",
   "summary": "Brief 1-2 line response to show in chat",
   "data": {
-    "title": "Trip title e.g. 2 Day Konkan Adventure",
-    "subtitle": "e.g. Mumbai → Mangaon → Raigad Fort OR Mumbai → Kankavli → Tarkarli",
-    "totalBudget": "e.g. ₹2,000 - ₹3,500 per person",
+    "title": "Trip title e.g. 3 Day Konkan Adventure",
+    "subtitle": "e.g. Mumbai → Kankavli → Tarkarli → Malvan",
+    "totalBudget": "e.g. ₹4,500 - ₹6,500 per person",
     "transportSummary": {
       "type": "train",
       "name": "Jan Shatabdi Express",
@@ -239,7 +239,7 @@ Format:
     "days": [
       {
         "day": 1,
-        "title": "Day title e.g. Arrival & Fort Exploration",
+        "title": "Arrival & Beach Exploration",
         "stops": [
           {
             "time": "08:05 AM",
@@ -250,17 +250,6 @@ Format:
             "contact": null,
             "whatsapp": null,
             "mapsQuery": "Mangaon Railway Station Maharashtra",
-            "duration": "1 hour"
-          },
-          {
-            "time": "09:30 AM",
-            "place": "MTDC Resort Tarkarli",
-            "type": "stay",
-            "description": "Check-in or drop luggage, freshen up, and enjoy breakfast.",
-            "cost": "₹1,500-2,500 per night",
-            "contact": "+91 2365 252390",
-            "whatsapp": null,
-            "mapsQuery": "MTDC Resort Tarkarli Maharashtra",
             "duration": "1 hour"
           },
           {
@@ -275,6 +264,23 @@ Format:
             "duration": "3 hours"
           }
         ]
+      },
+      {
+        "day": 2,
+        "title": "Sea Fort & Coastal Discovery",
+        "stops": [
+          {
+            "time": "09:00 AM",
+            "place": "Sindhudurg Fort Jetty",
+            "type": "sightseeing",
+            "description": "Boat ride to the historic 1664 Shivaji island fort with footprints and coral ramparts.",
+            "cost": "₹100 boat return",
+            "contact": null,
+            "whatsapp": null,
+            "mapsQuery": "Sindhudurg Fort Malvan Maharashtra",
+            "duration": "2.5 hours"
+          }
+        ]
       }
     ],
     "tips": [
@@ -284,6 +290,16 @@ Format:
     ]
   }
 }
+
+CRITICAL RULES FOR MULTI-DAY ITINERARIES:
+- STRICT DAY COUNT ENFORCEMENT:
+  * For a 1 Day trip: Generate EXACTLY 1 day (Day 1).
+  * For a 2 Day trip: Generate EXACTLY 2 days (Day 1 and Day 2).
+  * For a 3 Day trip: Generate EXACTLY 3 days (Day 1, Day 2, and Day 3). NEVER stop at Day 2!
+  * For a 4+ Day trip: Generate EXACTLY 4 days (Day 1, Day 2, Day 3, and Day 4). NEVER stop at Day 2 or Day 3!
+  * The "days" array MUST have an item for every requested day up to N.
+  * For each day in multi-day trips (3 or 4 days), provide 3 to 4 well-paced stops (Morning, Mid-day, Afternoon/Sunset, Dinner) so the response is realistic and fits cleanly within limits.
+
 
 IMPORTANT RULES FOR JSON:
 - type must be "itinerary"

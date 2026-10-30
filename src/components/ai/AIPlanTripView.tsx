@@ -192,10 +192,20 @@ export default function AIPlanTripView() {
     e.preventDefault();
     const regionLabel = REGIONS.find((r) => r.id === region)?.label || "Konkan";
     const vibeLabel = VIBES.find((v) => v.id === vibe)?.label || "Explore";
+    const targetDays = duration.startsWith("1") ? 1 : duration.startsWith("2") ? 2 : duration.startsWith("3") ? 3 : 4;
 
-    let prompt = `Plan a ${duration} trip from ${origin} to ${regionLabel}. Travel style: ${vibeLabel}.`;
-    if (customText.trim()) {
-      prompt += ` Special preferences: ${customText.trim()}`;
+    let cleanCustom = customText.trim();
+    // Clear out stale preset text if the user previously tapped a preset card
+    const isPresetText = POPULAR_PRESETS.some((p) => p.prompt === cleanCustom);
+    if (isPresetText) {
+      cleanCustom = "";
+    } else if (cleanCustom && targetDays > 1 && /1\s*-?\s*day/i.test(cleanCustom)) {
+      cleanCustom = cleanCustom.replace(/\b1\s*-?\s*day\b/gi, `${targetDays} days`);
+    }
+
+    let prompt = `Plan a ${duration} trip (EXACTLY ${targetDays} FULL DAYS: Day 1 through Day ${targetDays}) from ${origin} to ${regionLabel}. Travel style: ${vibeLabel}.`;
+    if (cleanCustom) {
+      prompt += ` Special preferences: ${cleanCustom}. (Ensure the itinerary covers all ${targetDays} days).`;
     }
     generateItinerary(prompt);
   };
@@ -210,6 +220,11 @@ export default function AIPlanTripView() {
 
   const handlePresetClick = (preset: typeof POPULAR_PRESETS[0]) => {
     setOrigin(preset.origin);
+    const matchedDuration = preset.days === "2 Days" ? "2 Days (Weekend)" : preset.days;
+    setDuration(matchedDuration);
+    if (preset.region) {
+      setRegion(preset.region.toLowerCase());
+    }
     setCustomText(preset.prompt);
     generateItinerary(preset.prompt);
   };
@@ -350,7 +365,12 @@ export default function AIPlanTripView() {
                     <button
                       key={dur}
                       type="button"
-                      onClick={() => setDuration(dur)}
+                      onClick={() => {
+                        setDuration(dur);
+                        if (POPULAR_PRESETS.some((p) => p.prompt === customText)) {
+                          setCustomText("");
+                        }
+                      }}
                       className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
                         duration === dur
                           ? "bg-emerald-50 text-[#2D6A4F] border-emerald-500 shadow-2xs"
@@ -374,7 +394,12 @@ export default function AIPlanTripView() {
                   <button
                     key={reg.id}
                     type="button"
-                    onClick={() => setRegion(reg.id)}
+                    onClick={() => {
+                      setRegion(reg.id);
+                      if (POPULAR_PRESETS.some((p) => p.prompt === customText)) {
+                        setCustomText("");
+                      }
+                    }}
                     className={`px-3 py-2 rounded-xl text-xs font-semibold border text-left transition-all ${
                       region === reg.id
                         ? "bg-emerald-50 text-[#2D6A4F] border-emerald-500 shadow-2xs"
