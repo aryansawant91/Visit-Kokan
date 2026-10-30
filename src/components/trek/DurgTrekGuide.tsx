@@ -29,6 +29,8 @@ import {
   Route
 } from "lucide-react";
 import { Trek, BaseVillageInfo } from "@/types/trek";
+import LanguageToggle from "@/components/ui/LanguageToggle";
+import { useMarathiReader } from "@/hooks/useMarathiReader";
 
 interface Props {
   trek: Trek;
@@ -56,6 +58,20 @@ export default function DurgTrekGuide({ trek }: Props) {
       ];
 
   const currentVillage = baseVillages[selectedVillageIndex] || baseVillages[0];
+
+  // Professional Marathi Reader Hook
+  const { isMarathi, loading: translating, toggleLanguage, getField } = useMarathiReader(
+    {
+      description: trek.description,
+      history: trek.history,
+      byRoad: trek.howToReach?.byRoad,
+      byTrain: trek.howToReach?.byTrain,
+      byBus: trek.howToReach?.byBus,
+      popularFor: currentVillage.popularFor,
+      routeDescription: currentVillage.routeDescription,
+    },
+    `${trek.name} Fort Sahyadri Expedition Guide`
+  );
 
   // Dynamic Navigation URL for selected base village
   const navUrl = currentVillage.coordinates
@@ -95,9 +111,12 @@ export default function DurgTrekGuide({ trek }: Props) {
           </div>
 
           <div className="flex flex-col items-end gap-1.5">
-            <span className="px-3 py-1 rounded-full bg-emerald-50 text-[#1f4e38] text-[11px] font-extrabold border border-emerald-200 shadow-2xs flex items-center gap-1.5">
-              <Compass size={12} className="text-[#2D6A4F]" /> Verified Trail
-            </span>
+            <LanguageToggle
+              isMarathi={isMarathi}
+              onToggle={toggleLanguage}
+              loading={translating}
+              variant="compact"
+            />
             <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">
               Weekend 10 PM Batch
             </span>
@@ -218,7 +237,7 @@ export default function DurgTrekGuide({ trek }: Props) {
                   )}
                 </div>
                 <p className="text-[12px] text-[#2c4031] font-medium mt-0.5">
-                  🌟 {currentVillage.popularFor}
+                  🌟 {getField("popularFor") || currentVillage.popularFor}
                 </p>
               </div>
 
@@ -234,7 +253,7 @@ export default function DurgTrekGuide({ trek }: Props) {
             </div>
 
             <p className="text-[12px] text-[#3d5343] leading-relaxed border-t border-[#edf3eb] pt-2">
-              {currentVillage.routeDescription}
+              {getField("routeDescription") || currentVillage.routeDescription}
             </p>
 
             {/* Direct Google Maps Navigation to this specific village */}
@@ -319,12 +338,18 @@ export default function DurgTrekGuide({ trek }: Props) {
         {/* ── TAB 1: DEEP HISTORY & MARATHA HERITAGE (Durg App format) ── */}
         {activeTab === "about" && (
           <div className="space-y-4">
+            {isMarathi && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs font-bold">
+                <span>🚩</span>
+                <span>मराठी भाषांतर सक्रिय (माहिती शुद्ध मराठीत वाचत आहात)</span>
+              </div>
+            )}
             <div>
               <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#2D6A4F] mb-1.5 flex items-center gap-1.5">
-                <Castle size={14} /> Citadel Overview
+                <Castle size={14} /> {isMarathi ? "किल्ल्याचा परिचय" : "Citadel Overview"}
               </h4>
               <p className="text-[13px] text-[#2c4031] leading-relaxed">
-                {trek.description}
+                {getField("description") || trek.description}
               </p>
             </div>
 
@@ -332,10 +357,10 @@ export default function DurgTrekGuide({ trek }: Props) {
             {trek.history && (
               <div className="p-4 bg-[#f8faf7] rounded-2xl border border-[#dce7da]">
                 <h4 className="text-xs font-black uppercase tracking-wider text-[#142e1b] mb-2 flex items-center gap-1.5">
-                  <span>📜</span> Fort History &amp; Maratha Chronicles
+                  <span>📜</span> {isMarathi ? "किल्ल्याचा इतिहास व मराठा पराक्रम" : "Fort History & Maratha Chronicles"}
                 </h4>
                 <div className={`text-[13px] text-[#3d5343] leading-relaxed ${!historyExpanded ? "line-clamp-5" : ""}`}>
-                  {trek.history}
+                  {getField("history") || trek.history}
                 </div>
                 <button
                   type="button"
@@ -344,11 +369,11 @@ export default function DurgTrekGuide({ trek }: Props) {
                 >
                   {historyExpanded ? (
                     <>
-                      <span>Show Less</span> <ChevronUp size={14} />
+                      <span>{isMarathi ? "कमी दाखवा" : "Show Less"}</span> <ChevronUp size={14} />
                     </>
                   ) : (
                     <>
-                      <span>...See More History</span> <ChevronDown size={14} />
+                      <span>{isMarathi ? "...संपूर्ण इतिहास वाचा" : "...See More History"}</span> <ChevronDown size={14} />
                     </>
                   )}
                 </button>
@@ -395,10 +420,11 @@ export default function DurgTrekGuide({ trek }: Props) {
                 <div className="w-6 h-6 rounded-lg bg-[#2D6A4F] text-white flex items-center justify-center">
                   <Car size={13} />
                 </div>
-                <span>By Road (Self Drive &amp; Private Bus)</span>
+                <span>{isMarathi ? "रस्त्याने (स्वतःची गाडी किंवा ट्रॅव्हलर)" : "By Road (Self Drive & Private Bus)"}</span>
               </div>
               <p className="text-[12px] text-[#3d5343] leading-relaxed">
-                {trek.howToReach?.byRoad ||
+                {getField("byRoad") ||
+                  trek.howToReach?.byRoad ||
                   `From Mumbai (${trek.distance || "180 km"}): Drive via National Highway directly to ${currentVillage.name}. Roads are paved with safe village parking available at the base.`}
               </p>
             </div>
@@ -409,10 +435,11 @@ export default function DurgTrekGuide({ trek }: Props) {
                 <div className="w-6 h-6 rounded-lg bg-[#2D6A4F] text-white flex items-center justify-center">
                   <Train size={13} />
                 </div>
-                <span>By Train (Suburban &amp; Express Railway)</span>
+                <span>{isMarathi ? "रेल्वेने (लोकल किंवा एक्सप्रेस गाडी)" : "By Train (Suburban & Express Railway)"}</span>
               </div>
               <p className="text-[12px] text-[#3d5343] leading-relaxed">
-                {trek.howToReach?.byTrain ||
+                {getField("byTrain") ||
+                  trek.howToReach?.byTrain ||
                   `Take train from Mumbai to nearest railhead, then connect via shared auto or local ST bus to ${currentVillage.name}.`}
               </p>
             </div>
@@ -423,10 +450,11 @@ export default function DurgTrekGuide({ trek }: Props) {
                 <div className="w-6 h-6 rounded-lg bg-[#2D6A4F] text-white flex items-center justify-center">
                   <Bus size={13} />
                 </div>
-                <span>By MSRTC State Transport Bus</span>
+                <span>{isMarathi ? "एसटी बसने (लालपरी)" : "By MSRTC State Transport Bus"}</span>
               </div>
               <p className="text-[12px] text-[#3d5343] leading-relaxed">
-                {trek.howToReach?.byBus ||
+                {getField("byBus") ||
+                  trek.howToReach?.byBus ||
                   `Regular MSRTC red buses operate from major bus depots directly or via connecting shuttles to ${currentVillage.name}.`}
               </p>
             </div>

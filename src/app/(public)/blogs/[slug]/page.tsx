@@ -11,6 +11,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import BlogCard from "@/components/blog/BlogCard";
+import LanguageToggle from "@/components/ui/LanguageToggle";
+import { useMarathiReader } from "@/hooks/useMarathiReader";
 
 export default function BlogDetailPage() {
   const { slug } = useParams();
@@ -44,6 +46,16 @@ export default function BlogDetailPage() {
       });
   }, [slug]);
 
+  // Marathi Reader Hook
+  const { isMarathi, loading: translating, toggleLanguage, getField } = useMarathiReader(
+    {
+      title: blog?.title,
+      excerpt: blog?.excerpt,
+      content: blog?.content,
+    },
+    `Konkan Travel Blog: ${blog?.title || ""}`
+  );
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -72,29 +84,38 @@ export default function BlogDetailPage() {
   return (
     <div className="min-h-screen bg-kokan-cream/20">
       <div className="bg-white border-b border-kokan-sand/40 sticky top-0 z-30">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-sm text-kokan-earth/60 hover:text-kokan-earth transition-colors"
+            className="flex items-center gap-2 text-sm text-kokan-earth/60 hover:text-kokan-earth transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
+
           <div className="flex items-center gap-2">
+            {/* Marathi Reader Switch */}
+            <LanguageToggle
+              isMarathi={isMarathi}
+              onToggle={toggleLanguage}
+              loading={translating}
+              variant="compact"
+            />
+
             <button
-              onClick={() => window.open(`https://twitter.com/intent/tweet?url=${window.location.href}&text=${blog.title}`)}
-              className="p-2 rounded-lg hover:bg-kokan-sand/20 text-kokan-earth/40 hover:text-kokan-earth transition-colors"
+              onClick={() => window.open(`https://twitter.com/intent/tweet?url=${window.location.href}&text=${encodeURIComponent(blog.title)}`)}
+              className="p-2 rounded-lg hover:bg-kokan-sand/20 text-kokan-earth/40 hover:text-kokan-earth transition-colors cursor-pointer"
             >
               <Twitter className="w-4 h-4" />
             </button>
             <button
               onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`)}
-              className="p-2 rounded-lg hover:bg-kokan-sand/20 text-kokan-earth/40 hover:text-kokan-earth transition-colors"
+              className="p-2 rounded-lg hover:bg-kokan-sand/20 text-kokan-earth/40 hover:text-kokan-earth transition-colors cursor-pointer"
             >
               <Facebook className="w-4 h-4" />
             </button>
             <button
               onClick={handleCopyLink}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-kokan-sand text-xs text-kokan-earth/60 hover:bg-kokan-sand/10 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-kokan-sand text-xs text-kokan-earth/60 hover:bg-kokan-sand/10 transition-colors cursor-pointer"
             >
               <Link2 className="w-3.5 h-3.5" />
               {copied ? "Copied!" : "Copy Link"}
@@ -104,7 +125,7 @@ export default function BlogDetailPage() {
       </div>
 
       <article className="max-w-4xl mx-auto px-4 py-10">
-        <div className="flex items-center gap-3 mb-5">
+        <div className="flex items-center gap-3 mb-5 flex-wrap">
           <span className="bg-kokan-green/10 text-kokan-green text-xs font-medium px-3 py-1 rounded-full">
             {category?.emoji} {category?.label}
           </span>
@@ -116,8 +137,24 @@ export default function BlogDetailPage() {
           </span>
         </div>
 
+        {/* Marathi Translation Active Banner */}
+        {isMarathi && (
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-950 text-xs font-bold mb-6">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🚩</span>
+              <span>हा लेख अस्सल मराठी भाषेत वाचत आहात</span>
+            </div>
+            <button
+              onClick={toggleLanguage}
+              className="text-[11px] text-amber-800 underline hover:text-amber-950 font-semibold cursor-pointer"
+            >
+              English मध्ये वाचा
+            </button>
+          </div>
+        )}
+
         <h1 className="font-playfair text-3xl lg:text-4xl font-bold text-kokan-earth leading-tight mb-4">
-          {blog.title}
+          {getField("title") || blog.title}
         </h1>
 
         <div className="flex items-center gap-3 mb-8 pb-6 border-b border-kokan-sand/40">
@@ -142,12 +179,16 @@ export default function BlogDetailPage() {
           </div>
         )}
 
-        <p className="text-lg text-kokan-earth/70 leading-relaxed mb-6 font-medium border-l-4 border-kokan-green pl-4">
-          {blog.excerpt}
-        </p>
+        {/* Lead Excerpt */}
+        {blog.excerpt && (
+          <p className="text-lg text-kokan-earth/70 leading-relaxed mb-6 font-medium border-l-4 border-kokan-green pl-4">
+            {getField("excerpt") || blog.excerpt}
+          </p>
+        )}
 
+        {/* Article Body */}
         <div className="prose prose-sm max-w-none text-kokan-earth/80 leading-relaxed space-y-4">
-          {blog.content.split("\n").map((para, i) =>
+          {(getField("content") || blog.content).split("\n").map((para, i) =>
             para.trim() ? (
               <p key={i} className="text-base leading-relaxed">{para}</p>
             ) : (
@@ -168,24 +209,28 @@ export default function BlogDetailPage() {
 
         <div className="mt-8 p-6 bg-kokan-green/5 border border-kokan-green/20 rounded-2xl text-center">
           <Share2 className="w-6 h-6 text-kokan-green mx-auto mb-2" />
-          <p className="font-semibold text-kokan-earth mb-1">Enjoyed this story?</p>
-          <p className="text-sm text-kokan-earth/50 mb-4">Share it with fellow Kokan lovers</p>
+          <p className="font-semibold text-kokan-earth mb-1">
+            {isMarathi ? "हा लेख आवडला का?" : "Enjoyed this story?"}
+          </p>
+          <p className="text-sm text-kokan-earth/50 mb-4">
+            {isMarathi ? "इतर कोकण व सह्याद्री प्रेमींना नक्की शेअर करा" : "Share it with fellow Kokan lovers"}
+          </p>
           <div className="flex justify-center gap-3">
             <button
-              onClick={() => window.open(`https://twitter.com/intent/tweet?url=${window.location.href}&text=${blog.title}`)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#1DA1F2]/10 text-[#1DA1F2] rounded-xl text-sm font-medium hover:bg-[#1DA1F2]/20 transition-colors"
+              onClick={() => window.open(`https://twitter.com/intent/tweet?url=${window.location.href}&text=${encodeURIComponent(blog.title)}`)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#1DA1F2]/10 text-[#1DA1F2] rounded-xl text-sm font-medium hover:bg-[#1DA1F2]/20 transition-colors cursor-pointer"
             >
               <Twitter className="w-4 h-4" /> Twitter
             </button>
             <button
               onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#1877F2]/10 text-[#1877F2] rounded-xl text-sm font-medium hover:bg-[#1877F2]/20 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-[#1877F2]/10 text-[#1877F2] rounded-xl text-sm font-medium hover:bg-[#1877F2]/20 transition-colors cursor-pointer"
             >
               <Facebook className="w-4 h-4" /> Facebook
             </button>
             <button
               onClick={handleCopyLink}
-              className="flex items-center gap-2 px-4 py-2 bg-kokan-sand/20 text-kokan-earth rounded-xl text-sm font-medium hover:bg-kokan-sand/30 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-kokan-sand/20 text-kokan-earth rounded-xl text-sm font-medium hover:bg-kokan-sand/30 transition-colors cursor-pointer"
             >
               <Link2 className="w-4 h-4" /> {copied ? "Copied!" : "Copy Link"}
             </button>
@@ -197,7 +242,9 @@ export default function BlogDetailPage() {
         <div className="max-w-4xl mx-auto px-4 pb-12">
           <div className="flex items-center gap-2 mb-6">
             <BookOpen className="w-5 h-5 text-kokan-green" />
-            <h2 className="font-playfair text-xl font-bold text-kokan-earth">Related Stories</h2>
+            <h2 className="font-playfair text-xl font-bold text-kokan-earth">
+              {isMarathi ? "संबंधित कथा व लेख" : "Related Stories"}
+            </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {related.map((b) => (

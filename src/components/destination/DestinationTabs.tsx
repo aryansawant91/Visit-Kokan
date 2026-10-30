@@ -37,6 +37,8 @@ import WeatherWidget from "./WeatherWidget";
 import NearbyListings from "./NearbyListings";
 import TideStatusCard from "@/components/travel/TideStatusCard";
 import { isSeaFort } from "@/lib/tides/konkanTides";
+import LanguageToggle from "@/components/ui/LanguageToggle";
+import { useMarathiReader } from "@/hooks/useMarathiReader";
 
 interface DestinationTabsProps {
   dest: any;
@@ -83,6 +85,23 @@ export default function DestinationTabs({
   const [showAllPlaces, setShowAllPlaces] = useState(false);
   const [showAllActivities, setShowAllActivities] = useState(false);
   const [showAllFood, setShowAllFood] = useState(false);
+
+  // Professional Marathi reader integration
+  const howToReachStr = typeof dest.howToReach === "string" ? dest.howToReach : "";
+  const byRoadStr = typeof dest.howToReach === "object" ? dest.howToReach?.byRoad : "";
+  const byTrainStr = typeof dest.howToReach === "object" ? dest.howToReach?.byTrain : "";
+  const byAirStr = typeof dest.howToReach === "object" ? dest.howToReach?.byAir : "";
+
+  const { isMarathi, loading: translating, toggleLanguage, getField } = useMarathiReader(
+    {
+      description: dest.description,
+      howToReach: howToReachStr,
+      byRoad: byRoadStr,
+      byTrain: byTrainStr,
+      byAir: byAirStr,
+    },
+    `${dest.name} Konkan Destination Guide`
+  );
 
   const isClickingRef = useRef(false);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -226,11 +245,11 @@ export default function DestinationTabs({
 
   return (
     <div className="space-y-4">
-      {/* ── Flipkart-Style Sticky Pill Tabs Bar ── */}
-      <div className="sticky top-0 z-30 bg-[#edf3eb]/95 backdrop-blur-md py-2.5 -mx-5 px-5 border-b border-[#d6e2d4]/80 shadow-xs">
+      {/* ── Sticky Pill Tabs Bar with Language Switcher ── */}
+      <div className="sticky top-0 z-30 bg-[#edf3eb]/95 backdrop-blur-md py-2.5 -mx-5 px-5 border-b border-[#d6e2d4]/80 shadow-xs flex items-center justify-between gap-2">
         <div
           ref={tabContainerRef}
-          className="flex items-center gap-2 overflow-x-auto scrollbar-none scroll-smooth pb-0.5"
+          className="flex items-center gap-2 overflow-x-auto scrollbar-none scroll-smooth pb-0.5 flex-1 min-w-0"
         >
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -241,7 +260,7 @@ export default function DestinationTabs({
                   tabRefs.current[tab.id] = el;
                 }}
                 onClick={() => scrollToSection(tab.id)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap shrink-0 ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                   isActive
                     ? "bg-[#142607] text-white shadow-sm"
                     : "bg-white text-[#334637] border border-[#d6e2d4] hover:bg-[#edf3eb]"
@@ -252,6 +271,15 @@ export default function DestinationTabs({
             );
           })}
         </div>
+
+        {/* Marathi Reader Switch */}
+        <LanguageToggle
+          variant="compact"
+          isMarathi={isMarathi}
+          onToggle={toggleLanguage}
+          loading={translating}
+          className="shrink-0"
+        />
       </div>
 
       {/* ── 1. SECTION: OVERVIEW (Flipkart "Description" Box) ── */}
@@ -261,13 +289,20 @@ export default function DestinationTabs({
           <TideStatusCard fortSlugOrName={dest.slug || dest.name} />
         )}
 
+        {isMarathi && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs font-bold">
+            <span>🚩</span>
+            <span>माहिती शुद्ध मराठीत वाचत आहात (Reading in Marathi)</span>
+          </div>
+        )}
+
         {dest.description && (
           <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-[#d6e2d4] shadow-xs">
             <h2 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] mb-2 flex items-center gap-1.5">
-              <Sparkles size={13} className="text-[#B7895A]" /> About {dest.name}
+              <Sparkles size={13} className="text-[#B7895A]" /> {isMarathi ? `${dest.name} बद्दल माहिती` : `About ${dest.name}`}
             </h2>
             <p className="text-[13px] text-[#3d5343] leading-relaxed">
-              {dest.description}
+              {getField("description") || dest.description}
             </p>
           </div>
         )}
@@ -477,11 +512,11 @@ export default function DestinationTabs({
         {dest.howToReach && (
           <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-[#d6e2d4] shadow-xs space-y-3">
             <h2 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] flex items-center gap-1.5">
-              <Navigation size={13} className="text-[#2D6A4F]" /> How to Reach
+              <Navigation size={13} className="text-[#2D6A4F]" /> {isMarathi ? "येथे कसे पोहोचावे" : "How to Reach"}
             </h2>
             {typeof dest.howToReach === "string" ? (
               <p className="text-[13px] text-[#3d5343] leading-relaxed">
-                {dest.howToReach}
+                {getField("howToReach") || dest.howToReach}
               </p>
             ) : (
               <div className="space-y-2 text-xs">
@@ -491,8 +526,8 @@ export default function DestinationTabs({
                       <Car size={13} className="text-[#2D6A4F]" />
                     </div>
                     <div className="flex-1">
-                      <span className="font-bold text-[#142e1b] block mb-0.5">By Road</span>
-                      <p className="text-[#3d5343] leading-relaxed">{dest.howToReach.byRoad}</p>
+                      <span className="font-bold text-[#142e1b] block mb-0.5">{isMarathi ? "रस्त्याने" : "By Road"}</span>
+                      <p className="text-[#3d5343] leading-relaxed">{getField("byRoad") || dest.howToReach.byRoad}</p>
                     </div>
                   </div>
                 )}
@@ -502,8 +537,19 @@ export default function DestinationTabs({
                       <Train size={13} className="text-[#2D6A4F]" />
                     </div>
                     <div className="flex-1">
-                      <span className="font-bold text-[#142e1b] block mb-0.5">By Train</span>
-                      <p className="text-[#3d5343] leading-relaxed">{dest.howToReach.byTrain}</p>
+                      <span className="font-bold text-[#142e1b] block mb-0.5">{isMarathi ? "रेल्वेने" : "By Train"}</span>
+                      <p className="text-[#3d5343] leading-relaxed">{getField("byTrain") || dest.howToReach.byTrain}</p>
+                    </div>
+                  </div>
+                )}
+                {dest.howToReach.byAir && (
+                  <div className="p-2.5 bg-[#f8faf7] rounded-xl border border-[#e2eae0] flex items-start gap-2.5">
+                    <div className="w-6 h-6 rounded-lg bg-[#dce7da] flex items-center justify-center shrink-0 mt-0.5">
+                      <Ship size={13} className="text-[#2D6A4F]" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="font-bold text-[#142e1b] block mb-0.5">{isMarathi ? "विमानाने" : "By Air"}</span>
+                      <p className="text-[#3d5343] leading-relaxed">{getField("byAir") || dest.howToReach.byAir}</p>
                     </div>
                   </div>
                 )}
