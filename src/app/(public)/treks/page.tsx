@@ -1,5 +1,6 @@
-import CartIcon from "@/components/cart/CartIcon";
 "use client";
+
+import CartIcon from "@/components/cart/CartIcon";
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";

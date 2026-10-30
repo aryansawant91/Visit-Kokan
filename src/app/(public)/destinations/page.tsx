@@ -1,5 +1,6 @@
-import CartIcon from "@/components/cart/CartIcon";
 "use client";
+
+import CartIcon from "@/components/cart/CartIcon";
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
