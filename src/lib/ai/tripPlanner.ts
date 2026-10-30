@@ -227,58 +227,30 @@ Format:
     "totalBudget": "e.g. ₹4,500 - ₹6,500 per person",
     "transportSummary": {
       "type": "train",
-      "name": "Jan Shatabdi Express",
-      "number": "12051",
+      "name": "Train Name from Timetable below",
+      "number": "Train Number",
       "from": "Mumbai CSMT",
-      "to": "Mangaon",
-      "duration": "2h 40m",
-      "cost": "₹120 (2S) / ₹380 (CC)",
-      "departs": "05:25",
-      "arrives": "08:05"
+      "to": "Destination Station (e.g. Kankavli (KKW) or Mangaon (MNG))",
+      "duration": "Exact duration to this specific station",
+      "cost": "Exact fare to this specific station",
+      "departs": "Exact departure time",
+      "arrives": "Exact arrival time at this station"
     },
     "days": [
       {
         "day": 1,
-        "title": "Arrival & Beach Exploration",
+        "title": "Arrival & Initial Exploration",
         "stops": [
           {
-            "time": "08:05 AM",
-            "place": "Mangaon Railway Station",
+            "time": "Arrival time at station",
+            "place": "Arrival Station / Base Camp",
             "type": "transport",
-            "description": "Arrive at Mangaon via Jan Shatabdi Express (12051). Board local auto/cab to Raigad base at Pachad (45 km).",
+            "description": "Board cab or auto to hotel/homestay.",
             "cost": "₹600 cab/auto",
             "contact": null,
             "whatsapp": null,
-            "mapsQuery": "Mangaon Railway Station Maharashtra",
+            "mapsQuery": "Station Name Maharashtra",
             "duration": "1 hour"
-          },
-          {
-            "time": "11:00 AM",
-            "place": "Tarkarli Beach & Water Sports",
-            "type": "activity",
-            "description": "Scuba diving, parasailing, and banana rides near the clear water lagoon.",
-            "cost": "₹1,200 water sports pack",
-            "contact": null,
-            "whatsapp": null,
-            "mapsQuery": "Tarkarli Beach Sindhudurg Maharashtra",
-            "duration": "3 hours"
-          }
-        ]
-      },
-      {
-        "day": 2,
-        "title": "Sea Fort & Coastal Discovery",
-        "stops": [
-          {
-            "time": "09:00 AM",
-            "place": "Sindhudurg Fort Jetty",
-            "type": "sightseeing",
-            "description": "Boat ride to the historic 1664 Shivaji island fort with footprints and coral ramparts.",
-            "cost": "₹100 boat return",
-            "contact": null,
-            "whatsapp": null,
-            "mapsQuery": "Sindhudurg Fort Malvan Maharashtra",
-            "duration": "2.5 hours"
           }
         ]
       }
@@ -299,6 +271,55 @@ CRITICAL RULES FOR MULTI-DAY ITINERARIES:
   * For a 4+ Day trip: Generate EXACTLY 4 days (Day 1, Day 2, Day 3, and Day 4). NEVER stop at Day 2 or Day 3!
   * The "days" array MUST have an item for every requested day up to N.
   * For each day in multi-day trips (3 or 4 days), provide 3 to 4 well-paced stops (Morning, Mid-day, Afternoon/Sunset, Dinner) so the response is realistic and fits cleanly within limits.
+
+VERIFIED KONKAN RAILWAY TIMETABLE TABLE (USE EXACT TIMINGS & FARES ONLY):
+
+1. SINDHUDURG (Malvan / Tarkarli / Sindhudurg Fort / Devbag / Vengurla):
+   Nearest Stations: Kankavli (KKW) (48 km to Malvan) or Kudal (KUDL) (45 km to Malvan).
+   * OVERNIGHT SLEEPER (STRONGLY RECOMMENDED FOR FULL DAY 1 SIGHTSEEING):
+     - Train: "Tutari Express", number: "10103"
+     - from: "Mumbai CSMT", to: "Kankavli (KKW)" (or "Kudal (KUDL)")
+     - departs: "23:05", arrives: "07:30" (or 08:15 at Kudal)
+     - duration: "8h 25m", cost: "₹285 (2S) / ₹450 (SL) / ₹1,200 (3AC)"
+     - Stop 1 on Day 1: 07:30 AM arrival at Kankavli station, cab to Malvan (arr ~08:30 AM). Full day ahead!
+   * DAYTIME TRAIN:
+     - Train: "Jan Shatabdi Express", number: "12051"
+     - from: "Mumbai CSMT", to: "Kankavli (KKW)"
+     - departs: "05:25", arrives: "13:55 (01:55 PM)"
+     - duration: "8h 30m", cost: "₹235 (2S) / ₹810 (CC)"
+     - ⚠️ ABSOLUTE GEOGRAPHIC RULE: Jan Shatabdi travels 450 km and arrives at Kankavli at 13:55 (01:55 PM), NOT 08:05 AM! 08:05 AM is for Mangaon (Raigad), which is 350 km north! If Jan Shatabdi is used, Day 1 Stop 1 MUST be 01:55 PM (afternoon arrival)!
+   * SPEED PREMIUM:
+     - Train: "Tejas Express", number: "22119", to: "Kudal (KUDL)", departs: "05:50", arrives: "13:30 (01:30 PM)", duration: "7h 40m", cost: "₹1,250 (CC) / ₹2,400 (EC)"
+
+2. RATNAGIRI / GANPATIPULE:
+   Nearest Station: Ratnagiri (RN) (Ganpatipule is 28 km).
+   * Tutari Express (10103): departs: "23:05", arrives: "06:15", duration: "7h 10m", cost: "₹220 (2S) / ₹330 (SL) / ₹900 (3AC)"
+   * Jan Shatabdi (12051): departs: "05:25", arrives: "11:45", duration: "6h 20m", cost: "₹180 (2S) / ₹620 (CC)"
+   * Tejas Express (22119): departs: "05:50", arrives: "11:05", duration: "5h 15m", cost: "₹950 (CC) / ₹1,850 (EC)"
+
+3. CHIPLUN / GUHAGAR:
+   Nearest Station: Chiplun (CHI).
+   * Jan Shatabdi (12051): departs: "05:25", arrives: "10:20", duration: "4h 55m", cost: "₹150 (2S) / ₹520 (CC)"
+   * Tutari Express (10103): departs: "23:05", arrives: "04:45", duration: "5h 40m", cost: "₹180 (SL) / ₹550 (3AC)"
+
+4. KHED / DAPOLI / HARNAI:
+   Nearest Station: Khed (KHED).
+   * Jan Shatabdi (12051): departs: "05:25", arrives: "09:20", duration: "3h 55m", cost: "₹135 (2S) / ₹460 (CC)"
+   * Tutari Express (10103): departs: "23:05", arrives: "03:30", duration: "4h 25m", cost: "₹160 (SL) / ₹500 (3AC)"
+
+5. RAIGAD FORT / MAHAD (MANGAON):
+   Nearest Station: Mangaon (MNG) (45 km to Pachad base).
+   * Jan Shatabdi (12051): departs: "05:25", arrives: "08:05", duration: "2h 40m", cost: "₹120 (2S) / ₹380 (CC)"
+   * Tutari Express (10103): departs: "23:05", arrives: "02:10", duration: "3h 05m", cost: "₹160 (SL) / ₹500 (3AC)"
+
+6. SAWANTWADI / AMBOLI:
+   Nearest Station: Sawantwadi Road (SWV).
+   * Tutari Express (10103): departs: "23:05", arrives: "08:45", duration: "9h 40m", cost: "₹300 (2S) / ₹470 (SL) / ₹1,250 (3AC)"
+   * Jan Shatabdi (12051): departs: "05:25", arrives: "15:07", duration: "9h 42m", cost: "₹245 (2S) / ₹850 (CC)"
+
+7. ALIBAUG / KASHID / NAGAON:
+   NO direct railway station! Mandwa Ferry:
+   * type: "ferry", name: "M2M Ro-Pax Ferry / PNP Speedboat", from: "Bhaucha Dhakka / Gateway of India", to: "Mandwa Jetty", departs: "Every 45-60 min from 06:00 AM", arrives: "1 hr voyage", duration: "1 hour", cost: "₹180 - ₹250 / person"
 
 
 IMPORTANT RULES FOR JSON:

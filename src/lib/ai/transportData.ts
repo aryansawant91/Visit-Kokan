@@ -205,3 +205,185 @@ ${roadInfo || "No road data available"}
 ================================================================================================
 `;
 }
+
+// Deterministic validator & corrector for transport timings & fares
+export function validateAndCorrectTransport(itinerary: any, contextText: string = ""): any {
+  if (!itinerary || !itinerary.transportSummary) return itinerary;
+  const transport = itinerary.transportSummary;
+  if (transport.type !== "train") return itinerary;
+
+  const destContext = `${itinerary.title || ""} ${itinerary.subtitle || ""} ${contextText} ${transport.to || ""}`.toLowerCase();
+  const trainName = `${transport.name || ""} ${transport.number || ""}`.toLowerCase();
+
+  const isSindhudurg = destContext.includes("kankavli") || destContext.includes("kudal") || destContext.includes("malvan") || destContext.includes("tarkarli") || destContext.includes("sindhudurg") || destContext.includes("vengurla") || destContext.includes("devbag");
+  const isRatnagiri = !isSindhudurg && (destContext.includes("ratnagiri") || destContext.includes("ganpatipule") || destContext.includes("jaigad") || destContext.includes("pawas"));
+  const isChiplun = !isSindhudurg && !isRatnagiri && (destContext.includes("chiplun") || destContext.includes("guhagar") || destContext.includes("velneshwar"));
+  const isKhed = !isSindhudurg && !isRatnagiri && !isChiplun && (destContext.includes("khed") || destContext.includes("dapoli") || destContext.includes("harnai") || destContext.includes("anjarle"));
+  const isRaigad = !isSindhudurg && !isRatnagiri && !isChiplun && !isKhed && (destContext.includes("raigad") || destContext.includes("mangaon") || destContext.includes("mahad") || destContext.includes("pachad"));
+  const isSawantwadi = !isSindhudurg && (destContext.includes("sawantwadi") || destContext.includes("amboli"));
+
+  const isJanShatabdi = trainName.includes("jan shatabdi") || trainName.includes("12051");
+  const isTutari = trainName.includes("tutari") || trainName.includes("10103");
+  const isTejas = trainName.includes("tejas") || trainName.includes("22119");
+
+  if (isSindhudurg) {
+    if (isJanShatabdi) {
+      // Jan Shatabdi to Kankavli arrives at 13:55 (01:55 PM), takes 8h 30m, fare ₹235 (2S) / ₹810 (CC)
+      transport.name = "Jan Shatabdi Express";
+      transport.number = "12051";
+      transport.departs = "05:25";
+      transport.arrives = "13:55 (01:55 PM)";
+      transport.duration = "8h 30m";
+      transport.cost = "₹235 (2S) / ₹810 (CC)";
+      transport.to = transport.to?.toLowerCase().includes("kudal") ? "Kudal (KUDL)" : "Kankavli (KKW)";
+      transport.from = "Mumbai CSMT";
+
+      // Also ensure Day 1 Stop 1 doesn't claim 08:05 AM for Kankavli
+      if (itinerary.days && itinerary.days[0] && itinerary.days[0].stops && itinerary.days[0].stops[0]) {
+        const stop1 = itinerary.days[0].stops[0];
+        if (stop1.time && (stop1.time.includes("08:") || stop1.time.includes("8:"))) {
+          stop1.time = "01:55 PM";
+          stop1.description = `Arrive at Kankavli via Jan Shatabdi Express (12051) at 01:55 PM. Cab to Malvan/Tarkarli (48 km, 1 hr).`;
+        }
+      }
+    } else if (isTejas) {
+      transport.name = "Tejas Express";
+      transport.number = "22119";
+      transport.departs = "05:50";
+      transport.arrives = "13:30 (01:30 PM)";
+      transport.duration = "7h 40m";
+      transport.cost = "₹1,250 (CC) / ₹2,400 (EC)";
+      transport.to = "Kudal (KUDL)";
+      transport.from = "Mumbai CSMT";
+    } else {
+      // Overnight Tutari Express (Default recommendation for Sindhudurg morning arrival)
+      transport.name = "Tutari Express";
+      transport.number = "10103";
+      transport.departs = "23:05";
+      transport.arrives = "07:30";
+      transport.duration = "8h 25m";
+      transport.cost = "₹285 (2S) / ₹450 (SL) / ₹1,200 (3AC)";
+      transport.to = transport.to?.toLowerCase().includes("kudal") ? "Kudal (KUDL)" : "Kankavli (KKW)";
+      transport.from = "Mumbai CSMT";
+
+      if (itinerary.days && itinerary.days[0] && itinerary.days[0].stops && itinerary.days[0].stops[0]) {
+        const stop1 = itinerary.days[0].stops[0];
+        if (stop1.time && (stop1.time.includes("08:05") || stop1.time.includes("13:55"))) {
+          stop1.time = "07:30 AM";
+          stop1.description = `Arrive at Kankavli via Tutari Express (10103) at 07:30 AM. Board local auto/cab to Malvan/Tarkarli (48 km, 1 hr).`;
+        }
+      }
+    }
+  } else if (isRatnagiri) {
+    if (isJanShatabdi) {
+      transport.name = "Jan Shatabdi Express";
+      transport.number = "12051";
+      transport.departs = "05:25";
+      transport.arrives = "11:45";
+      transport.duration = "6h 20m";
+      transport.cost = "₹180 (2S) / ₹620 (CC)";
+      transport.to = "Ratnagiri (RN)";
+      transport.from = "Mumbai CSMT";
+    } else if (isTejas) {
+      transport.name = "Tejas Express";
+      transport.number = "22119";
+      transport.departs = "05:50";
+      transport.arrives = "11:05";
+      transport.duration = "5h 15m";
+      transport.cost = "₹950 (CC) / ₹1,850 (EC)";
+      transport.to = "Ratnagiri (RN)";
+      transport.from = "Mumbai CSMT";
+    } else {
+      transport.name = "Tutari Express";
+      transport.number = "10103";
+      transport.departs = "23:05";
+      transport.arrives = "06:15";
+      transport.duration = "7h 10m";
+      transport.cost = "₹220 (2S) / ₹330 (SL) / ₹900 (3AC)";
+      transport.to = "Ratnagiri (RN)";
+      transport.from = "Mumbai CSMT";
+    }
+  } else if (isChiplun) {
+    if (isJanShatabdi) {
+      transport.name = "Jan Shatabdi Express";
+      transport.number = "12051";
+      transport.departs = "05:25";
+      transport.arrives = "10:20";
+      transport.duration = "4h 55m";
+      transport.cost = "₹150 (2S) / ₹520 (CC)";
+      transport.to = "Chiplun (CHI)";
+      transport.from = "Mumbai CSMT";
+    } else {
+      transport.name = "Tutari Express";
+      transport.number = "10103";
+      transport.departs = "23:05";
+      transport.arrives = "04:45";
+      transport.duration = "5h 40m";
+      transport.cost = "₹180 (SL) / ₹550 (3AC)";
+      transport.to = "Chiplun (CHI)";
+      transport.from = "Mumbai CSMT";
+    }
+  } else if (isKhed) {
+    if (isJanShatabdi) {
+      transport.name = "Jan Shatabdi Express";
+      transport.number = "12051";
+      transport.departs = "05:25";
+      transport.arrives = "09:20";
+      transport.duration = "3h 55m";
+      transport.cost = "₹135 (2S) / ₹460 (CC)";
+      transport.to = "Khed (KHED)";
+      transport.from = "Mumbai CSMT";
+    } else {
+      transport.name = "Tutari Express";
+      transport.number = "10103";
+      transport.departs = "23:05";
+      transport.arrives = "03:30";
+      transport.duration = "4h 25m";
+      transport.cost = "₹160 (SL) / ₹500 (3AC)";
+      transport.to = "Khed (KHED)";
+      transport.from = "Mumbai CSMT";
+    }
+  } else if (isRaigad) {
+    if (isJanShatabdi) {
+      transport.name = "Jan Shatabdi Express";
+      transport.number = "12051";
+      transport.departs = "05:25";
+      transport.arrives = "08:05";
+      transport.duration = "2h 40m";
+      transport.cost = "₹120 (2S) / ₹380 (CC)";
+      transport.to = "Mangaon (MNG)";
+      transport.from = "Mumbai CSMT";
+    } else {
+      transport.name = "Tutari Express";
+      transport.number = "10103";
+      transport.departs = "23:05";
+      transport.arrives = "02:10";
+      transport.duration = "3h 05m";
+      transport.cost = "₹160 (SL) / ₹500 (3AC)";
+      transport.to = "Mangaon (MNG)";
+      transport.from = "Mumbai CSMT";
+    }
+  } else if (isSawantwadi) {
+    if (isJanShatabdi) {
+      transport.name = "Jan Shatabdi Express";
+      transport.number = "12051";
+      transport.departs = "05:25";
+      transport.arrives = "15:07";
+      transport.duration = "9h 42m";
+      transport.cost = "₹245 (2S) / ₹850 (CC)";
+      transport.to = "Sawantwadi Road (SWV)";
+      transport.from = "Mumbai CSMT";
+    } else {
+      transport.name = "Tutari Express";
+      transport.number = "10103";
+      transport.departs = "23:05";
+      transport.arrives = "08:45";
+      transport.duration = "9h 40m";
+      transport.cost = "₹300 (2S) / ₹470 (SL) / ₹1,250 (3AC)";
+      transport.to = "Sawantwadi Road (SWV)";
+      transport.from = "Mumbai CSMT";
+    }
+  }
+
+  return itinerary;
+}

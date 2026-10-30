@@ -9,6 +9,8 @@ import {
   getAllTrains,
   getAllRoads,
   formatTransportContext,
+  KONKAN_DESTINATION_GATEWAYS,
+  validateAndCorrectTransport,
 } from "@/lib/ai/transportData";
 
 const groq = new Groq({
@@ -62,6 +64,7 @@ export async function POST(req: NextRequest) {
       systemPrompt = [
         ITINERARY_JSON_PROMPT,
         durationRule,
+        KONKAN_DESTINATION_GATEWAYS,
         pageContext ? `CONTEXT: ${pageContext}` : "",
       ]
         .filter(Boolean)
@@ -155,9 +158,10 @@ export async function POST(req: NextRequest) {
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
         if (parsed.type === "itinerary" && parsed.data) {
+          const sanitizedData = validateAndCorrectTransport(parsed.data, lastUserMessage?.content || "");
           return NextResponse.json({
             message: parsed.summary || "Here's your Konkan itinerary! 🌊",
-            itinerary: parsed.data,
+            itinerary: sanitizedData,
           });
         }
       }
