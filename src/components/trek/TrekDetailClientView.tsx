@@ -57,18 +57,15 @@ export default function TrekDetailClientView({
   allImages,
   mapsUrl
 }: Props) {
-  const [mobileTab, setMobileTab] = useState<"guide" | "booking">("guide");
-
   // Listen to open-trek-booking custom event from Sticky Bar
   useEffect(() => {
     const handleOpenBooking = () => {
-      setMobileTab("booking");
-      setTimeout(() => {
-        const el = document.getElementById("booking-card-panel") || document.getElementById("booking-section");
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth" });
-        }
-      }, 100);
+      const isMobile = window.innerWidth < 1024;
+      const targetId = isMobile ? "booking-section-mobile" : "booking-card-panel";
+      const el = document.getElementById(targetId) || document.getElementById("booking-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
     };
 
     window.addEventListener("open-trek-booking", handleOpenBooking);
@@ -104,147 +101,8 @@ export default function TrekDetailClientView({
             />
           </div>
 
-          {/* 2. Integrated Mobile Segmented Tab Switcher (Directly below hero curve, not floating above) */}
-          <div className="lg:hidden px-4">
-            <div className="p-1.5 bg-[#d8e4d5] rounded-2xl border border-[#cadbc7] shadow-xs flex gap-1.5">
-              <button
-                type="button"
-                onClick={() => setMobileTab("guide")}
-                className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  mobileTab === "guide"
-                    ? "bg-[#1E4D38] text-white shadow-sm"
-                    : "text-[#2c4031] hover:text-[#0f2416]"
-                }`}
-              >
-                <Castle size={14} />
-                <span>Fort Guide &amp; Routes</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMobileTab("booking")}
-                className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  mobileTab === "booking"
-                    ? "bg-[#1E4D38] text-white shadow-sm"
-                    : "text-[#2c4031] hover:text-[#0f2416]"
-                }`}
-              >
-                <Calendar size={14} />
-                <span>Book Expedition (₹1,499)</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 3. MOBILE VIEW: WHEN "BOOK EXPEDITION" IS SELECTED */}
-          {mobileTab === "booking" && (
-            <div className="lg:hidden px-4">
-              <div className="bg-white rounded-3xl border-2 border-[#2D6A4F]/25 shadow-xl overflow-hidden space-y-0">
-                {/* Emerald Header */}
-                <div className="bg-gradient-to-br from-[#122c1b] via-[#1a442a] to-[#245838] p-5 text-white">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-400/30">
-                      Weekend 1D 1N Trek
-                    </span>
-                    <span className="text-[11px] font-bold text-emerald-200 flex items-center gap-1">
-                      <ShieldCheck size={13} className="text-emerald-300" /> Kokan Verified
-                    </span>
-                  </div>
-
-                  <h2 className="text-xl font-black tracking-tight leading-tight">
-                    {trek.name} Expedition
-                  </h2>
-
-                  <p className="text-xs text-emerald-100/80 mt-1 flex items-center gap-1.5">
-                    <Clock size={12} className="text-emerald-300" />
-                    <span>Departs Mumbai at <strong>10:00 PM Every Saturday</strong></span>
-                  </p>
-
-                  {/* Price Banner */}
-                  <div className="mt-4 p-3 bg-black/25 backdrop-blur-sm rounded-2xl border border-white/10 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-white/70 block">
-                        Expedition Fare
-                      </span>
-                      <div className="flex items-baseline gap-1 mt-0.5">
-                        <span className="text-2xl font-black text-[#b8dc26]">
-                          ₹{trek.price?.toLocaleString("en-IN") ?? "1,499"}
-                        </span>
-                        <span className="text-xs text-white/70 font-medium">/person</span>
-                      </div>
-                    </div>
-
-                    <div className="text-right border-l border-white/15 pl-4">
-                      <span className="text-[10px] uppercase font-bold text-emerald-300 block">
-                        Advance to Reserve
-                      </span>
-                      <span className="text-base font-black text-white mt-0.5 block">
-                        ₹{trek.advanceAmount?.toLocaleString("en-IN") ?? "750"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Inclusions & Pickups */}
-                <div className="p-4 bg-[#f8faf7] border-b border-[#e2ede0] space-y-3">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-wider text-[#2D6A4F] mb-1.5 flex items-center gap-1.5">
-                      <Bus size={13} /> Mumbai 10:00 PM Pickups
-                    </p>
-                    <div className="grid grid-cols-2 gap-1.5 text-[11px] text-[#2c4031] font-semibold">
-                      <span className="truncate">📍 Borivali: 10:00 PM</span>
-                      <span className="truncate">📍 Andheri: 10:25 PM</span>
-                      <span className="truncate">📍 Sion Circle: 10:50 PM</span>
-                      <span className="truncate">📍 Chembur: 11:10 PM</span>
-                      <span className="truncate">📍 Vashi Toll: 11:35 PM</span>
-                      <span className="truncate">📍 Panvel: 11:55 PM</span>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-[#cadbc7]/60">
-                    <p className="text-[11px] font-black uppercase tracking-wider text-[#2D6A4F] mb-1.5 flex items-center gap-1.5">
-                      <Utensils size={13} /> Inclusions
-                    </p>
-                    <div className="space-y-1 text-[11px] text-[#3d5343] font-medium">
-                      <div className="flex items-center gap-1.5">
-                        <Check size={12} className="text-[#2D6A4F] shrink-0" />
-                        <span>Private AC Bus (Mumbai ➔ Base ➔ Mumbai)</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Check size={12} className="text-[#2D6A4F] shrink-0" />
-                        <span>Breakfast, Hot Tea &amp; Traditional Village Feast Lunch</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Check size={12} className="text-[#2D6A4F] shrink-0" />
-                        <span>Certified Trek Leaders &amp; Emergency First Aid</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Check size={12} className="text-[#2D6A4F] shrink-0" />
-                        <span>Forest Department &amp; Fort Entry Passes</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form */}
-                <div className="p-4">
-                  <TrekBookingWidget
-                    trekId={trek.id}
-                    trekName={trek.name}
-                    trekSlug={trek.slug}
-                    pricePerPerson={trek.price ?? 1499}
-                    maxCapacity={20}
-                    advanceAmount={trek.advanceAmount ?? 750}
-                    whatsappGroupLink={trek.whatsappGroupLink}
-                    scheduledDate={trek.scheduledDate ?? undefined}
-                    hideStickyBar={true}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 4. MAIN CONTENT (Always visible on desktop; on mobile visible when "guide" tab is active) */}
-          <div className={`space-y-5 px-4 sm:px-0 ${mobileTab === "booking" ? "hidden lg:block" : "block"}`}>
+          {/* 2. MAIN CONTENT (Comprehensive Durg Fort Guide & Routes) */}
+          <div className="space-y-5 px-4 sm:px-0">
             
             {/* Quick Specs & Highlights Card (Clean, non-repetitive) */}
             <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#cadbc7] shadow-sm">
@@ -389,30 +247,110 @@ export default function TrekDetailClientView({
               <NearbyListings region={trek.region} currentSlug={trek.slug} />
             </div>
 
-            {/* Mobile "Switch to Booking" banner at the end of the guide */}
-            <div className="lg:hidden p-5 bg-gradient-to-r from-[#173722] to-[#2D6A4F] text-white rounded-3xl shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300 block">
-                  Ready for the Summit?
-                </span>
-                <h4 className="text-base font-black mt-0.5">
-                  Join our 10:00 PM Mumbai Weekend Batch
-                </h4>
-                <p className="text-xs text-white/80 mt-0.5">
-                  All-inclusive expedition for just ₹1,499 per person (₹750 advance).
-                </p>
-              </div>
+            {/* Mobile Dedicated Booking Section right after guide */}
+            <div id="booking-section-mobile" className="lg:hidden">
+              <div className="bg-white rounded-3xl border-2 border-[#2D6A4F]/25 shadow-xl overflow-hidden">
+                {/* Top Emerald Header */}
+                <div className="bg-gradient-to-br from-[#122c1b] via-[#1a442a] to-[#245838] p-5 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-400/30">
+                      Weekend 1D 1N Trek
+                    </span>
+                    <span className="text-[11px] font-bold text-emerald-200 flex items-center gap-1">
+                      <ShieldCheck size={13} className="text-emerald-300" /> Kokan Verified
+                    </span>
+                  </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileTab("booking");
-                  window.scrollTo({ top: 380, behavior: "smooth" });
-                }}
-                className="px-6 py-3 bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] font-black text-xs rounded-full shadow-md transition-all shrink-0 cursor-pointer text-center"
-              >
-                Book Expedition Now →
-              </button>
+                  <h2 className="text-xl font-black tracking-tight leading-tight">
+                    {trek.name} Expedition
+                  </h2>
+
+                  <p className="text-xs text-emerald-100/80 mt-1 flex items-center gap-1.5">
+                    <Clock size={12} className="text-emerald-300" />
+                    <span>Departs Mumbai at <strong>10:00 PM Every Saturday</strong></span>
+                  </p>
+
+                  {/* Price Banner */}
+                  <div className="mt-4 p-3.5 bg-black/25 backdrop-blur-sm rounded-2xl border border-white/10 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-white/70 block">
+                        Expedition Fare
+                      </span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="text-2xl font-black text-[#b8dc26]">
+                          ₹{trek.price?.toLocaleString("en-IN") ?? "1,499"}
+                        </span>
+                        <span className="text-xs text-white/70 font-medium">/person</span>
+                      </div>
+                    </div>
+
+                    <div className="text-right border-l border-white/15 pl-4">
+                      <span className="text-[10px] uppercase font-bold text-emerald-300 block">
+                        Advance to Reserve
+                      </span>
+                      <span className="text-base font-black text-white mt-0.5 block">
+                        ₹{trek.advanceAmount?.toLocaleString("en-IN") ?? "750"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pickups & Inclusions */}
+                <div className="p-4 bg-[#f8faf7] border-b border-[#e2ede0] space-y-3">
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-wider text-[#2D6A4F] mb-1.5 flex items-center gap-1.5">
+                      <Bus size={13} /> Mumbai 10:00 PM Pickups
+                    </p>
+                    <div className="grid grid-cols-2 gap-1.5 text-[11px] text-[#2c4031] font-semibold">
+                      <span className="truncate">📍 Borivali: 10:00 PM</span>
+                      <span className="truncate">📍 Andheri: 10:25 PM</span>
+                      <span className="truncate">📍 Sion Circle: 10:50 PM</span>
+                      <span className="truncate">📍 Chembur: 11:10 PM</span>
+                      <span className="truncate">📍 Vashi Toll: 11:35 PM</span>
+                      <span className="truncate">📍 Panvel: 11:55 PM</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-[#cadbc7]/60">
+                    <p className="text-[11px] font-black uppercase tracking-wider text-[#2D6A4F] mb-1.5 flex items-center gap-1.5">
+                      <Utensils size={13} /> Inclusions
+                    </p>
+                    <div className="space-y-1 text-[11px] text-[#3d5343] font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <Check size={12} className="text-[#2D6A4F] shrink-0" />
+                        <span>Private AC Bus (Mumbai ➔ Base ➔ Mumbai)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Check size={12} className="text-[#2D6A4F] shrink-0" />
+                        <span>Breakfast, Hot Tea &amp; Traditional Village Feast Lunch</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Check size={12} className="text-[#2D6A4F] shrink-0" />
+                        <span>Certified Trek Leaders &amp; Emergency First Aid</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Check size={12} className="text-[#2D6A4F] shrink-0" />
+                        <span>Forest Department &amp; Fort Entry Passes</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form */}
+                <div className="p-4 sm:p-5">
+                  <TrekBookingWidget
+                    trekId={trek.id}
+                    trekName={trek.name}
+                    trekSlug={trek.slug}
+                    pricePerPerson={trek.price ?? 1499}
+                    maxCapacity={20}
+                    advanceAmount={trek.advanceAmount ?? 750}
+                    whatsappGroupLink={trek.whatsappGroupLink}
+                    scheduledDate={trek.scheduledDate ?? undefined}
+                    hideStickyBar={true}
+                  />
+                </div>
+              </div>
             </div>
 
           </div>

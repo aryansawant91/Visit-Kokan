@@ -212,7 +212,7 @@ export default function ProfilePage() {
             <FieldLabel icon={<Mail className="w-3.5 h-3.5" />} label="Email address" />
             <p className="text-sm text-kokan-earth/60 px-1">{profile?.email}</p>
             <p className="text-xs text-kokan-earth/30 px-1 mt-0.5">
-              Email can't be changed here
+              Email cannot be changed here
             </p>
           </div>
 

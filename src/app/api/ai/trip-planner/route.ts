@@ -48,9 +48,9 @@ export async function POST(req: NextRequest) {
     if (isItinerary && lastUserMessage) {
       const text = lastUserMessage.content.toLowerCase();
       if (text.includes("4+ day") || text.includes("4 day") || text.includes("4 days")) {
-        durationRule = "\n\nCRITICAL DURATION DIRECTIVE: The user requested 4+ DAYS. The 'days' array in your JSON output MUST contain EXACTLY 4 day objects: Day 1, Day 2, Day 3, and Day 4. Under NO circumstances stop at Day 2 or Day 3!";
+        durationRule = "\n\nCRITICAL DURATION DIRECTIVE: The user requested 4+ DAYS. The 'days' array in your JSON output MUST contain EXACTLY 4 day objects: Day 1, Day 2, Day 3, and Day 4. Under NO circumstances stop at Day 2 or Day 3! Provide 3 concise stops per day so the JSON completes reliably.";
       } else if (text.includes("3 day") || text.includes("3 days")) {
-        durationRule = "\n\nCRITICAL DURATION DIRECTIVE: The user requested 3 DAYS. The 'days' array in your JSON output MUST contain EXACTLY 3 day objects: Day 1, Day 2, and Day 3. Under NO circumstances stop at Day 2!";
+        durationRule = "\n\nCRITICAL DURATION DIRECTIVE: The user requested 3 DAYS. The 'days' array in your JSON output MUST contain EXACTLY 3 day objects: Day 1, Day 2, and Day 3. Under NO circumstances stop at Day 2! Provide 3 concise stops per day so the JSON completes reliably.";
       } else if (text.includes("2 day") || text.includes("2 days") || text.includes("weekend")) {
         durationRule = "\n\nCRITICAL DURATION DIRECTIVE: The user requested 2 DAYS. The 'days' array in your JSON output MUST contain EXACTLY 2 day objects: Day 1 and Day 2.";
       } else if (text.includes("1 day") || text.includes("day trip") || text.includes("same day")) {
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
         model: "openai/gpt-oss-20b",
         messages: groqMessages,
         temperature: isItinerary ? 0.2 : 0.7,
-        max_tokens: 3500,
+        max_tokens: 8192,
         reasoning_effort: "low",
         response_format: responseFormat,
       });
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
           model: "openai/gpt-oss-120b",
           messages: groqMessages,
           temperature: isItinerary ? 0.2 : 0.7,
-          max_tokens: 3500,
+          max_tokens: 8192,
           reasoning_effort: "low",
           response_format: responseFormat,
         });
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
           model: "qwen/qwen3.8-27b",
           messages: groqMessages,
           temperature: isItinerary ? 0.2 : 0.7,
-          max_tokens: 1800,
+          max_tokens: 4096,
           response_format: responseFormat,
         });
       }
@@ -157,8 +157,9 @@ export async function POST(req: NextRequest) {
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        if (parsed.type === "itinerary" && parsed.data) {
-          const sanitizedData = validateAndCorrectTransport(parsed.data, lastUserMessage?.content || "");
+        if (parsed.type === "itinerary" || parsed.days || parsed.data?.days) {
+          const itineraryObj = parsed.data || parsed;
+          const sanitizedData = validateAndCorrectTransport(itineraryObj, lastUserMessage?.content || "");
           return NextResponse.json({
             message: parsed.summary || "Here's your Konkan itinerary! 🌊",
             itinerary: sanitizedData,

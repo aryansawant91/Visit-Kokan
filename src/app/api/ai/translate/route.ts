@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import Groq from "groq-sdk";
 
 // In-memory cache so identical text is translated once and served in 0ms
 const translationCache = new Map<string, string>();
+
+function decodeEntities(str: string): string {
+  if (!str) return "";
+  return str
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ");
+}
 
 /**
  * Free dedicated translation engine (MyMemory API)
@@ -12,14 +22,36 @@ async function translateWithFreeEngine(text: string): Promise<string> {
   const trimmed = text.trim();
   if (!trimmed) return "";
 
-  // Split into chunks if longer than 400 chars to avoid URL length limits
-  if (trimmed.length > 400) {
-    const segments = trimmed.match(/[^.!?\n]+[.!?\n]+|\S+/g) || [trimmed];
+  // Split into sentences / smaller segments if longer than 250 chars
+  if (trimmed.length > 250) {
+    const rawSegments = trimmed.match(/[^.!?\n]+[.!?\n]+|\S+/g) || [trimmed];
+    const segments: string[] = [];
+
+    // Ensure no individual segment exceeds 250 chars
+    for (const seg of rawSegments) {
+      if (seg.length > 250) {
+        // Subdivide by comma or spaces
+        const words = seg.split(" ");
+        let subChunk = "";
+        for (const w of words) {
+          if ((subChunk + " " + w).length > 230) {
+            if (subChunk.trim()) segments.push(subChunk.trim());
+            subChunk = w;
+          } else {
+            subChunk = subChunk ? subChunk + " " + w : w;
+          }
+        }
+        if (subChunk.trim()) segments.push(subChunk.trim());
+      } else {
+        segments.push(seg);
+      }
+    }
+
     const results: string[] = [];
     let currentChunk = "";
 
     for (const segment of segments) {
-      if ((currentChunk + " " + segment).length > 380) {
+      if ((currentChunk + " " + segment).length > 240) {
         if (currentChunk.trim()) {
           const trans = await fetchChunk(currentChunk.trim());
           results.push(trans);
@@ -42,14 +74,17 @@ async function translateWithFreeEngine(text: string): Promise<string> {
 }
 
 async function fetchChunk(chunk: string): Promise<string> {
-  const cacheKey = `mr:${chunk}`;
+  const cleanChunk = chunk.trim();
+  if (!cleanChunk) return "";
+
+  const cacheKey = `mr:${cleanChunk}`;
   if (translationCache.has(cacheKey)) {
     return translationCache.get(cacheKey)!;
   }
 
   try {
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-      chunk
+      cleanChunk
     )}&langpair=en|mr`;
 
     const res = await fetch(url, {
@@ -59,10 +94,16 @@ async function fetchChunk(chunk: string): Promise<string> {
 
     if (res.ok) {
       const json = await res.json();
-      const translated = json.responseData?.translatedText;
-      if (translated && typeof translated === "string" && !translated.startsWith("MYMEMORY WARNING")) {
-        translationCache.set(cacheKey, translated);
-        return translated;
+      const rawTranslated = json.responseData?.translatedText;
+      if (
+        rawTranslated &&
+        typeof rawTranslated === "string" &&
+        !rawTranslated.startsWith("MYMEMORY WARNING") &&
+        !rawTranslated.includes("QUERY LENGTH LIMIT")
+      ) {
+        const decoded = decodeEntities(rawTranslated);
+        translationCache.set(cacheKey, decoded);
+        return decoded;
       }
     }
   } catch (err) {
@@ -70,7 +111,7 @@ async function fetchChunk(chunk: string): Promise<string> {
   }
 
   // Fallback to original chunk if service is unavailable
-  return chunk;
+  return cleanChunk;
 }
 
 export async function POST(req: NextRequest) {

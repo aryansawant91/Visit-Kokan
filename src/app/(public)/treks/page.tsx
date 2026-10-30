@@ -97,7 +97,7 @@ function TreksPageInner() {
   const [showFilterSheet, setShowFilterSheet]       = useState(false);
   const [currentPage, setCurrentPage]               = useState(1);
 
-  const ITEMS_PER_PAGE = 8;
+  const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
     const cat  = searchParams.get("category");
@@ -397,8 +397,8 @@ function TreksPageInner() {
 
                   <div className="flex items-center gap-1 mx-1 flex-wrap justify-center">
                     {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((p) => {
-                      if (totalPages > 7) {
-                        if (p !== 1 && p !== totalPages && Math.abs(p - currentPage) > 1) {
+                      if (totalPages > 10) {
+                        if (p !== 1 && p !== totalPages && Math.abs(p - currentPage) > 2) {
                           if (p === 2 || p === totalPages - 1) {
                             return <span key={p} className="text-kokan-earth/40 text-xs px-1">…</span>;
                           }

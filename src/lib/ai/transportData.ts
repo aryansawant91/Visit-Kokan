@@ -210,7 +210,13 @@ ${roadInfo || "No road data available"}
 export function validateAndCorrectTransport(itinerary: any, contextText: string = ""): any {
   if (!itinerary || !itinerary.transportSummary) return itinerary;
   const transport = itinerary.transportSummary;
-  if (transport.type !== "train") return itinerary;
+  
+  const isTrain =
+    !transport.type ||
+    transport.type.toLowerCase() === "train" ||
+    Boolean(transport.number) ||
+    Boolean(transport.name?.toLowerCase().includes("express"));
+  if (!isTrain) return itinerary;
 
   const destContext = `${itinerary.title || ""} ${itinerary.subtitle || ""} ${contextText} ${transport.to || ""}`.toLowerCase();
   const trainName = `${transport.name || ""} ${transport.number || ""}`.toLowerCase();
@@ -241,10 +247,9 @@ export function validateAndCorrectTransport(itinerary: any, contextText: string 
       // Also ensure Day 1 Stop 1 doesn't claim 08:05 AM for Kankavli
       if (itinerary.days && itinerary.days[0] && itinerary.days[0].stops && itinerary.days[0].stops[0]) {
         const stop1 = itinerary.days[0].stops[0];
-        if (stop1.time && (stop1.time.includes("08:") || stop1.time.includes("8:"))) {
-          stop1.time = "01:55 PM";
-          stop1.description = `Arrive at Kankavli via Jan Shatabdi Express (12051) at 01:55 PM. Cab to Malvan/Tarkarli (48 km, 1 hr).`;
-        }
+        stop1.time = "01:55 PM";
+        stop1.description = `Arrive at Kankavli via Jan Shatabdi Express (12051) at 01:55 PM. Cab to Malvan/Tarkarli (48 km, 1 hr).`;
+        stop1.cost = "₹235 (2S) / ₹810 (CC)";
       }
     } else if (isTejas) {
       transport.name = "Tejas Express";
@@ -255,6 +260,13 @@ export function validateAndCorrectTransport(itinerary: any, contextText: string 
       transport.cost = "₹1,250 (CC) / ₹2,400 (EC)";
       transport.to = "Kudal (KUDL)";
       transport.from = "Mumbai CSMT";
+
+      if (itinerary.days && itinerary.days[0] && itinerary.days[0].stops && itinerary.days[0].stops[0]) {
+        const stop1 = itinerary.days[0].stops[0];
+        stop1.time = "01:30 PM";
+        stop1.description = `Arrive at Kudal via Tejas Express (22119) at 01:30 PM. Cab to Malvan/Tarkarli (45 km, 1 hr).`;
+        stop1.cost = "₹1,250 (CC) / ₹2,400 (EC)";
+      }
     } else {
       // Overnight Tutari Express (Default recommendation for Sindhudurg morning arrival)
       transport.name = "Tutari Express";
@@ -268,10 +280,9 @@ export function validateAndCorrectTransport(itinerary: any, contextText: string 
 
       if (itinerary.days && itinerary.days[0] && itinerary.days[0].stops && itinerary.days[0].stops[0]) {
         const stop1 = itinerary.days[0].stops[0];
-        if (stop1.time && (stop1.time.includes("08:05") || stop1.time.includes("13:55"))) {
-          stop1.time = "07:30 AM";
-          stop1.description = `Arrive at Kankavli via Tutari Express (10103) at 07:30 AM. Board local auto/cab to Malvan/Tarkarli (48 km, 1 hr).`;
-        }
+        stop1.time = "07:30 AM";
+        stop1.description = `Arrive at Kankavli via Tutari Express (10103) at 07:30 AM. Board local auto/cab to Malvan/Tarkarli (48 km, 1 hr).`;
+        stop1.cost = "₹285 (2S) / ₹450 (SL)";
       }
     }
   } else if (isRatnagiri) {
