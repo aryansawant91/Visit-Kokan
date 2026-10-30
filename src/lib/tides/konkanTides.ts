@@ -30,7 +30,7 @@ export interface FortTidalProfile {
 export const FORT_PROFILES: Record<string, FortTidalProfile> = {
   "kolaba": {
     name: "Kolaba Fort (Alibaug)",
-    aliases: ["kolaba", "kolaba-fort", "alibaug-beach", "alibaug"],
+    aliases: ["kolaba", "kolaba-fort", "colaba", "colaba-fort", "alibaug-fort"],
     accessType: "walking_and_boat",
     location: "Alibaug Beach, Raigad",
     operatingHours: "Accessible during low tide (Daylight hours: 7:00 AM – 5:30 PM)",
@@ -40,7 +40,7 @@ export const FORT_PROFILES: Record<string, FortTidalProfile> = {
   },
   "murud-janjira": {
     name: "Murud-Janjira Fort",
-    aliases: ["murud-janjira", "janjira", "murud-janjira-fort", "murud"],
+    aliases: ["murud-janjira", "janjira", "murud-janjira-fort", "janjira-fort"],
     accessType: "ferry_only",
     location: "Rajapuri Jetty, Murud, Raigad",
     jettyName: "Rajapuri Jetty (Local Sailboats)",
@@ -51,7 +51,7 @@ export const FORT_PROFILES: Record<string, FortTidalProfile> = {
   },
   "sindhudurg": {
     name: "Sindhudurg Fort",
-    aliases: ["sindhudurg", "sindhudurg-fort", "malvan"],
+    aliases: ["sindhudurg-fort", "sindhudurg-killa", "malvan-sindhudurg-fort", "sindhudurg-sea-fort"],
     accessType: "ferry_only",
     location: "Malvan Dandi Jetty, Sindhudurg",
     jettyName: "Malvan Ferry Jetty",
@@ -86,6 +86,16 @@ export const FORT_PROFILES: Record<string, FortTidalProfile> = {
 /**
  * Calculates real-time tide status along the Konkan coast based on lunar phase epoch
  */
+
+export function isSeaFort(slugOrName: string): boolean {
+  if (!slugOrName) return false;
+  const normalized = slugOrName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  return Object.keys(FORT_PROFILES).some((key) => {
+    const profile = FORT_PROFILES[key];
+    return key === normalized || profile.aliases.some((alias) => normalized === alias || normalized.includes(alias));
+  });
+}
+
 export function getFortTideStatus(slugOrName: string, date: Date = new Date()): TideInfo | null {
   const normalized = slugOrName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   
@@ -94,12 +104,10 @@ export function getFortTideStatus(slugOrName: string, date: Date = new Date()): 
     return key === normalized || profile.aliases.some(alias => normalized.includes(alias));
   });
 
+  // NEVER fall back to Kolaba! Only return tide info for verified sea/island forts.
+  // Hill forts like Raigad, Pratapgad, Rajmachi, etc. must return null!
   if (!matchedKey) {
-    if (normalized.includes("fort")) {
-      matchedKey = "kolaba"; // default fallback for fort tides
-    } else {
-      return null;
-    }
+    return null;
   }
 
   const profile = FORT_PROFILES[matchedKey];

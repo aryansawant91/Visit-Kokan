@@ -25,6 +25,25 @@ YOUR RULES:
 - Keep responses conversational but rich with real details
 - Use emojis naturally but not excessively
 
+REALISTIC HUMAN PACING & TIME DURATION RULES (CRITICAL FOR ACCURACY):
+- NEVER generate rushed or physically impossible itineraries! Real travelers need realistic time to climb, explore, eat, and rest.
+- Hill Fort Treks (Raigad, Pratapgad, Sudhagad, Rajmachi):
+  * Climbing 1,737 stone steps takes 2.5 to 3.5 hours. Ropeway takes 30-60 min queue wait on weekends + 5 min ride (operates 8:00 AM – 5:00 PM only).
+  * The top plateau of Raigad Fort is huge (>2.5 km across). Walking between Maha Darwaja, Nagarkhana, Rajbhavan, Takmak Tok, Jagdishwar Temple, and Shivaji Maharaj Samadhi takes AT LEAST 3.5 to 4.5 hours!
+  * Descending 1,737 steep steps takes 1.5 to 2 hours.
+  * Total time at the fort is 5 to 6.5 hours!
+  * NEVER schedule fort descent after only 1-2 hours or at 11:00 AM if arrived in the morning! Descent must happen in the afternoon (02:30 PM to 04:00 PM).
+  * For night trains (e.g. Tutari Express arriving Mangaon at 02:10 AM): Nobody climbs a mountain in pitch dark at 2:30 AM. Travelers cab to Pachad base, rest at a base room/homestay till dawn (05:30 AM), start climbing at 06:00 AM in cool weather, reach top ~08:30-09:00 AM, explore till 01:30 PM, have lunch on top, and descend around 02:30-04:00 PM.
+- Sea Forts (Sindhudurg, Murud-Janjira, Kolaba, Suvarnadurg):
+  * Jetty arrival + boat wait + boat ride + exploring ramparts + return boat takes 2.5 to 3.5 hours total.
+- Water Sports & Scuba (Tarkarli/Malvan):
+  * Briefing + boat to deep reef + dives + wait turns takes 3.5 to 4.5 hours.
+- Authentic Meals (Khanavals / Dhabas):
+  * Freshly cooked Konkan food (Surmai thali, Kombdi Vade, Solkadhi, Pithla Bhakri) takes 1 to 1.5 hours.
+- Travel Speeds on Konkan Roads:
+  * Interior & ghat roads average 35–45 km/h. Mangaon to Pachad (45 km) takes 1 hour. Raigad to Alibaug (110 km) takes 3+ hours. Never place Alibaug right after Raigad on the same morning!
+  * Every subsequent stop's time MUST equal: previous stop time + previous stop duration + realistic travel time.
+
 ITINERARY FORMAT (when giving a plan):
 Always structure as:
 📅 Day 1 — [Title]
@@ -42,7 +61,7 @@ RAIGAD:
 - Kashid: Most popular beach from Mumbai, gets crowded weekends
 - Diveagar: Quiet, casuarina groves, Suvarna Ganesh Temple gold idol, combine with Shrivardhan
 - Shrivardhan: Peshwa ancestral town, calm beach, Harihareshwar nearby (4 temples, cliffs)
-- Raigad Fort: Shivaji's capital, 1700 steps or ropeway from Pachad, Jagdishwar Temple, Hirkani Buruj
+- Raigad Fort: Shivaji's capital at 2,700 ft. Climb takes 2.5-3.5 hrs (1,737 steps). Ropeway operates 8:00 AM – 5:00 PM (30-60m queue on weekends). Fort plateau is over 2.5 km long (Maha Darwaja, Nagarkhana, Rajbhavan, Takmak Tok, Jagdishwar Temple, Shivaji Samadhi). Exploring takes 3.5 to 4.5 hours! Descent takes 1.5-2 hrs by steps or 30-45m by ropeway. Total time on fort is 5 to 6.5 hours! Never schedule descent before 2:30 PM for morning arrivals!
 - Kolad: Kundalika river rafting, monsoon only (June-Sept), riverside camps
 - Korlai: Portuguese fort + lighthouse + rare Creole language village
 
@@ -287,4 +306,25 @@ IMPORTANT RULES FOR JSON:
 - cost should always be in Indian Rupees.
 - Keep descriptions short but specific.
 - type field for each stop must be one of: transport, sightseeing, food, stay, activity.
+- REALISTIC HUMAN PACING & TIME CONTINUITY (STRICT ENFORCEMENT):
+  * Chronological continuity: Every stop's "time" MUST logically follow the previous stop: Stop 2 time = Stop 1 time + duration + realistic travel time.
+  * Major Hill Forts (Raigad, Pratapgad): Total visit is at least 5 to 6 hours (Climb/Ropeway: 1-3 hrs, Fort Plateau: 3.5-4.5 hrs, Lunch on top: 1 hr, Descent: 1.5-2 hrs). NEVER schedule descent at 11:00 AM or after just 1-2 hours!
+  * If user takes Saturday night Tutari Express (dep CSMT 23:05 -> arr Mangaon 02:10 AM):
+    - Stop 1: 02:10 AM Mangaon arrival, cab to Pachad base (1 hr).
+    - Stop 2: 03:30 AM - 05:30 AM Rest & freshen up at Pachad base lodge/dorm.
+    - Stop 3: 06:00 AM Start morning trek (1,737 steps) in cool sunrise air (2.5 hrs).
+    - Stop 4: 08:45 AM Reach fort top, hot Poha & Chai at local stall (45 min).
+    - Stop 5: 09:30 AM - 01:30 PM In-depth exploration of Raigad Fort plateau (Maha Darwaja, Rajbhavan, Takmak Tok, Jagdishwar Temple, Shivaji Samadhi) (4 hrs).
+    - Stop 6: 01:30 PM - 02:30 PM Traditional Maharashtrian lunch on fort top (Pithla Bhakri & Solkadhi) (1 hr).
+    - Stop 7: 02:30 PM - 04:00 PM Descent via steps or ropeway to Pachad base (1.5 hrs).
+    - Stop 8: 04:30 PM Cab to Mangaon / Mahad (1 hr).
+    - Stop 9: 06:00 PM Board return train / bus back to Mumbai (arr Mumbai ~09:30-10:30 PM).
+  * If user takes morning Jan Shatabdi Express (dep CSMT 05:25 -> arr Mangaon 08:05 AM):
+    - Stop 1: 08:05 AM Mangaon arrival, cab to Pachad base (1 hr, arr ~09:15 AM).
+    - Stop 2: 09:30 AM - 10:15 AM Raigad Ropeway base (queue + ride to top).
+    - Stop 3: 10:15 AM - 01:45 PM In-depth Fort exploration (3.5 hrs).
+    - Stop 4: 01:45 PM - 02:45 PM Lunch at MTDC / fort top stalls (1 hr).
+    - Stop 5: 02:45 PM - 03:30 PM Ropeway descent to Pachad base.
+    - Stop 6: 04:00 PM Cab to Mangaon.
+    - Stop 7: 05:30 PM Board return train / bus to Mumbai.
 `;

@@ -1,4 +1,6 @@
 import { adminDb } from "@/lib/firebaseAdmin";
+import { db } from "@/lib/firestore";
+import { collection, getDocs } from "firebase/firestore";
 
 export interface TrainStop {
   station: string;
@@ -40,11 +42,14 @@ export interface Road {
   breakpoints?: RoadBreakpoint[];
 }
 
-// Fetch all trains
+// Fetch all trains (prefers adminDb on server, falls back to client db)
 export async function getAllTrains(): Promise<Train[]> {
   try {
-    if (!adminDb) return [];
-    const snapshot = await adminDb.collection("trains").get();
+    if (adminDb) {
+      const snapshot = await adminDb.collection("trains").get();
+      return snapshot.docs.map((d) => d.data() as Train);
+    }
+    const snapshot = await getDocs(collection(db, "trains"));
     return snapshot.docs.map((d) => d.data() as Train);
   } catch (error) {
     console.error("❌ Failed to fetch trains from Firestore:", error);
@@ -55,8 +60,11 @@ export async function getAllTrains(): Promise<Train[]> {
 // Fetch all road routes
 export async function getAllRoads(): Promise<Road[]> {
   try {
-    if (!adminDb) return [];
-    const snapshot = await adminDb.collection("routes").get();
+    if (adminDb) {
+      const snapshot = await adminDb.collection("routes").get();
+      return snapshot.docs.map((d) => d.data() as Road);
+    }
+    const snapshot = await getDocs(collection(db, "routes"));
     return snapshot.docs.map((d) => d.data() as Road);
   } catch (error) {
     console.error("❌ Failed to fetch routes from Firestore:", error);
@@ -112,14 +120,21 @@ export function getArrivalAtStation(
 export const KONKAN_DESTINATION_GATEWAYS = `
 VERIFIED DESTINATION TO NEAREST RAILWAY STATION & GATEWAY DIRECTORY:
 - Raigad Fort / Mahad / Pachad:
-  * Nearest Station: Mangaon (MNG) (approx 45 km, 1 hr by auto/cab to Raigad base). NEVER USE Kankavli (which is 350 km south in Sindhudurg)!
+  * Nearest Station: Mangaon (MNG) (approx 45 km, 1 hr by auto/cab to Raigad base at Pachad). NEVER USE Kankavli (which is 350 km south in Sindhudurg)!
   * Jan Shatabdi Express (12051): CSMT dep 05:25 -> Mangaon arr 08:05 (duration 2h 40m, Fare: ₹120 2S / ₹380 CC). Ideal for 1-day or weekend trip!
   * Tutari Express (10103): CSMT dep 23:05 -> Mangaon arr 02:10 (duration 3h 05m, Fare: ₹160 SL / ₹500 3AC).
   * Road: Mumbai to Raigad Fort via NH66 (140 km, 3.5 hrs via Vadkhal-Mangaon-Mahad-Pachad).
+  * REALISTIC PACING FOR RAIGAD FORT (CRITICAL):
+    - Hill fort at 2,700 ft with 1,737 steep stone steps. Climb takes 2.5-3.5 hrs. Descent takes 1.5-2 hrs.
+    - Raigad Ropeway operates 8:00 AM – 5:00 PM (Queue wait is 30–60 mins on weekends, ride is 5 mins).
+    - Exploring the vast fort top (Maha Darwaja, Nagarkhana, Rajbhavan, Takmak Tok, Jagdishwar Temple, Shivaji Samadhi) takes MINIMUM 3.5 to 4.5 hours!
+    - Total time spent at the fort must be 5 to 6.5 hours. NEVER schedule fort descent after only 1-2 hours or at 11:00 AM!
+    - For night arrival (Tutari arr Mangaon 02:10 AM): Travelers rest at Mangaon/Pachad base room till dawn (5:30 AM), start climbing around 06:00 AM in cool weather, reach top ~08:30-09:00 AM, explore till 01:30 PM, have lunch on top, and descend around 02:30-04:00 PM.
 - Alibaug / Mandwa / Nagaon / Kashid / Kihim:
   * Gateway: Ferry from Gateway of India to Mandwa Jetty (1 hr, ₹250) then 20 min local auto/bus, OR Road via NH66 (95 km, 2.5-3 hrs). NO direct railway station!
 - Murud-Janjira:
   * Nearest Station: Roha (ROHA) (approx 40 km) or Mangaon. Or Road via Alibaug (165 km, 3.5-4 hrs).
+  * Realistic Pacing: Sailboat ferry from Rajapuri jetty + boat wait + exploring island fort takes 3 to 3.5 hours.
 - Dapoli / Harnai / Anjarle / Velas:
   * Nearest Station: Khed (KHED) (approx 30 km).
   * Tutari Express: arr Khed 03:30 (Fare: ₹220 SL / ₹600 3AC).
@@ -130,6 +145,7 @@ VERIFIED DESTINATION TO NEAREST RAILWAY STATION & GATEWAY DIRECTORY:
 - Ganpatipule / Ratnagiri / Jaigad:
   * Nearest Station: Ratnagiri (RN) (Ganpatipule is 28 km).
   * Tutari Express: arr Ratnagiri 06:15. Jan Shatabdi: arr Ratnagiri 11:45 (Fare: ₹330 SL / ₹900 3AC).
+  * Realistic Pacing: Ganpatipule Mandir Darshan + Pradakshina + beach relaxation takes 3 hours.
 - Devgad / Vijaydurg / Kunkeshwar:
   * Nearest Station: Kankavli (KKW) (approx 45-50 km).
   * Tutari Express: arr Kankavli 07:30. Jan Shatabdi: arr Kankavli 13:55.
@@ -137,6 +153,7 @@ VERIFIED DESTINATION TO NEAREST RAILWAY STATION & GATEWAY DIRECTORY:
   * Nearest Station: Kankavli (KKW) (48 km) or Kudal (KUDL) (45 km).
   * Tutari Express: arr Kankavli 07:30 / arr Kudal 08:15 (Fare: ₹450 SL / ₹1,200 3AC).
   * Jan Shatabdi: arr Kankavli 13:55 / arr Kudal 14:35.
+  * Realistic Pacing: Scuba diving & watersports take 3.5 to 4.5 hours. Sindhudurg Fort ferry & visit takes 2.5 to 3 hours.
 - Sawantwadi / Vengurla / Amboli:
   * Nearest Station: Sawantwadi Road (SWV).
   * Tutari Express: arr Sawantwadi 08:45. Jan Shatabdi: arr Sawantwadi 15:07.

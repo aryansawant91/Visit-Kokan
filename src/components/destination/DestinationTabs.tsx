@@ -36,6 +36,7 @@ import {
 import WeatherWidget from "./WeatherWidget";
 import NearbyListings from "./NearbyListings";
 import TideStatusCard from "@/components/travel/TideStatusCard";
+import { isSeaFort } from "@/lib/tides/konkanTides";
 
 interface DestinationTabsProps {
   dest: any;
@@ -256,7 +257,9 @@ export default function DestinationTabs({
       {/* ── 1. SECTION: OVERVIEW (Flipkart "Description" Box) ── */}
       <section id="section-overview" className="scroll-mt-20 space-y-3.5">
         {/* Real-time Tide & Sea Fort accessibility tracker (for coastal/island forts) */}
-        <TideStatusCard fortSlugOrName={dest.slug || dest.name} />
+        {isSeaFort(dest.slug || dest.name) && (
+          <TideStatusCard fortSlugOrName={dest.slug || dest.name} />
+        )}
 
         {dest.description && (
           <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-[#d6e2d4] shadow-xs">
