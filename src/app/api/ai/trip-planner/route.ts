@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       ? detectItineraryIntent(lastUserMessage.content)
       : false;
 
-    // Use lean, focused prompt for itinerary generation to stay well under TPM rate limits (6,000 TPM)
+    // Use lean, focused prompt for itinerary generation
     let systemPrompt = "";
     if (isItinerary) {
       systemPrompt = [
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
         .join("\n\n");
     }
 
-    // Only include last 4 messages to save tokens and avoid TPM limit
+    // Only include last 4 messages to save context tokens
     const trimmedMessages = messages.slice(-4);
 
     const groqMessages = [
@@ -98,30 +98,31 @@ export async function POST(req: NextRequest) {
 
     let completion;
     try {
+      // Primary model: openai/gpt-oss-20b (high OTPM token limit, fast ~2s completion)
       completion = await groq.chat.completions.create({
-        model: "qwen/qwen3.8-27b",
+        model: "openai/gpt-oss-20b",
         messages: groqMessages,
         temperature: isItinerary ? 0.3 : 0.7,
-        max_tokens: 2000,
+        max_tokens: 2800,
         response_format: responseFormat,
       });
     } catch (primaryErr) {
-      console.warn("⚠️ Primary model qwen/qwen3.8-27b failed, falling back to openai/gpt-oss-20b:", primaryErr);
+      console.warn("⚠️ Primary model openai/gpt-oss-20b failed, falling back to openai/gpt-oss-120b:", primaryErr);
       try {
-        completion = await groq.chat.completions.create({
-          model: "openai/gpt-oss-20b",
-          messages: groqMessages,
-          temperature: isItinerary ? 0.3 : 0.7,
-          max_tokens: 2000,
-          response_format: responseFormat,
-        });
-      } catch (secErr) {
-        console.warn("⚠️ Secondary model openai/gpt-oss-20b failed, falling back to openai/gpt-oss-120b:", secErr);
         completion = await groq.chat.completions.create({
           model: "openai/gpt-oss-120b",
           messages: groqMessages,
           temperature: isItinerary ? 0.3 : 0.7,
-          max_tokens: 2000,
+          max_tokens: 2800,
+          response_format: responseFormat,
+        });
+      } catch (secErr) {
+        console.warn("⚠️ Secondary model openai/gpt-oss-120b failed, falling back to qwen/qwen3.8-27b:", secErr);
+        completion = await groq.chat.completions.create({
+          model: "qwen/qwen3.8-27b",
+          messages: groqMessages,
+          temperature: isItinerary ? 0.3 : 0.7,
+          max_tokens: 1500,
           response_format: responseFormat,
         });
       }

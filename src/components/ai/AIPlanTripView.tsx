@@ -160,6 +160,7 @@ export default function AIPlanTripView() {
       const data = await res.json();
 
       if (data.itinerary) {
+        setErrorMsg(null);
         setItinerary(data.itinerary);
         setActiveDay(0);
         setChatMessages([
@@ -174,8 +175,8 @@ export default function AIPlanTripView() {
         setErrorMsg("Received itinerary overview. Let's build the full details!");
       } else if (data.error) {
         const err = String(data.error);
-        if (err.includes("rate_limit") || err.includes("413") || err.includes("TPM")) {
-          setErrorMsg("Kokan Mitra is handling high travel queries right now. Please tap Generate again in a few seconds!");
+        if (err.includes("rate_limit") || err.includes("413") || err.includes("TPM") || err.includes("tokens") || err.includes("json_validate_failed")) {
+          setErrorMsg("Kokan Mitra was generating a very detailed plan. Please tap 'Generate' again to finalize!");
         } else {
           setErrorMsg(err);
         }
