@@ -34,17 +34,23 @@ export default function TrendingNow() {
         }
 
         // Fallback — global trending (pinned + ML scored)
-        const pinnedQ = query(
-          collection(db, 'products'),
-          where('isFeaturedTrending', '==', true),
-          where('status', '==', 'approved'),
-          where('isActive','==',1),
-          orderBy('trendingPriority', 'asc'),
-          limit(4)
-        )
-        const pinnedSnap = await getDocs(pinnedQ)
-        const pinned     = pinnedSnap.docs.map(d => ({ id: d.id, ...d.data() } as Product))
-        const pinnedIds  = new Set(pinned.map(p => p.id))
+        let pinned: Product[] = [];
+        try {
+          const pinnedQ = query(
+            collection(db, 'products'),
+            where('isFeaturedTrending', '==', true),
+            limit(12)
+          );
+          const pinnedSnap = await getDocs(pinnedQ);
+          pinned = pinnedSnap.docs
+            .map((d) => ({ id: d.id, ...d.data() } as Product))
+            .filter((p) => p.status === 'approved' && p.isActive !== false && (p.isActive as any) !== 0)
+            .sort((a, b) => (((a as any).trendingPriority ?? 99) - (((b as any).trendingPriority ?? 99))))
+            .slice(0, 4);
+        } catch {
+          pinned = [];
+        }
+        const pinnedIds  = new Set(pinned.map((p) => p.id));
 
         const scoresQ = query(
           collection(db, 'trendingScores'),

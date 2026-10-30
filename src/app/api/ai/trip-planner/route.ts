@@ -41,37 +41,49 @@ export async function POST(req: NextRequest) {
       ? detectItineraryIntent(lastUserMessage.content)
       : false;
 
-    // Fetch real transport data from Firestore
-    let transportContext = "";
-    try {
-      const [trains, roads] = await Promise.all([
-        getAllTrains(),
-        getAllRoads(),
-      ]);
-      if (trains.length > 0 || roads.length > 0) {
-        transportContext = formatTransportContext(trains, roads);
+    // Use lean, focused prompt for itinerary generation to stay well under TPM rate limits (6,000 TPM)
+    let systemPrompt = "";
+    if (isItinerary) {
+      systemPrompt = [
+        ITINERARY_JSON_PROMPT,
+        pageContext ? `CONTEXT: ${pageContext}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+    } else {
+      let transportContext = "";
+      try {
+        const [trains, roads] = await Promise.all([
+          getAllTrains(),
+          getAllRoads(),
+        ]);
+        if (trains.length > 0 || roads.length > 0) {
+          transportContext = formatTransportContext(trains, roads);
+        }
+      } catch (err) {
+        console.error("⚠️ Could not fetch transport data:", err);
       }
-    } catch (err) {
-      console.error("⚠️ Could not fetch transport data:", err);
+
+      systemPrompt = [
+        KOKAN_SYSTEM_PROMPT,
+        transportContext,
+        pageContext ? `CURRENT PAGE CONTEXT: ${pageContext}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
     }
 
-    const systemPrompt = [
-      KOKAN_SYSTEM_PROMPT,
-      isItinerary ? ITINERARY_JSON_PROMPT : "",
-      transportContext,
-      pageContext ? `CURRENT PAGE CONTEXT: ${pageContext}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n\n");
+    // Only include last 4 messages to save tokens and avoid TPM limit
+    const trimmedMessages = messages.slice(-4);
 
     const groqMessages = [
       {
         role: "system" as const,
         content: systemPrompt,
       },
-      ...messages
+      ...trimmedMessages
         .filter((_: unknown, i: number) => {
-          if (i === 0 && messages[0].role === "assistant") return false;
+          if (i === 0 && trimmedMessages[0].role === "assistant") return false;
           return true;
         })
         .map((msg: { role: string; content: string }) => ({
@@ -82,13 +94,16 @@ export async function POST(req: NextRequest) {
         })),
     ];
 
+    const responseFormat = isItinerary ? { type: "json_object" as const } : undefined;
+
     let completion;
     try {
       completion = await groq.chat.completions.create({
         model: "qwen/qwen3.8-27b",
         messages: groqMessages,
-        temperature: 0.7,
-        max_tokens: 4096,
+        temperature: isItinerary ? 0.3 : 0.7,
+        max_tokens: 2000,
+        response_format: responseFormat,
       });
     } catch (primaryErr) {
       console.warn("⚠️ Primary model qwen/qwen3.8-27b failed, falling back to openai/gpt-oss-20b:", primaryErr);
@@ -96,16 +111,18 @@ export async function POST(req: NextRequest) {
         completion = await groq.chat.completions.create({
           model: "openai/gpt-oss-20b",
           messages: groqMessages,
-          temperature: 0.7,
-          max_tokens: 4096,
+          temperature: isItinerary ? 0.3 : 0.7,
+          max_tokens: 2000,
+          response_format: responseFormat,
         });
       } catch (secErr) {
         console.warn("⚠️ Secondary model openai/gpt-oss-20b failed, falling back to openai/gpt-oss-120b:", secErr);
         completion = await groq.chat.completions.create({
           model: "openai/gpt-oss-120b",
           messages: groqMessages,
-          temperature: 0.7,
-          max_tokens: 4096,
+          temperature: isItinerary ? 0.3 : 0.7,
+          max_tokens: 2000,
+          response_format: responseFormat,
         });
       }
     }
@@ -118,7 +135,7 @@ export async function POST(req: NextRequest) {
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        if (parsed.type === "itinerary") {
+        if (parsed.type === "itinerary" && parsed.data) {
           return NextResponse.json({
             message: parsed.summary || "Here's your Konkan itinerary! 🌊",
             itinerary: parsed.data,
@@ -138,7 +155,7 @@ export async function POST(req: NextRequest) {
     // If text looks like JSON, show friendly message instead
     if (cleanText.startsWith("{") || cleanText.startsWith("[")) {
       return NextResponse.json({
-        message: "Here's your Konkan itinerary! 🌊 Tap the button below to view your full plan.",
+        message: "Here's your Konkan itinerary! 🌊 Tap below to view your full plan.",
         itinerary: null,
       });
     }

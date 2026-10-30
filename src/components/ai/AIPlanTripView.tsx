@@ -172,7 +172,12 @@ export default function AIPlanTripView() {
         // Fallback if returned as raw text
         setErrorMsg("Received itinerary overview. Let's build the full details!");
       } else if (data.error) {
-        setErrorMsg(data.error);
+        const err = String(data.error);
+        if (err.includes("rate_limit") || err.includes("413") || err.includes("TPM")) {
+          setErrorMsg("Kokan Mitra is handling high travel queries right now. Please tap Generate again in a few seconds!");
+        } else {
+          setErrorMsg(err);
+        }
       }
     } catch (err: any) {
       setErrorMsg("Network error. Please try generating again.");
