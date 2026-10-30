@@ -1,6 +1,7 @@
 import HomeTopBar from "@/components/home/HomeTopBar";
 import HomeTabs from "@/components/home/HomeTabs";
 import Footer from "@/components/layout/Footer";
+import MobileNav from "@/components/layout/MobileNav";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -16,10 +17,11 @@ export default function HomePage() {
   return (
     <>
       <HomeTopBar />
-      <main>
+      <main className="pb-16 md:pb-0">
         <HomeTabs />
       </main>
       <Footer />
+      <MobileNav />
     </>
   );
 }

@@ -173,17 +173,26 @@ function HorizontalScroll({ children }: { children: React.ReactNode }) {
 }
 
 function DestinationCard({ dest }: { dest: DestinationItem }) {
+  const [imgErr, setImgErr] = useState(false);
   return (
     <Link href={`/destinations/${dest.slug}`} className="flex-shrink-0 snap-start">
       <div className="w-40 sm:w-48 rounded-2xl overflow-hidden border border-kokan-sand/20 hover:shadow-md transition-all">
-        <div className="relative h-28">
-          <Image
-            src={dest.image}
-            alt={dest.name}
-            fill
-            sizes="(max-width: 640px) 160px, 192px"
-            className="object-cover"
-          />
+        <div className="relative h-28 bg-emerald-950/20">
+          {!imgErr && dest.image ? (
+            <Image
+              src={dest.image}
+              alt={dest.name}
+              fill
+              sizes="(max-width: 640px) 160px, 192px"
+              unoptimized={dest.image.includes("wikimedia.org") || dest.image.includes("unsplash.com")}
+              onError={() => setImgErr(true)}
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1B4332] to-[#081C15] text-2xl">
+              🏖️
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-2 left-2 right-2">
             <p className="text-white font-semibold text-sm truncate">{dest.name}</p>
@@ -216,14 +225,24 @@ function DestinationCardSkeleton() {
 }
 
 function TrekCard({ trek }: { trek: Trek }) {
+  const [imgErr, setImgErr] = useState(false);
+  const hasImg = !imgErr && Boolean(trek.images?.[0]);
   return (
     <Link href={`/treks/${trek.slug}`} className="flex-shrink-0 snap-start">
       <div className="w-48 sm:w-56 bg-white rounded-2xl overflow-hidden border border-kokan-sand/20 hover:shadow-md transition-all">
-        <div className="relative h-32">
-          {trek.images?.[0] ? (
-            <Image src={trek.images[0]} alt={trek.name} fill className="object-cover" />
+        <div className="relative h-32 bg-emerald-950/20">
+          {hasImg ? (
+            <Image
+              src={trek.images[0]}
+              alt={trek.name}
+              fill
+              sizes="(max-width: 640px) 192px, 224px"
+              unoptimized={trek.images[0].includes("wikimedia.org") || trek.images[0].includes("unsplash.com")}
+              onError={() => setImgErr(true)}
+              className="object-cover"
+            />
           ) : (
-            <div className="w-full h-full bg-kokan-sand/20 flex items-center justify-center text-3xl">🥾</div>
+            <div className="w-full h-full bg-gradient-to-br from-[#1B4332] to-[#081C15] flex items-center justify-center text-3xl">🥾</div>
           )}
           <div className="absolute top-2 left-2">
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${difficultyColor[trek.difficulty] ?? "bg-gray-100 text-gray-600"}`}>

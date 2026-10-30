@@ -51,6 +51,7 @@ function ProductMiniCard({ product }: { product: Product }) {
   const { addToCart, isInCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
+  const [imgErr, setImgErr] = useState(false);
   const inCart = isInCart(product.id);
   const category = PRODUCT_CATEGORIES.find((c) => c.value === product.category);
 
@@ -67,12 +68,22 @@ function ProductMiniCard({ product }: { product: Product }) {
   return `₹${"*".repeat(str.length - 1)}${str.slice(-1)}`;
 };
 
+  const hasImg = !imgErr && Boolean(product.images?.[0]);
+
   return (
     <Link href={`/products/${product.slug}`} className="flex-shrink-0 snap-start">
       <div className="w-36 sm:w-40 bg-white rounded-2xl border border-kokan-sand/30 overflow-hidden hover:shadow-md transition-all">
         <div className="relative h-32 bg-kokan-sand/10">
-          {product.images?.[0] ? (
-            <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+          {hasImg ? (
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 144px, 160px"
+              unoptimized={product.images[0].includes("wikimedia.org") || product.images[0].includes("unsplash.com")}
+              onError={() => setImgErr(true)}
+              className="object-cover"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-4xl">
               {category?.emoji ?? "📦"}

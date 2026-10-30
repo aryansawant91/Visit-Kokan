@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import ProductFilters, { FilterState } from "@/components/products/ProductFilters";
 import ProductCard from "@/components/products/ProductCard";
 import TrendingNow from "@/components/TrendingNow";
@@ -10,6 +10,7 @@ import { PRODUCT_CATEGORIES } from "@/constants/productCategories";
 import Link from "next/link";
 import { getUserCategoryAffinity } from "@/lib/ml/categoryAffinity";
 import { useAuth } from "@/context/AuthContext";
+import CartIcon from "@/components/cart/CartIcon";
 
 const DEFAULT_FILTERS: FilterState = {
   category: "",
@@ -84,13 +85,13 @@ export default function ProductsPage() {
 
   // Affinity-sorted categories
   const sortedCategories = affinityOrder.length > 0
-  ? [
-      ...affinityOrder
-        .map(cat => PRODUCT_CATEGORIES.find(c => c.value === cat))
-        .filter((c): c is typeof PRODUCT_CATEGORIES[number] => Boolean(c)),
-      ...PRODUCT_CATEGORIES.filter(c => !affinityOrder.includes(c.value)),
-    ]
-  : PRODUCT_CATEGORIES;
+    ? [
+        ...affinityOrder
+          .map((cat) => PRODUCT_CATEGORIES.find((c) => c.value === cat))
+          .filter((c): c is typeof PRODUCT_CATEGORIES[number] => Boolean(c)),
+        ...PRODUCT_CATEGORIES.filter((c) => !affinityOrder.includes(c.value)),
+      ]
+    : PRODUCT_CATEGORIES;
 
   // Load user category affinity
   useEffect(() => {
@@ -115,7 +116,11 @@ export default function ProductsPage() {
         setFiltered(list);
         setLoading(false);
       })
-      .catch(() => { setProducts([]); setFiltered([]); setLoading(false); });
+      .catch(() => {
+        setProducts([]);
+        setFiltered([]);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -140,50 +145,69 @@ export default function ProductsPage() {
   const banner = BANNERS[bannerIndex];
 
   return (
-    <div className="min-h-screen bg-kokan-cream/40">
+    <div className="min-h-screen bg-[#fdf8f3]">
 
-      {/* ── Top Navbar ── */}
-      <div className="bg-kokan-green sticky top-0 z-40 shadow-md">
-        <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center gap-3">
+      {/* ── Brand Emerald Top Navbar ── */}
+      <div className="sticky top-0 z-40 bg-kokan-green border-b border-emerald-900/30 shadow-md">
+        <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center gap-2.5 sm:gap-3">
           {/* Back button */}
           <Link
             href="/?tab=products"
-            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 bg-white/15 text-white rounded-xl text-xs font-semibold hover:bg-white/25 transition-colors border border-white/20"
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-white/15 text-white rounded-full text-xs font-semibold hover:bg-white/25 transition-colors border border-white/20"
           >
-            <ArrowLeft size={14} /> Back
+            <ArrowLeft size={14} />
+            <span className="hidden sm:inline">Home</span>
           </Link>
 
-          <Link href="/" className="hidden sm:block flex-shrink-0">
-            <span className="text-white font-display font-bold text-lg">
-              Visit<span className="text-kokan-sand">Kokan</span>
-            </span>
-          </Link>
+          {/* Search Pill */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kokan-earth/50" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2D6A4F]" />
             <input
               type="text"
-              placeholder="Search Kokan products..."
+              placeholder="Search products (cashews, spices, hapus)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-9 py-2.5 rounded-lg text-sm focus:outline-none shadow-sm text-kokan-earth"
+              className="w-full pl-9 pr-8 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm bg-white border border-white/80 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 text-gray-800 placeholder:text-gray-400 shadow-xs font-medium"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
-                <X className="w-4 h-4 text-kokan-earth/40" />
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500"
+              >
+                <X className="w-3 h-3" />
               </button>
             )}
+          </div>
+
+          {/* Filter button */}
+          <button
+            onClick={() => setShowFilters(true)}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold bg-[#B7895A] hover:bg-[#a37546] text-white transition-all shadow-xs relative"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Filters</span>
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-white text-emerald-900 text-[10px] font-black rounded-full flex items-center justify-center shadow-xs">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          {/* Cart Icon */}
+          <div className="flex items-center gap-2 flex-shrink-0 [&_svg]:text-white [&_span]:bg-white [&_span]:text-kokan-green">
+            <CartIcon />
           </div>
         </div>
 
         {/* Category strip */}
-        <div className="border-t border-white/20">
-          <div className="max-w-7xl mx-auto px-3 py-2 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <div className="border-t border-white/15 bg-black/10 backdrop-blur-xs">
+          <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center gap-2 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setFilters((f) => ({ ...f, category: "" }))}
               className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                 filters.category === ""
-                  ? "bg-white text-kokan-green"
-                  : "text-white/80 hover:text-white hover:bg-white/15"
+                  ? "bg-white text-kokan-green font-bold shadow-xs"
+                  : "bg-white/15 text-white/90 hover:bg-white/25 border border-white/10"
               }`}
             >
               All
@@ -192,13 +216,14 @@ export default function ProductsPage() {
               <button
                 key={c.value}
                 onClick={() => setFilters((f) => ({ ...f, category: f.category === c.value ? "" : c.value }))}
-                className={`flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   filters.category === c.value
-                    ? "bg-white text-kokan-green"
-                    : "text-white/80 hover:text-white hover:bg-white/15"
+                    ? "bg-white text-kokan-green font-bold shadow-xs"
+                    : "bg-white/15 text-white/90 hover:bg-white/25 border border-white/10"
                 }`}
               >
-                {c.emoji} {c.label}
+                <span>{c.emoji}</span>
+                <span>{c.label}</span>
               </button>
             ))}
           </div>
@@ -207,7 +232,7 @@ export default function ProductsPage() {
 
       {/* ── Banner ── */}
       <div className="max-w-7xl mx-auto px-3 pt-4">
-        <div className={`relative rounded-2xl bg-gradient-to-r ${banner.bg} overflow-hidden h-36 sm:h-48 transition-all duration-500`}>
+        <div className={`relative rounded-2xl bg-gradient-to-r ${banner.bg} overflow-hidden h-36 sm:h-48 transition-all duration-500 shadow-sm`}>
           <div className="absolute inset-0 flex items-center px-6 sm:px-10 gap-6">
             <div className="text-5xl sm:text-7xl flex-shrink-0 drop-shadow-lg">{banner.emoji}</div>
             <div className="flex-1 min-w-0">
@@ -230,104 +255,98 @@ export default function ProductsPage() {
           <div className="absolute -right-4 -bottom-8 w-24 h-24 rounded-full bg-white/10" />
           <button
             onClick={() => setBannerIndex((i) => (i - 1 + BANNERS.length) % BANNERS.length)}
+            aria-label="Previous Banner"
             className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center"
           >
             <ChevronLeft size={14} className="text-white" />
           </button>
           <button
             onClick={() => setBannerIndex((i) => (i + 1) % BANNERS.length)}
+            aria-label="Next Banner"
             className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center"
           >
             <ChevronRight size={14} className="text-white" />
           </button>
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {BANNERS.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setBannerIndex(i)}
-                className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  i === bannerIndex ? "bg-white w-4" : "bg-white/50"
-                }`}
-              />
-            ))}
-          </div>
         </div>
       </div>
 
       {/* ── Trending Now ── */}
       {!filters.category && !search && <TrendingNow />}
 
-      {/* ── Mobile Filter + Sort bar ── */}
-      <div className="bg-white border-b border-kokan-sand/30 lg:hidden sticky top-[88px] z-30 mx-0 mt-3">
-        <div className="flex items-center divide-x divide-kokan-sand/30">
+      {/* ── Quick Sort bar ── */}
+      <div className="max-w-7xl mx-auto px-3 mt-3 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <span className="font-semibold text-gray-700">{filtered.length}</span> Kokan authentic products
+        </div>
+
+        {/* Sort Pill Dropdown */}
+        <div className="relative">
           <button
-            onClick={() => setShowFilters(true)}
-            className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium text-kokan-earth hover:bg-kokan-cream/30 active:bg-kokan-cream/50"
+            onClick={() => setShowSortMenu(!showSortMenu)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs font-semibold text-gray-700 hover:border-kokan-green shadow-2xs transition-colors"
           >
-            <SlidersHorizontal size={15} className="text-kokan-green" />
-            Filters
-            {activeFilterCount > 0 && (
-              <span className="bg-kokan-green text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                {activeFilterCount}
-              </span>
-            )}
+            <span>Sort:</span>
+            <span className="text-kokan-green font-bold">{SORT_LABELS[filters.sortBy]}</span>
+            <ChevronDown size={13} className={`transition-transform ${showSortMenu ? "rotate-180" : ""}`} />
           </button>
-          <div className="relative flex-1">
-            <button
-              onClick={() => setShowSortMenu(!showSortMenu)}
-              className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-kokan-earth hover:bg-kokan-cream/30"
-            >
-              <span className="text-kokan-green font-semibold">Sort:</span>
-              {SORT_LABELS[filters.sortBy]}
-              <ChevronDown size={14} className={`text-kokan-earth/50 transition-transform ${showSortMenu ? "rotate-180" : ""}`} />
-            </button>
-            {showSortMenu && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
-                <div className="absolute top-full left-0 right-0 bg-white border border-kokan-sand/30 rounded-b-xl shadow-xl z-50">
-                  {[
-                    { value: "newest",     label: "Newest First" },
-                    { value: "rating",     label: "Top Rated" },
-                    { value: "price_asc",  label: "Price: Low to High" },
-                    { value: "price_desc", label: "Price: High to Low" },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => { setFilters((f) => ({ ...f, sortBy: opt.value as FilterState["sortBy"] })); setShowSortMenu(false); }}
-                      className={`w-full text-left px-4 py-3 text-sm transition-colors ${
-                        filters.sortBy === opt.value
-                          ? "text-kokan-green font-semibold bg-kokan-cream/40"
-                          : "text-kokan-earth hover:bg-kokan-cream/20"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+          {showSortMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
+              <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden py-1">
+                {[
+                  { value: "newest",     label: "Newest First" },
+                  { value: "rating",     label: "Top Rated" },
+                  { value: "price_asc",  label: "Price: Low to High" },
+                  { value: "price_desc", label: "Price: High to Low" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      setFilters((f) => ({ ...f, sortBy: opt.value as FilterState["sortBy"] }));
+                      setShowSortMenu(false);
+                    }}
+                    className={`w-full text-left px-3.5 py-2 text-xs transition-colors ${
+                      filters.sortBy === opt.value
+                        ? "text-kokan-green font-bold bg-emerald-50"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       {/* ── Mobile Filters Drawer ── */}
       {showFilters && (
         <>
-          <div className="fixed inset-0 bg-black/50 z-50 lg:hidden" onClick={() => setShowFilters(false)} />
-          <div className="fixed inset-y-0 left-0 w-80 max-w-[90vw] bg-white z-50 overflow-y-auto shadow-2xl">
-            <div className="p-4">
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowFilters(false)} />
+          <div className="fixed inset-y-0 right-0 w-80 max-w-[90vw] bg-white z-50 overflow-y-auto shadow-2xl p-4 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
+                <h3 className="font-bold text-gray-900 text-sm">Filter Products</h3>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200"
+                >
+                  <X size={15} />
+                </button>
+              </div>
               <ProductFilters
                 filters={filters}
                 onChange={setFilters}
                 onClose={() => setShowFilters(false)}
               />
-              <button
-                onClick={() => setShowFilters(false)}
-                className="w-full mt-4 py-3 bg-kokan-green text-white rounded-xl font-semibold text-sm hover:bg-kokan-green/90"
-              >
-                Apply Filters
-              </button>
             </div>
+            <button
+              onClick={() => setShowFilters(false)}
+              className="w-full mt-4 py-3 bg-kokan-green text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-kokan-green/90 shadow-md active:scale-98 transition-all"
+            >
+              Show {filtered.length} Products
+            </button>
           </div>
         </>
       )}
@@ -337,7 +356,7 @@ export default function ProductsPage() {
 
         {/* Desktop sidebar */}
         <div className="hidden lg:block w-64 flex-shrink-0">
-          <div className="bg-white rounded-xl p-4 border border-kokan-sand/30 shadow-sm sticky top-[140px]">
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs sticky top-[130px]">
             <ProductFilters filters={filters} onChange={setFilters} />
           </div>
         </div>
@@ -345,81 +364,65 @@ export default function ProductsPage() {
         {/* Products */}
         <div className="flex-1 min-w-0">
 
-          {/* Results header */}
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h1 className="text-base font-bold text-kokan-earth font-playfair">
-                {filters.category
-                  ? PRODUCT_CATEGORIES.find((c) => c.value === filters.category)?.label + " Products"
-                  : "All Kokan Products"}
-              </h1>
-              <p className="text-xs text-kokan-earth/40 mt-0.5">
-                {loading ? "Loading..." : `${filtered.length} products`}
-              </p>
-            </div>
-            {activeFilterCount > 0 && (
-              <button
-                onClick={() => setFilters(DEFAULT_FILTERS)}
-                className="text-xs text-red-400 font-semibold hover:text-red-600 flex items-center gap-1"
-              >
-                <X size={12} /> Clear all
-              </button>
-            )}
-          </div>
-
           {/* Active filter chips */}
           {(filters.category || filters.region || filters.maxPrice < 5000) && (
             <div className="flex flex-wrap gap-2 mb-3">
               {filters.category && (
-                <span className="flex items-center gap-1 bg-kokan-green/10 text-kokan-green text-xs font-medium px-2.5 py-1 rounded-full border border-kokan-green/20">
+                <span className="flex items-center gap-1 bg-emerald-50 text-kokan-green text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
                   {PRODUCT_CATEGORIES.find((c) => c.value === filters.category)?.emoji}{" "}
                   {PRODUCT_CATEGORIES.find((c) => c.value === filters.category)?.label}
                   <button onClick={() => setFilters((f) => ({ ...f, category: "" }))}><X size={11} /></button>
                 </span>
               )}
               {filters.region && (
-                <span className="flex items-center gap-1 bg-kokan-green/10 text-kokan-green text-xs font-medium px-2.5 py-1 rounded-full border border-kokan-green/20">
+                <span className="flex items-center gap-1 bg-emerald-50 text-kokan-green text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
                   📍 {filters.region}
                   <button onClick={() => setFilters((f) => ({ ...f, region: "" }))}><X size={11} /></button>
                 </span>
               )}
               {filters.maxPrice < 5000 && (
-                <span className="flex items-center gap-1 bg-kokan-green/10 text-kokan-green text-xs font-medium px-2.5 py-1 rounded-full border border-kokan-green/20">
+                <span className="flex items-center gap-1 bg-emerald-50 text-kokan-green text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
                   Under ₹{filters.maxPrice.toLocaleString("en-IN")}
                   <button onClick={() => setFilters((f) => ({ ...f, maxPrice: 5000 }))}><X size={11} /></button>
                 </span>
               )}
+              <button
+                onClick={() => setFilters(DEFAULT_FILTERS)}
+                className="text-xs text-red-500 font-semibold hover:underline px-2 py-1"
+              >
+                Clear all
+              </button>
             </div>
           )}
 
           {/* Grid */}
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-white rounded-xl overflow-hidden border border-kokan-sand/20">
-                  <div className="bg-kokan-sand/20 animate-pulse" style={{ paddingBottom: "100%" }} />
+                <div key={i} className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-2xs">
+                  <div className="bg-gray-100 animate-pulse" style={{ paddingBottom: "100%" }} />
                   <div className="p-3 space-y-2">
-                    <div className="h-3 bg-kokan-sand/20 rounded animate-pulse w-3/4" />
-                    <div className="h-3 bg-kokan-sand/20 rounded animate-pulse w-1/2" />
-                    <div className="h-4 bg-kokan-sand/20 rounded animate-pulse w-1/3" />
+                    <div className="h-3 bg-gray-100 rounded animate-pulse w-3/4" />
+                    <div className="h-3 bg-gray-100 rounded animate-pulse w-1/2" />
+                    <div className="h-4 bg-gray-100 rounded animate-pulse w-1/3" />
                   </div>
                 </div>
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="bg-white rounded-xl p-12 text-center border border-kokan-sand/20">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="font-bold text-kokan-earth text-lg mb-1">No products found</h3>
-              <p className="text-kokan-earth/50 text-sm mb-4">Try adjusting your filters or search</p>
+            <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-xs">
+              <div className="text-5xl mb-3">🔍</div>
+              <h3 className="font-bold text-gray-800 text-base mb-1">No products found</h3>
+              <p className="text-gray-500 text-xs mb-4">Try clearing your filters or changing your search terms</p>
               <button
                 onClick={() => { setFilters(DEFAULT_FILTERS); setSearch(""); }}
-                className="px-6 py-2.5 bg-kokan-green text-white rounded-xl text-sm font-semibold hover:bg-kokan-green/90"
+                className="px-5 py-2 bg-kokan-green text-white rounded-full text-xs font-semibold hover:bg-emerald-800 transition-colors"
               >
-                Clear filters
+                Clear all filters
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {filtered.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

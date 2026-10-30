@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, User, ChevronDown, LogOut, LayoutDashboard } from "lucide-react";
+import { ArrowLeft, User, ChevronDown, LogOut, LayoutDashboard, Search } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import CartIcon from "@/components/cart/CartIcon";
 import { useState } from "react";
@@ -12,6 +12,7 @@ export default function PublicTopBar() {
   const pathname = usePathname();
   const { user, role, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   // Detect if this is a detail page (has slug)
   const segments = pathname.split("/").filter(Boolean);
@@ -32,18 +33,25 @@ export default function PublicTopBar() {
     return "Back";
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) {
+      router.push(`/search?q=${encodeURIComponent(search.trim())}`);
+    }
+  };
+
   return (
     <div className="bg-kokan-green sticky top-0 z-50 shadow-md">
-      <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center gap-3">
+      <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center gap-2.5 sm:gap-3">
 
         {/* Left: Back button on detail pages, Logo on browse pages */}
         {isDetailPage ? (
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-white flex-shrink-0 hover:text-white/80 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/15 text-white rounded-full text-xs font-semibold hover:bg-white/25 transition-colors border border-white/20 flex-shrink-0"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">{backLabel()}</span>
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">{backLabel()}</span>
           </button>
         ) : (
           <Link href="/" className="flex-shrink-0">
@@ -53,8 +61,30 @@ export default function PublicTopBar() {
           </Link>
         )}
 
-        {/* Spacer */}
-        <div className="flex-1" />
+        {/* Search Pill if browse page, or spacer if detail page */}
+        {!isDetailPage ? (
+          <form
+            onSubmit={handleSearch}
+            className="flex-1 max-w-xl mx-auto flex items-center bg-white rounded-full pl-3 pr-1 py-1 shadow-xs border border-white/80 focus-within:ring-2 focus-within:ring-emerald-400/30 transition-all"
+          >
+            <Search className="w-4 h-4 text-[#2D6A4F] flex-shrink-0" />
+            <input
+              type="text"
+              placeholder="Search Kokan..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 px-2.5 py-0.5 text-xs sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 bg-transparent font-medium"
+            />
+            <button
+              type="submit"
+              className="px-3 py-1 bg-gradient-to-r from-[#B7895A] to-[#C77B3F] hover:brightness-105 active:scale-95 text-white text-xs font-semibold rounded-full transition-all shadow-2xs"
+            >
+              Search
+            </button>
+          </form>
+        ) : (
+          <div className="flex-1" />
+        )}
 
         {/* Right: Cart + Profile */}
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -66,11 +96,14 @@ export default function PublicTopBar() {
             <div className="relative">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-1 text-white"
+                className="flex items-center gap-1.5 text-white text-xs font-medium"
               >
                 <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-bold">
                   {user.displayName?.[0]?.toUpperCase() ?? "U"}
                 </div>
+                <span className="hidden sm:block max-w-[80px] truncate">
+                  {user.displayName?.split(" ")[0]}
+                </span>
                 <ChevronDown className="w-3 h-3" />
               </button>
               {profileOpen && (
@@ -94,7 +127,7 @@ export default function PublicTopBar() {
           ) : (
             <Link
               href="/login"
-              className="flex items-center gap-1 text-white text-xs font-medium bg-white/20 px-3 py-1.5 rounded-lg hover:bg-white/30 transition-colors"
+              className="flex items-center gap-1 text-white text-xs font-medium bg-white/20 px-3 py-1.5 rounded-full hover:bg-white/30 transition-colors"
             >
               <User className="w-3.5 h-3.5" /> Login
             </Link>

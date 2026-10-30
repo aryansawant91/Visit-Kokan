@@ -1,22 +1,33 @@
+"use client";
+
+import { useState } from "react";
 import { Blog } from "@/types/blog";
 import { BLOG_CATEGORIES } from "@/constants/blogCategories";
-import { Clock, Eye, ArrowRight } from "lucide-react";
+import { Clock, Eye } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function BlogCard({ blog }: { blog: Blog }) {
   const category = BLOG_CATEGORIES.find((c) => c.value === blog.category);
+  const [imgError, setImgError] = useState(false);
+  const hasImage = !imgError && Boolean(blog.coverImage);
 
   return (
     <Link href={`/blogs/${blog.slug}`}>
       <div className="group bg-white rounded-2xl overflow-hidden border border-kokan-sand/30 hover:shadow-md hover:border-kokan-green/20 transition-all duration-300">
         {/* Cover image */}
         <div className="relative h-48 bg-kokan-sand/20 overflow-hidden">
-          {blog.coverImage ? (
+          {hasImage ? (
             <Image
-              src={blog.coverImage}
+              src={blog.coverImage!}
               alt={blog.title}
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              unoptimized={
+                blog.coverImage!.includes("wikimedia.org") ||
+                blog.coverImage!.includes("unsplash.com")
+              }
+              onError={() => setImgError(true)}
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
@@ -24,7 +35,7 @@ export default function BlogCard({ blog }: { blog: Blog }) {
               {category?.emoji ?? "📝"}
             </div>
           )}
-          <span className="absolute top-3 left-3 bg-white/90 text-kokan-earth text-xs font-medium px-2.5 py-1 rounded-full">
+          <span className="absolute top-3 left-3 bg-white/90 text-kokan-earth text-xs font-medium px-2.5 py-1 rounded-full shadow-2xs">
             {category?.emoji} {category?.label}
           </span>
         </div>

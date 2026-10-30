@@ -1,3 +1,4 @@
+import CartIcon from "@/components/cart/CartIcon";
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
@@ -33,10 +34,11 @@ function TrekCard({ trek, featured = false }: { trek: Trek; featured?: boolean }
             src={trek.images[0]}
             alt={trek.name}
             fill
+            unoptimized
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full bg-kokan-sand/30 flex items-center justify-center text-4xl">🥾</div>
+          <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-teal-50 flex items-center justify-center text-4xl">🥾</div>
         )}
 
         {/* Gradient */}
@@ -154,21 +156,22 @@ function TreksPageInner() {
   return (
     <div className="min-h-screen bg-[#fdf8f3]">
 
-      {/* ── Sandy Navbar ── */}
-      <div className="sticky top-0 z-40 bg-[#f5ede0] border-b border-[#e8d5bc] shadow-sm">
-        <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center gap-3">
+      {/* ── Brand Emerald Top Navbar ── */}
+      <div className="sticky top-0 z-40 bg-kokan-green border-b border-emerald-900/30 shadow-md">
+        <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center gap-2.5 sm:gap-3">
 
-          {/* Back */}
+          {/* Back button */}
           <Link
             href="/?tab=travel"
-            className="flex-shrink-0 flex items-center gap-1 px-3 py-2 bg-kokan-earth/10 text-kokan-earth rounded-xl text-xs font-semibold hover:bg-kokan-earth/20 transition-colors border border-kokan-earth/15"
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-white/15 text-white rounded-full text-xs font-semibold hover:bg-white/25 transition-colors border border-white/20"
           >
-            <ArrowLeft size={14} /> Travel
+            <ArrowLeft size={14} />
+            <span className="hidden sm:inline">Home</span>
           </Link>
 
-          {/* Search */}
+          {/* Search Pill */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kokan-earth/40" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2D6A4F]" />
             <input
               value={search}
               onChange={(e) => {
@@ -176,7 +179,7 @@ function TreksPageInner() {
                 setCurrentPage(1);
               }}
               placeholder="Search treks or regions..."
-              className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm bg-white border border-[#e8d5bc] focus:outline-none focus:ring-2 focus:ring-kokan-earth/20 text-kokan-earth placeholder:text-kokan-earth/40 shadow-sm"
+              className="w-full pl-9 pr-8 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm bg-white border border-white/80 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 text-gray-800 placeholder:text-gray-400 shadow-xs font-medium"
             />
             {search && (
               <button
@@ -184,31 +187,36 @@ function TreksPageInner() {
                   setSearch("");
                   setCurrentPage(1);
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500"
               >
-                <X className="w-4 h-4 text-kokan-earth/40" />
+                <X className="w-3 h-3" />
               </button>
             )}
           </div>
 
-          {/* Filter */}
+          {/* Filter button */}
           <button
             onClick={() => setShowFilterSheet(true)}
-            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold bg-kokan-earth text-white hover:bg-kokan-earth/90 transition-colors relative"
+            className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold bg-[#B7895A] hover:bg-[#a37546] text-white transition-all shadow-xs relative"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Filters</span>
             {activeCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-kokan-green text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-white text-emerald-900 text-[10px] font-black rounded-full flex items-center justify-center shadow-xs">
                 {activeCount}
               </span>
             )}
           </button>
+
+          {/* Cart Icon */}
+          <div className="flex items-center gap-2 flex-shrink-0 [&_svg]:text-white [&_span]:bg-white [&_span]:text-kokan-green">
+            <CartIcon />
+          </div>
         </div>
 
         {/* Category strip */}
-        <div className="border-t border-[#e8d5bc]/60">
-          <div className="max-w-7xl mx-auto px-3 py-2 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <div className="border-t border-white/15 bg-black/10 backdrop-blur-xs">
+          <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center gap-2 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => {
                 setSelectedCategory("all");
@@ -216,8 +224,8 @@ function TreksPageInner() {
               }}
               className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                 selectedCategory === "all"
-                  ? "bg-kokan-earth text-white"
-                  : "bg-white text-kokan-earth/70 border border-[#e8d5bc] hover:border-kokan-earth/40"
+                  ? "bg-white text-kokan-green font-bold shadow-xs"
+                  : "bg-white/15 text-white/90 hover:bg-white/25 border border-white/10"
               }`}
             >
               All
@@ -231,8 +239,8 @@ function TreksPageInner() {
                 }}
                 className={`flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   selectedCategory === c.value
-                    ? "bg-kokan-earth text-white"
-                    : "bg-white text-kokan-earth/70 border border-[#e8d5bc] hover:border-kokan-earth/40"
+                    ? "bg-white text-kokan-green font-bold shadow-xs"
+                    : "bg-white/15 text-white/90 hover:bg-white/25 border border-white/10"
                 }`}
               >
                 {c.emoji} {c.label}
