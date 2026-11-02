@@ -244,7 +244,10 @@ function TrekCard({ trek }: { trek: Trek }) {
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-[#1B4332] to-[#081C15] flex items-center justify-center text-3xl">🥾</div>
           )}
-          <div className="absolute top-2 left-2">
+          <div className="absolute top-2 left-2 flex items-center gap-1">
+            <span className="text-[10px] bg-amber-400 text-amber-950 font-black px-1.5 py-0.5 rounded-full shadow-xs">
+              ⏳ Soon
+            </span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${difficultyColor[trek.difficulty] ?? "bg-gray-100 text-gray-600"}`}>
               {trek.difficulty}
             </span>
@@ -267,8 +270,8 @@ function TrekCard({ trek }: { trek: Trek }) {
               ₹{trek.price?.toLocaleString("en-IN")}
               <span className="text-[11px] text-kokan-earth/40 font-normal"> / person</span>
             </span>
-            <span className="text-xs font-bold text-kokan-green bg-kokan-green/10 px-2 py-0.5 rounded-md">
-              Book
+            <span className="text-xs font-bold text-kokan-green bg-kokan-green/10 px-2.5 py-0.5 rounded-md">
+              Enquire
             </span>
           </div>
         </div>

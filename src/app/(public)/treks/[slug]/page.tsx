@@ -62,9 +62,18 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function TrekPage({ params }: { params: { slug: string } }) {
+export default async function TrekPage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams?: { from?: string; fromPage?: string; page?: string };
+}) {
   const trek = await getTrek(params.slug);
   if (!trek) notFound();
+
+  const fromPage = searchParams?.fromPage || searchParams?.page;
+  const backHref = fromPage ? `/treks?page=${fromPage}` : "/treks";
 
   const category = TREK_CATEGORIES.find((c) => c.value === trek.category);
   const difficultyInfo = TREK_DIFFICULTIES.find((d) => d.value === trek.difficulty);
@@ -95,6 +104,8 @@ export default async function TrekPage({ params }: { params: { slug: string } })
         difficultyInfo={difficultyInfo}
         allImages={allImages}
         mapsUrl={mapsUrl}
+        backHref={backHref}
+        fromPage={fromPage}
       />
     </div>
   );

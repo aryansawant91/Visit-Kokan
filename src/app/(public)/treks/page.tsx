@@ -24,11 +24,25 @@ const DIFFICULTY_CONFIG: Record<string, { color: string; bg: string; emoji: stri
   expert:   { color: "text-red-700",    bg: "bg-red-100",    emoji: "🔴" },
 };
 
-function TrekCard({ trek, featured = false }: { trek: Trek; featured?: boolean }) {
+function TrekCard({
+  trek,
+  featured = false,
+  page = 1,
+  onCardClick,
+}: {
+  trek: Trek;
+  featured?: boolean;
+  page?: number;
+  onCardClick?: () => void;
+}) {
   const diff = DIFFICULTY_CONFIG[trek.difficulty] ?? { color: "text-gray-600", bg: "bg-gray-100", emoji: "⚪" };
 
   return (
-    <Link href={`/treks/${trek.slug}`} className="block group">
+    <Link
+      href={`/treks/${trek.slug}?fromPage=${page}`}
+      onClick={onCardClick}
+      className="block group"
+    >
       <div className={`relative rounded-2xl overflow-hidden shadow-sm ${featured ? "h-52 sm:h-64" : "h-44 sm:h-52"}`}>
         {trek.images?.[0] ? (
           <Image
@@ -45,12 +59,17 @@ function TrekCard({ trek, featured = false }: { trek: Trek; featured?: boolean }
         {/* Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
 
-        {/* Featured badge */}
-        {trek.featured && (
-          <div className="absolute top-2.5 left-2.5 bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full">
-            ⭐ Featured
-          </div>
-        )}
+        {/* Coming Soon & Featured badges */}
+        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap">
+          <span className="bg-amber-400 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs uppercase tracking-wider">
+            ⏳ Coming Soon
+          </span>
+          {trek.featured && (
+            <span className="bg-emerald-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs">
+              ⭐ Featured
+            </span>
+          )}
+        </div>
 
         {/* Difficulty badge */}
         <div className={`absolute top-2.5 right-2.5 ${diff.bg} ${diff.color} text-[10px] font-bold px-2 py-0.5 rounded-full`}>
@@ -75,8 +94,8 @@ function TrekCard({ trek, featured = false }: { trek: Trek; featured?: boolean }
               ₹{trek.price?.toLocaleString("en-IN")}
               <span className="text-white/60 font-normal text-[11px]">/person</span>
             </span>
-            <span className="flex items-center gap-0.5 bg-white/15 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-1 rounded-lg group-hover:bg-white/25 transition-colors">
-              Book <ChevronRight className="w-3 h-3" />
+            <span className="flex items-center gap-0.5 bg-emerald-600/95 hover:bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition-colors shadow-xs">
+              Enquire <ChevronRight className="w-3 h-3" />
             </span>
           </div>
         </div>
@@ -98,6 +117,40 @@ function TreksPageInner() {
   const [currentPage, setCurrentPage]               = useState(1);
 
   const ITEMS_PER_PAGE = 9;
+
+  const saveNavState = (pageToSave = currentPage) => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("treks_currentPage", String(pageToSave));
+      sessionStorage.setItem("treks_scrollY", String(window.scrollY));
+    }
+  };
+
+  // Restore page from query param or sessionStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const pParam = sp.get("page") || sp.get("fromPage");
+    const savedPage = pParam
+      ? parseInt(pParam, 10)
+      : parseInt(sessionStorage.getItem("treks_currentPage") || "1", 10);
+
+    if (savedPage && savedPage > 1) {
+      setCurrentPage(savedPage);
+    }
+  }, []);
+
+  // Restore scroll position after treks finish loading
+  useEffect(() => {
+    if (loading || typeof window === "undefined") return;
+
+    const savedY = parseInt(sessionStorage.getItem("treks_scrollY") || "0", 10);
+    if (savedY > 0) {
+      const timer = setTimeout(() => {
+        window.scrollTo({ top: savedY, behavior: "instant" as ScrollBehavior });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   useEffect(() => {
     const cat  = searchParams.get("category");
@@ -149,6 +202,7 @@ function TreksPageInner() {
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+    saveNavState(newPage);
     const el = document.getElementById("treks-grid-top");
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
@@ -164,6 +218,7 @@ function TreksPageInner() {
     setSelectedRegion("all");
     setShowFilterSheet(false);
     setCurrentPage(1);
+    saveNavState(1);
   };
 
   return (
@@ -359,7 +414,7 @@ function TreksPageInner() {
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:overflow-visible">
                   {featured.map((t) => (
                     <div key={t.id} className="flex-shrink-0 w-[68vw] sm:w-auto">
-                      <TrekCard trek={t} featured />
+                      <TrekCard trek={t} featured page={currentPage} onCardClick={() => saveNavState(currentPage)} />
                     </div>
                   ))}
                 </div>
@@ -382,7 +437,7 @@ function TreksPageInner() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {paginatedItems.map((t, i) => (
                 <div key={t.id} className={i === 0 && !hasFilters && currentPage === 1 ? "col-span-2 sm:col-span-1" : ""}>
-                  <TrekCard trek={t} />
+                  <TrekCard trek={t} page={currentPage} onCardClick={() => saveNavState(currentPage)} />
                 </div>
               ))}
             </div>

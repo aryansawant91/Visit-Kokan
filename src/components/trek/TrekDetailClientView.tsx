@@ -16,7 +16,7 @@ import WeatherWidget from "@/components/destination/WeatherWidget";
 import NearbyListings from "@/components/destination/NearbyListings";
 import TrekHeroCarousel from "@/components/trek/TrekHeroCarousel";
 import TrekStickyBar from "@/components/trek/TrekStickyBar";
-import TrekBookingWidget from "@/components/trek/TrekBookingWidget";
+import TrekEnquiryWidget from "@/components/trek/TrekEnquiryWidget";
 import DurgTrekGuide from "@/components/trek/DurgTrekGuide";
 
 interface Props {
@@ -25,6 +25,8 @@ interface Props {
   difficultyInfo?: { label: string; value: string; color: string } | null;
   allImages: string[];
   mapsUrl: string;
+  backHref?: string;
+  fromPage?: string;
 }
 
 function HighlightIcon({ text }: { text: string }) {
@@ -55,14 +57,14 @@ export default function TrekDetailClientView({
   category,
   difficultyInfo,
   allImages,
-  mapsUrl
+  mapsUrl,
+  backHref = "/treks",
+  fromPage,
 }: Props) {
   // Listen to open-trek-booking custom event from Sticky Bar
   useEffect(() => {
     const handleOpenBooking = () => {
-      const isMobile = window.innerWidth < 1024;
-      const targetId = isMobile ? "booking-section-mobile" : "booking-card-panel";
-      const el = document.getElementById(targetId) || document.getElementById("booking-section");
+      const el = document.getElementById("booking-section");
       if (el) {
         el.scrollIntoView({ behavior: "smooth" });
       }
@@ -93,7 +95,8 @@ export default function TrekDetailClientView({
             <TrekHeroCarousel
               images={allImages}
               name={trek.name}
-              backHref="/treks"
+              backHref={backHref}
+              fromPage={fromPage}
               category={category}
               difficulty={trek.difficulty}
               region={trek.region}
@@ -338,16 +341,13 @@ export default function TrekDetailClientView({
 
                 {/* Form */}
                 <div className="p-4 sm:p-5">
-                  <TrekBookingWidget
+                  <TrekEnquiryWidget
                     trekId={trek.id}
                     trekName={trek.name}
                     trekSlug={trek.slug}
                     pricePerPerson={trek.price ?? 1499}
-                    maxCapacity={20}
                     advanceAmount={trek.advanceAmount ?? 750}
                     whatsappGroupLink={trek.whatsappGroupLink}
-                    scheduledDate={trek.scheduledDate ?? undefined}
-                    hideStickyBar={true}
                   />
                 </div>
               </div>
@@ -458,22 +458,22 @@ export default function TrekDetailClientView({
               </div>
             </div>
 
-            {/* Embedded Interactive Booking Form */}
-            <div id="booking-section" className="p-4 sm:p-5">
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#102416] mb-3">
-                Select Date &amp; Reserve Slots
+            {/* Expedition Dates & Priority Enquiry Section */}
+            <div className="p-4 sm:p-5">
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#102416] mb-3 flex items-center justify-between">
+                <span>Expedition Status &amp; Enquiry</span>
+                <span className="text-[10px] text-amber-800 bg-amber-100 font-bold px-2 py-0.5 rounded-full">
+                  Batch Schedule
+                </span>
               </h3>
               
-              <TrekBookingWidget
+              <TrekEnquiryWidget
                 trekId={trek.id}
                 trekName={trek.name}
                 trekSlug={trek.slug}
                 pricePerPerson={trek.price ?? 1499}
-                maxCapacity={20}
                 advanceAmount={trek.advanceAmount ?? 750}
                 whatsappGroupLink={trek.whatsappGroupLink}
-                scheduledDate={trek.scheduledDate ?? undefined}
-                hideStickyBar={true}
               />
             </div>
           </div>
