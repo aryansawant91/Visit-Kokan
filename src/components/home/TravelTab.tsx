@@ -149,7 +149,7 @@ const BANNERS = [
     sub: "Historic Forts & Secret Coves",
     cta: "Explore",
     href: "/trip-planner",
-    image: "/images/banners/travel-art.jpg",
+    image: "/images/banners/alphonso-mangoes.jpg",
   },
 ];
 
@@ -380,13 +380,17 @@ export default function TravelTab() {
 
         {/* Banner */}
         <div>
-          <div className="relative h-48 sm:h-56 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm">
+          <div
+            className="relative h-48 sm:h-56 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm"
+            style={{ minHeight: "192px", maxHeight: "224px", position: "relative", overflow: "hidden" }}
+          >
             {BANNERS.map((banner, i) => (
               <div
                 key={i}
                 className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
                   i === activeBanner ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
                 }`}
+                style={{ position: "absolute", inset: 0, overflow: "hidden" }}
               >
                 {/* Background image */}
                 <Image
@@ -395,6 +399,7 @@ export default function TravelTab() {
                   fill
                   priority={i === 0}
                   className="object-cover"
+                  style={{ objectFit: "cover", width: "100%", height: "100%" }}
                 />
 
                 {/* Left gradient overlay — keeps text readable while right side stays completely vibrant */}
