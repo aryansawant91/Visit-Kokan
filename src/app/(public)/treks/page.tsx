@@ -113,7 +113,18 @@ function TreksPageInner() {
   useEffect(() => {
     fetch("/api/treks")
       .then((r) => r.json())
-      .then((data) => { setTreks(Array.isArray(data) ? data : []); setLoading(false); })
+      .then((data) => {
+        const raw = Array.isArray(data) ? data : [];
+        const seen = new Set<string>();
+        const unique = raw.filter((t: Trek) => {
+          const key = t.slug || t.id;
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setTreks(unique);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
@@ -130,7 +141,8 @@ function TreksPageInner() {
   const hasFilters  = selectedCategory !== "all" || selectedDifficulty !== "all" || selectedRegion !== "all" || !!search;
   const activeCount = [selectedCategory !== "all", selectedDifficulty !== "all", selectedRegion !== "all"].filter(Boolean).length;
 
-  const itemsToPaginate = filtered;
+  // When featured treks are displayed in the top carousel, show only remaining treks in the grid below to prevent double entries
+  const itemsToPaginate = (!hasFilters && featured.length > 0) ? rest : filtered;
   const totalPages = Math.max(1, Math.ceil(itemsToPaginate.length / ITEMS_PER_PAGE));
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedItems = itemsToPaginate.slice(startIndex, startIndex + ITEMS_PER_PAGE);

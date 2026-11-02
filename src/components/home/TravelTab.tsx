@@ -331,7 +331,15 @@ export default function TravelTab() {
     fetch("/api/treks")
       .then((r) => r.json())
       .then((data) => {
-        setTreks(Array.isArray(data) ? data.slice(0, 6) : []);
+        const raw = Array.isArray(data) ? data : [];
+        const seen = new Set<string>();
+        const unique = raw.filter((t: any) => {
+          const key = t.slug || t.id;
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setTreks(unique.slice(0, 6));
         setTreksLoading(false);
       })
       .catch(() => setTreksLoading(false));
