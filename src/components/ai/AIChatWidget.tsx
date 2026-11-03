@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { getPageContext } from "@/lib/ai/tripPlanner";
+import { getPageContext } from "@/lib/ai/pageContext";
 import ItineraryModal, { ItineraryData } from "./ItineraryModal";
 
 interface Message {
@@ -12,9 +12,13 @@ interface Message {
     itinerary?: ItineraryData;
 }
 
-function renderFormattedContent(content: string, isUser: boolean) {
+function renderFormattedContent(content: string | undefined | null, isUser: boolean) {
     if (isUser) {
-        return <span className="whitespace-pre-wrap">{content}</span>;
+        return <span className="whitespace-pre-wrap">{content || ""}</span>;
+    }
+
+    if (!content || typeof content !== "string") {
+        return <span>{String(content || "")}</span>;
     }
 
     const lines = content.split("\n");
@@ -32,7 +36,7 @@ function renderFormattedContent(content: string, isUser: boolean) {
                 const parts: React.ReactNode[] = [];
                 let keyCounter = 0;
                 const tokenRegex = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;
-                let match;
+                let match: RegExpExecArray | null;
                 let lastIndex = 0;
 
                 while ((match = tokenRegex.exec(rawLine)) !== null) {
@@ -47,7 +51,7 @@ function renderFormattedContent(content: string, isUser: boolean) {
                         if (isInternal) {
                             parts.push(
                                 <Link
-                                    key={`link-${keyCounter++}`}
+                                    key={`link-${lineIdx}-${keyCounter++}`}
                                     href={url}
                                     className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
                                 >
@@ -57,7 +61,7 @@ function renderFormattedContent(content: string, isUser: boolean) {
                         } else {
                             parts.push(
                                 <a
-                                    key={`ext-${keyCounter++}`}
+                                    key={`ext-${lineIdx}-${keyCounter++}`}
                                     href={url}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -69,7 +73,7 @@ function renderFormattedContent(content: string, isUser: boolean) {
                         }
                     } else if (match[3]) {
                         parts.push(
-                            <strong key={`bold-${keyCounter++}`} className="font-semibold text-gray-900">
+                            <strong key={`bold-${lineIdx}-${keyCounter++}`} className="font-semibold text-gray-900">
                                 {match[3]}
                             </strong>
                         );
@@ -84,14 +88,14 @@ function renderFormattedContent(content: string, isUser: boolean) {
                 if (isH2) {
                     return (
                         <p key={lineIdx} className="font-bold text-sm text-gray-900 pt-1">
-                            {parts}
+                            {parts.length > 0 ? parts : rawLine}
                         </p>
                     );
                 }
                 if (isH3) {
                     return (
                         <p key={lineIdx} className="font-semibold text-xs text-teal-800 uppercase tracking-wide pt-1">
-                            {parts}
+                            {parts.length > 0 ? parts : rawLine}
                         </p>
                     );
                 }
@@ -99,14 +103,14 @@ function renderFormattedContent(content: string, isUser: boolean) {
                     return (
                         <div key={lineIdx} className="flex items-start gap-1.5 pl-1">
                             <span className="text-teal-500 text-xs mt-0.5">•</span>
-                            <div className="flex-1">{parts}</div>
+                            <div className="flex-1">{parts.length > 0 ? parts : rawLine}</div>
                         </div>
                     );
                 }
 
                 return (
                     <p key={lineIdx}>
-                        {parts}
+                        {parts.length > 0 ? parts : rawLine}
                     </p>
                 );
             })}
@@ -115,7 +119,8 @@ function renderFormattedContent(content: string, isUser: boolean) {
 }
 
 export default function AIChatWidget() {
-    const pathname = usePathname();
+    const rawPathname = usePathname();
+    const pathname = rawPathname || "";
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
