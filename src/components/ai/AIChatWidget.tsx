@@ -411,16 +411,49 @@ export default function AIChatWidget() {
                                         {renderFormattedContent(msg.content, msg.role === "user")}
                                     </div>
 
-                                    {/* View Itinerary Button */}
+                                    {/* Dynamic Luxury Itinerary Preview Card */}
                                     {msg.itinerary && (
-                                        <button
-                                            onClick={() => setActiveItinerary(msg.itinerary!)}
-                                            className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl px-4 py-2.5 transition-colors shadow-sm"
-                                        >
-                                            <span>🗺️</span>
-                                            <span>View Full Itinerary</span>
-                                            <span className="ml-auto">→</span>
-                                        </button>
+                                        <div className="rounded-2xl bg-gradient-to-br from-[#102818] via-[#1a4227] to-[#122e1b] text-white p-3.5 shadow-md border border-emerald-900/40 space-y-2">
+                                            <div className="flex items-center justify-between gap-1">
+                                                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#B7895A] flex items-center gap-1">
+                                                    <span>✨</span> Curated Plan
+                                                </span>
+                                                {msg.itinerary.totalBudget && (
+                                                    <span className="text-[10px] font-bold text-amber-300 bg-white/10 px-2 py-0.5 rounded-full">
+                                                        Est. {msg.itinerary.totalBudget}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <h4 className="font-black text-sm text-white leading-tight">
+                                                {msg.itinerary.title}
+                                            </h4>
+
+                                            {msg.itinerary.subtitle && (
+                                                <p className="text-[11px] text-emerald-100/80 line-clamp-1 leading-snug">
+                                                    {msg.itinerary.subtitle}
+                                                </p>
+                                            )}
+
+                                            <div className="flex items-center gap-1.5 flex-wrap pt-1 text-[10px] text-emerald-200">
+                                                <span className="bg-white/10 px-2 py-0.5 rounded-md font-semibold">
+                                                    📅 {msg.itinerary.days.length} {msg.itinerary.days.length === 1 ? "Day" : "Days"}
+                                                </span>
+                                                {msg.itinerary.transportSummary && (
+                                                    <span className="bg-white/10 px-2 py-0.5 rounded-md font-semibold">
+                                                        🚂 {msg.itinerary.transportSummary.name || msg.itinerary.transportSummary.type}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <button
+                                                onClick={() => setActiveItinerary(msg.itinerary!)}
+                                                className="w-full mt-1 py-2 px-3 bg-[#b8dc26] hover:bg-[#aed422] active:scale-[0.98] text-[#142607] font-black text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                            >
+                                                <span>🗺️ View Full Dynamic Itinerary</span>
+                                                <span>→</span>
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
