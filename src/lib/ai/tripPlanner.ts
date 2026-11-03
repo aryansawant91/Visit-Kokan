@@ -1,29 +1,43 @@
+import {
+  ALL_WEBSITE_TREKS,
+  ALL_WEBSITE_DESTINATIONS,
+  PLATFORM_INFO,
+} from "./kokanWebsiteData";
+
 export const KOKAN_SYSTEM_PROMPT = `
-You are Kokan Mitra — a friendly, knowledgeable local travel companion for the Konkan coast of Maharashtra, India.
+You are Kokan Mitra — the official, friendly, and knowledgeable local travel concierge for Visit Kokan (visitkokan.in).
 
-You have deep knowledge about:
-- All destinations: beaches, forts, temples, waterfalls, villages across Raigad, Ratnagiri and Sindhudurg districts
-- Local food: Malvani cuisine, fresh seafood, sol kadhi, kombdi vade, cashew feni
-- Travel logistics: Konkan Railway, NH66, ferry routes, local buses, autos
-- Seasons: monsoon magic (June-Sept), peak season (Oct-March), summer mangoes (April-May)
-- Activities: water sports at Tarkarli, trekking forts, turtle watching at Velas, rafting at Kolad
-- Stays: beach huts, homestays, resorts — budget to luxury
-- Local tips only a local would know
+You represent Visit Kokan — Maharashtra's premier platform for exploring pristine beaches, historic Sahyadri forts, coastal treks, verified homestays, and authentic local food.
 
-YOUR PERSONALITY:
-- Warm, like a local friend who has lived in Konkan their whole life
-- Conversational, never robotic
-- Give specific names, not generic advice
-- Use occasional Marathi/Konkani words naturally (deva, bhai, ekdum)
-- Be honest — warn about rough seas in monsoon, slippery fort steps, no ATMs in villages
+YOUR MISSION & CAPABILITIES:
+1. OFFICIAL TREK CONCIERGE:
+   - Visit Kokan hosts 59 authentic Sahyadri and coastal treks across Raigad, Ratnagiri, Sindhudurg, and Pune regions.
+   - All trek packages have a uniform fee: ₹1,499 per person, with ₹750 advance deposit to confirm a batch slot.
+   - All treks are currently opening for upcoming batches under "Coming Soon" enquiry status.
+   - Users can enquire directly via WhatsApp at ${PLATFORM_INFO.whatsappNumber} (${PLATFORM_INFO.whatsappUrl}) or via the priority lead form on any trek page.
+   - When suggesting treks, ALWAYS format as internal markdown links: [Trek Name](/treks/slug) (e.g. [Torna Fort Trek](/treks/torna-fort-trek) or [Mahipatgad Dense Forest Expedition](/treks/mahipatgad-forest-fort-trek)).
 
-YOUR RULES:
-- Only answer about Konkan travel — beaches, forts, food, stays, transport, activities
-- If asked something unrelated, warmly redirect: "I only know Konkan! Ask me about beaches, forts or food here 🌊"
-- Never give generic travel advice — always Konkan specific
-- When you have enough context, proactively give a full day-by-day itinerary
-- Keep responses conversational but rich with real details
-- Use emojis naturally but not excessively
+2. DESTINATIONS & HOMESTAYS GUIDE:
+   - You know all beaches, forts, waterfalls, and temples across Raigad, Ratnagiri, and Sindhudurg.
+   - When suggesting destinations, ALWAYS format as internal markdown links: [Destination Name](/destinations/slug) (e.g. [Tarkarli](/destinations/tarkarli) or [Ganpatipule Beach](/destinations/ganpatipule-beach)).
+   - Stays: Recommend verified coastal homestays on Visit Kokan at [/listings](/listings).
+   - Local Food: Malvani cuisine, fresh seafood, sol kadhi, kombdi vade, pithla bhakri, ukdiche modak.
+   - Local Products: Alphonso mangoes, cashews, organic kokum syrup, malvani masala at [/products](/products).
+
+3. STRICT CONCIERGE & ANTI-HALLUCINATION RULES:
+   - NEVER invent or mention fake travel agencies (e.g. "Sagar Adventure", "Kudachi Trekking", "Kokan Travel").
+   - NEVER provide dummy or fake phone numbers like "022-xxxx-xxxx" or "+917xxxxxx".
+   - For all bookings and inquiries, tell users:
+     "You can view complete batch details on [Visit Kokan Treks](/treks) and tap **'Enquire on WhatsApp'** or chat with our trek team on WhatsApp at [${PLATFORM_INFO.whatsappNumber}](${PLATFORM_INFO.whatsappUrl})!"
+   - Only answer about Konkan travel — beaches, forts, food, stays, transport, treks. If asked something completely off-topic, warmly redirect: "I'm Kokan Mitra! Ask me anything about beaches, forts, treks or food along the Konkan coast 🌊"
+
+4. MULTI-LINGUAL & AUTHENTIC TONE:
+   - Warm, conversational, like a proud local friend from the Konkan coast (अस्सल कोकणी पाहुणचार).
+   - Respond in the language used by the traveler:
+     * If the user asks in Marathi (मराठी) — reply in clean, warm Marathi!
+     * If the user asks in Hinglish — reply in friendly Hinglish!
+     * If the user asks in English — reply in English with natural local touches (bhai, dada, deva, ekdum).
+   - Use occasional emojis naturally (🌊, 🏰, 🥾, 🍛, 🥥).
 
 REALISTIC HUMAN PACING & TIME DURATION RULES (CRITICAL FOR ACCURACY):
 - NEVER generate rushed or physically impossible itineraries! Real travelers need realistic time to climb, explore, eat, and rest.
@@ -118,86 +132,83 @@ export function getPageContext(pathname: string): {
     suggestions: string[];
     greeting: string;
 } {
-    // Destination pages
-    if (pathname.includes('/destinations/')) {
-        const slug = pathname.split('/destinations/')[1]?.replace(/-/g, ' ');
-        const destinationContexts: Record<string, {
-            context: string;
-            suggestions: string[];
-            greeting: string;
-        }> = {
-            'tarkarli': {
-                context: 'User is viewing Tarkarli destination page',
-                suggestions: ['2 day itinerary', 'Best water sports', 'Where to stay', 'Best time to visit'],
-                greeting: "Planning a trip to Tarkarli? 🌊 It's one of Konkan's gems — crystal clear water, amazing scuba and some incredible Malvani food. What do you want to know?"
-            },
-            'alibaug': {
-                context: 'User is viewing Alibaug destination page',
-                suggestions: ['Ferry from Mumbai?', 'Weekend itinerary', 'Kolaba Fort visit', 'Best beaches nearby'],
-                greeting: "Alibaug calling! 🏖️ Just 1 hour by ferry from Mumbai. Want a perfect weekend plan or have specific questions?"
-            },
-            'raigad fort': {
-                context: 'User is viewing Raigad Fort page',
-                suggestions: ['Ropeway or steps?', 'Full day plan', 'How to reach', 'History of the fort'],
-                greeting: "Raigad Fort — the capital of Chhatrapati Shivaji Maharaj's kingdom ⚔️ A visit here gives you goosebumps. Steps or ropeway? Let me help you plan it right."
-            },
-            'ganpatipule': {
-                context: 'User is viewing Ganpatipule destination page',
-                suggestions: ['Temple timings', 'Family itinerary', 'Nearby beaches', 'Best stay options'],
-                greeting: "Ganpatipule is beautiful — the self-swayambhu Ganesh right on the beach is something else 🙏 Planning a family trip or solo? Tell me more!"
-            },
-            'murud janjira': {
-                context: 'User is viewing Murud-Janjira page',
-                suggestions: ['Fort boat timings', 'Best hotel in Murud', '2 day plan', 'Datiware beach'],
-                greeting: "Murud-Janjira — never captured by any enemy, ever! 🏰 The boat ride to the fort is an experience in itself. What do you want to plan?"
-            },
-        };
-
-        const key = slug?.toLowerCase();
-        const match = key ? destinationContexts[key] : null;
-
-        if (match) return match;
-
-        // Generic destination page
+    // Specific Trek pages
+    if (pathname.includes('/treks/')) {
+        const rawSlug = pathname.split('/treks/')[1]?.split('?')[0]?.replace(/\/$/, '') || '';
+        const trek = ALL_WEBSITE_TREKS.find(t => t.slug === rawSlug);
+        if (trek) {
+            return {
+                context: `User is viewing trek page for: ${trek.name} (Region: ${trek.region}). Difficulty: ${trek.difficulty}, Duration: ${trek.duration}, Base: ${trek.baseVillage}. Highlights: ${trek.highlights}. Pricing: ₹1,499 per trekker (₹750 advance deposit to confirm slot). Status: Coming Soon / Open for WhatsApp enquiry.`,
+                suggestions: ['Trail difficulty & time?', 'How to reach base?', 'Enquire on WhatsApp', 'What to pack?'],
+                greeting: `Looking to explore ${trek.name}? 🥾 It's a ${trek.difficulty} grade trek starting from ${trek.baseVillage || trek.region}. Want to know about the trail route, difficulty, or batch enquiry?`
+            };
+        }
         return {
-            context: `User is viewing destination: ${slug}`,
-            suggestions: ['Plan my itinerary', 'How to reach', 'Best time to visit', 'Where to stay'],
-            greeting: `Exploring ${slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'this place'}? 🌿 I know this place well — ask me anything about itinerary, food, stays or how to get there!`
+            context: 'User is viewing the treks catalog page',
+            suggestions: ['Easy beginner treks', 'Best fort treks', 'Treks in Ratnagiri', 'How to book a trek'],
+            greeting: "Welcome to Visit Kokan Treks! 🥾 We have 59 authentic Sahyadri and coastal treks. Looking for an easy cliff walk, an iconic fort climb, or want to know upcoming batch dates?"
         };
     }
 
-    // Trek pages
-    if (pathname.includes('/treks/')) {
+    // Specific Destination pages
+    if (pathname.includes('/destinations/')) {
+        const rawSlug = pathname.split('/destinations/')[1]?.split('?')[0]?.replace(/\/$/, '') || '';
+        const dest = ALL_WEBSITE_DESTINATIONS.find(d => d.slug === rawSlug);
+        if (dest) {
+            return {
+                context: `User is viewing destination page for: ${dest.name} (Region: ${dest.region}). Category: ${dest.category}. Highlights: ${dest.highlights}`,
+                suggestions: ['2 day itinerary', 'How to reach', 'Where to stay', 'Local food to try'],
+                greeting: `Exploring ${dest.name}? 🌊 It's one of ${dest.region}'s premier ${dest.category} spots. Want a weekend itinerary, stay recommendations, or travel directions?`
+            };
+        }
         return {
-            context: 'User is viewing a trek page',
-            suggestions: ['Difficulty level?', 'What to carry', 'Best season', 'Nearby stay'],
-            greeting: "A trek in Konkan! 🥾 The Sahyadris here are stunning. Want to know about difficulty, what to pack or how to reach the base?"
+            context: 'User is viewing the destinations catalog',
+            suggestions: ['Best beaches', 'Historic sea forts', 'Quiet offbeat towns', 'Temple circuits'],
+            greeting: "Exploring Konkan's destinations? 🏖️ From virgin white sand beaches to majestic sea forts, what kind of place are you looking for?"
+        };
+    }
+
+    // Listings / Homestays
+    if (pathname.includes('/listings')) {
+        return {
+            context: 'User is viewing homestays and stays directory',
+            suggestions: ['Beachfront homestays', 'Budget stays in Malvan', 'Homestays in Dapoli', 'Family wadas'],
+            greeting: "Looking for an authentic Konkan homestay? 🏡 We feature verified coastal homestays with home-cooked Malvani meals. Where are you planning to stay?"
+        };
+    }
+
+    // Products / Store
+    if (pathname.includes('/products')) {
+        return {
+            context: 'User is viewing local products store',
+            suggestions: ['Original Hapus mangoes', 'Malvani masala', 'Organic kokum', 'Cashew nuts'],
+            greeting: "Craving authentic Konkan flavours? 🥭 We bring direct-from-farm Devgad & Ratnagiri Alphonso mangoes, cashews, and homemade spices. Looking for something specific?"
         };
     }
 
     // Blog pages
-    if (pathname.includes('/blogs/')) {
+    if (pathname.includes('/blogs')) {
         return {
-            context: 'User is reading a travel blog',
-            suggestions: ['Plan trip from this blog', 'Similar destinations', 'Weekend itinerary', 'Budget estimate'],
-            greeting: "Enjoying this read? 📖 I can turn this into a real trip plan for you — just tell me how many days you have and I'll map it out!"
+            context: 'User is reading travel blogs',
+            suggestions: ['Plan trip from blog', 'Best treks in monsoon', 'Food guide for Malvan', 'Budget weekend tips'],
+            greeting: "Enjoying the Konkan travel stories? 📖 I can turn any blog or destination you read about into a concrete day-by-day itinerary. Just ask!"
         };
     }
 
     // Search page
     if (pathname.includes('/search')) {
         return {
-            context: 'User is on search page',
-            suggestions: ['Hidden beaches', 'Best forts', 'Family destinations', 'Budget trips'],
-            greeting: "Looking for something specific in Konkan? 🔍 Tell me what kind of trip you have in mind — beach, fort, waterfall, food — I'll point you in the right direction!"
+            context: 'User is searching the platform',
+            suggestions: ['Top 5 beaches', 'Trek recommendations', 'Best season to visit', 'Trip from Mumbai'],
+            greeting: "Searching for something special in Konkan? 🔍 Tell me what you're dreaming of — sea forts, scuba diving, waterfall trails, or quiet beaches!"
         };
     }
 
     // Homepage or default
     return {
-        context: 'User is on the homepage',
-        suggestions: ['Weekend from Mumbai', 'Best beaches', 'Hidden gems', 'Monsoon destinations'],
-        greeting: "Hey! 👋 Planning a Konkan trip? Tell me where you want to go or what kind of experience you're looking for and I'll help you plan the perfect trip!"
+        context: 'User is on the Visit Kokan homepage',
+        suggestions: ['Weekend from Mumbai', 'Best Sahyadri treks', 'Top beaches in Sindhudurg', 'Food to try in Malvan'],
+        greeting: "Namaskar! 🙏 I'm Kokan Mitra, your local guide on Visit Kokan. Where are you dreaming of heading, or would you like me to suggest the perfect trip?"
     };
 }
 

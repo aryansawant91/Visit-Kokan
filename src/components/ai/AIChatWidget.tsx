@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { getPageContext } from "@/lib/ai/tripPlanner";
 import ItineraryModal, { ItineraryData } from "./ItineraryModal";
 
@@ -9,6 +10,108 @@ interface Message {
     role: "user" | "assistant";
     content: string;
     itinerary?: ItineraryData;
+}
+
+function renderFormattedContent(content: string, isUser: boolean) {
+    if (isUser) {
+        return <span className="whitespace-pre-wrap">{content}</span>;
+    }
+
+    const lines = content.split("\n");
+
+    return (
+        <div className="space-y-1.5 leading-relaxed text-sm">
+            {lines.map((line, lineIdx) => {
+                if (!line.trim()) return <div key={lineIdx} className="h-1.5" />;
+
+                const isH3 = line.startsWith("### ");
+                const isH2 = line.startsWith("## ");
+                const isBullet = line.startsWith("- ") || line.startsWith("* ");
+                const rawLine = isH3 ? line.slice(4) : isH2 ? line.slice(3) : isBullet ? line.slice(2) : line;
+
+                const parts: React.ReactNode[] = [];
+                let keyCounter = 0;
+                const tokenRegex = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;
+                let match;
+                let lastIndex = 0;
+
+                while ((match = tokenRegex.exec(rawLine)) !== null) {
+                    if (match.index > lastIndex) {
+                        parts.push(rawLine.substring(lastIndex, match.index));
+                    }
+                    if (match[1] && match[2]) {
+                        const label = match[1];
+                        const url = match[2];
+                        const isInternal = url.startsWith("/");
+
+                        if (isInternal) {
+                            parts.push(
+                                <Link
+                                    key={`link-${keyCounter++}`}
+                                    href={url}
+                                    className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
+                                >
+                                    {label}
+                                </Link>
+                            );
+                        } else {
+                            parts.push(
+                                <a
+                                    key={`ext-${keyCounter++}`}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
+                                >
+                                    {label}
+                                </a>
+                            );
+                        }
+                    } else if (match[3]) {
+                        parts.push(
+                            <strong key={`bold-${keyCounter++}`} className="font-semibold text-gray-900">
+                                {match[3]}
+                            </strong>
+                        );
+                    }
+                    lastIndex = tokenRegex.lastIndex;
+                }
+
+                if (lastIndex < rawLine.length) {
+                    parts.push(rawLine.substring(lastIndex));
+                }
+
+                if (isH2) {
+                    return (
+                        <p key={lineIdx} className="font-bold text-sm text-gray-900 pt-1">
+                            {parts}
+                        </p>
+                    );
+                }
+                if (isH3) {
+                    return (
+                        <p key={lineIdx} className="font-semibold text-xs text-teal-800 uppercase tracking-wide pt-1">
+                            {parts}
+                        </p>
+                    );
+                }
+                if (isBullet) {
+                    return (
+                        <div key={lineIdx} className="flex items-start gap-1.5 pl-1">
+                            <span className="text-teal-500 text-xs mt-0.5">•</span>
+                            <div className="flex-1">{parts}</div>
+                        </div>
+                    );
+                }
+
+                return (
+                    <p key={lineIdx}>
+                        {parts}
+                    </p>
+                );
+            })}
+        </div>
+    );
 }
 
 export default function AIChatWidget() {
@@ -62,6 +165,7 @@ export default function AIChatWidget() {
                 body: JSON.stringify({
                     messages: updatedMessages,
                     pageContext: context,
+                    pathname: pathname,
                 }),
             });
 
@@ -70,7 +174,7 @@ export default function AIChatWidget() {
             if (data.message !== undefined) {
                 const assistantMessage: Message = {
                     role: "assistant",
-                    content: data.message || "Here's your Konkan itinerary! 🌊",
+                    content: data.message || "Here's your Konkan plan! 🌊",
                     itinerary: data.itinerary ?? undefined,
                 };
                 setMessages((prev) => [...prev, assistantMessage]);
@@ -140,7 +244,7 @@ export default function AIChatWidget() {
                             <span className="text-2xl">🌊</span>
                             <div>
                                 <p className="text-white font-semibold text-sm">Kokan Mitra</p>
-                                <p className="text-teal-100 text-xs">Your local travel guide</p>
+                                <p className="text-teal-100 text-xs">Your local travel concierge</p>
                             </div>
                         </div>
                         <button
@@ -160,14 +264,14 @@ export default function AIChatWidget() {
                                 {msg.role === "assistant" && (
                                     <span className="text-lg mr-2 mt-1 flex-shrink-0">🌊</span>
                                 )}
-                                <div className="flex flex-col gap-2 max-w-[80%]">
+                                <div className="flex flex-col gap-2 max-w-[85%]">
                                     <div
-                                        className={`rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${msg.role === "user"
+                                        className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === "user"
                                                 ? "bg-teal-600 text-white rounded-tr-sm"
                                                 : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-sm"
                                             }`}
                                     >
-                                        {msg.content}
+                                        {renderFormattedContent(msg.content, msg.role === "user")}
                                     </div>
 
                                     {/* View Itinerary Button */}

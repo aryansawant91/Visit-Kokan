@@ -12,6 +12,7 @@ import {
   KONKAN_DESTINATION_GATEWAYS,
   validateAndCorrectTransport,
 } from "@/lib/ai/transportData";
+import { getWebsiteGroundingContext } from "@/lib/ai/kokanWebsiteData";
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY!,
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { messages, pageContext } = await req.json();
+    const { messages, pageContext, pathname } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
@@ -58,6 +59,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Generate laser-focused platform knowledge (59 verified treks, destinations, pricing, WhatsApp)
+    const websiteGrounding = getWebsiteGroundingContext(
+      lastUserMessage?.content || "",
+      pageContext,
+      pathname
+    );
+
     // Use lean, focused prompt for itinerary generation
     let systemPrompt = "";
     if (isItinerary) {
@@ -65,26 +73,45 @@ export async function POST(req: NextRequest) {
         ITINERARY_JSON_PROMPT,
         durationRule,
         KONKAN_DESTINATION_GATEWAYS,
+        websiteGrounding,
         pageContext ? `CONTEXT: ${pageContext}` : "",
       ]
         .filter(Boolean)
         .join("\n\n");
     } else {
       let transportContext = "";
-      try {
-        const [trains, roads] = await Promise.all([
-          getAllTrains(),
-          getAllRoads(),
-        ]);
-        if (trains.length > 0 || roads.length > 0) {
-          transportContext = formatTransportContext(trains, roads);
+      const queryText = (lastUserMessage?.content || "").toLowerCase();
+      const isTransportHeavy = 
+        queryText.includes("train") ||
+        queryText.includes("station") ||
+        queryText.includes("reach") ||
+        queryText.includes("route") ||
+        queryText.includes("ferry") ||
+        queryText.includes("nh66") ||
+        queryText.includes("drive") ||
+        queryText.includes("timing");
+
+      if (isTransportHeavy) {
+        try {
+          const [trains, roads] = await Promise.all([
+            getAllTrains(),
+            getAllRoads(),
+          ]);
+          if (trains.length > 0 || roads.length > 0) {
+            transportContext = formatTransportContext(trains, roads);
+          }
+        } catch (err) {
+          console.error("⚠️ Could not fetch transport data:", err);
+          transportContext = KONKAN_DESTINATION_GATEWAYS;
         }
-      } catch (err) {
-        console.error("⚠️ Could not fetch transport data:", err);
+      } else {
+        // Lean gateway directory for quick reference without token bloat
+        transportContext = KONKAN_DESTINATION_GATEWAYS;
       }
 
       systemPrompt = [
         KOKAN_SYSTEM_PROMPT,
+        websiteGrounding,
         transportContext,
         pageContext ? `CURRENT PAGE CONTEXT: ${pageContext}` : "",
       ]
