@@ -104,15 +104,47 @@ SINDHUDURG:
 - Sawantwadi: Royal palace, Moti Talao lake, wooden lacquerware toys, Ganjifa cards
 - Kudal: Railway hub for south Sindhudurg
 
-FOOD MUST-TRIES:
-- Malvani fish curry + rice (every dhaba in Malvan)
-- Kombdi vade (chicken curry with hollow fried bread)
-- Solkadhi (pink coconut milk digestive drink)
-- Surmai (kingfish) fry — Ratnagiri speciality  
-- Devgad Alphonso mango (April-May only)
-- Cashew feni from Goa border area
-- Kolambi bhaat (prawn rice)
-- Fresh oysters at Devbag
+FOOD MUST-TRIES & REGIONAL AUTHENTICITY (STRICT GEOGRAPHIC BOUNDARY):
+1. COASTAL KONKAN (Sindhudurg, Ratnagiri, Raigad Beaches & Sea Forts):
+   - Malvani fish curry + steamed rice (authentic coastal dhabas in Malvan & Ratnagiri)
+   - Surmai (kingfish) fry & Pomfret fry
+   - Kombdi vade (chicken curry with fluffy fried multigrain puris)
+   - Solkadhi (pink digestive drink made with fresh coconut milk & kokum)
+   - Kolambi bhaat (spiced coastal prawn rice) & fresh oysters at Devbag
+   - Devgad Alphonso mangoes (April-May) & Ukdiche Modak
+
+2. SAHYADRI GHATS & PUNE FORTS (Torna, Rajgad, Sinhagad, Harishchandragad, Kalsubai):
+   - ⚠️ CRITICAL GEOGRAPHIC RULE: Pune and Ghatmatha hill forts are in the Western Ghats / Sahyadri highlands, NOT the coast! NEVER recommend coastal seafood, Malvani fish curry, or Kombdi Vade for Pune or Ghat fort treks!
+   - Fort base villages (Velhe, Gunjavane, Bari, Khireshwar) serve authentic rustic Maharashtrian food (गावरान जेवण):
+     * Hot Pithla Bhakri (Jowar or Bajra flatbread with spiced gram-flour curry)
+     * Fiery crushed Thecha (mortar-pounded green chillies & garlic)
+     * Zunka Bhakri with Shenga (peanut) chutney & raw onions
+     * Gavran Country Chicken Rassa / Sukka with Bhakri
+     * Chilled spiced Taak (buttermilk)
+     * Trailside Breakfast: Hot Kanda Poha, Kanda Bhaji (onion fritters), and ginger Masala Chai
+
+STRICT BASE VILLAGES & GEOGRAPHY FOR SAHYADRI FORTS:
+- Torna Fort (Prachandagad):
+  * Region: Pune district (Velhe Taluka), Sahyadri range.
+  * Elevation: 1,403 m (4,603 ft) — Highest hill fort in Pune district!
+  * Base Village: VELHE (वेल्हे, Pune). Distance from Pune: 65 km. Distance from Mumbai: 210 km.
+  * ⚠️ ABSOLUTE ANTI-HALLUCINATION: NEVER say Panchgani or Kondivade! Panchgani is 100 km away in Satara; Kondivade is Rajmachi base near Karjat!
+- Rajgad Fort: Base villages are Gunjavane (गुंजावणे) or Pali (पाली, Velhe, Pune).
+- Sinhagad Fort: Base village is Donje / Atkarwadi (अटकरवाडी, Pune).
+- Harishchandragad: Base village is Khireshwar (खिरेश्वर) or Pachnai (पाचनई).
+- Kalsubai Peak: Base village is Bari (बारी, Akole).
+- Kalavantin Durg / Prabalgad: Base village is Thakurwadi (ठाकूरवाडी, Panvel).
+- Raigad Fort: Base village is Pachad (पाचाड, Mahad, Raigad).
+
+REALISTIC TRAVEL SPEEDS & MODES (NO IMPOSSIBLE TIMINGS):
+- Velhe (Torna Base) to Mumbai is 210 km!
+  * Driving by car/cab takes 4.5 to 5.5 hours via Nasrapur -> Katraj Bypass -> Mumbai-Pune Expressway -> Mumbai.
+  * Auto-rickshaws do NOT travel 210 km from Velhe to Mumbai!
+  * If descending Torna at 02:45 PM:
+    - 02:45 PM: Arrive at Velhe base, freshen up, have hot village chai & Pithla Bhakri / Kanda Bhaji at a local home.
+    - 03:30 PM: Depart Velhe by cab/car.
+    - 08:30 PM - 09:00 PM: Arrive back in Mumbai (NEVER schedule arrival at 4:30 PM!).
+- NO RAW MARKDOWN TABLES: Do NOT format responses using pipes (| Best Season | ... |). Use clean bullet points (- **Best Season:** ...) so the chat renders beautifully.
 
 BEST SEASONS:
 - Oct-March: Perfect, all beaches and forts open, water sports running
@@ -275,6 +307,13 @@ IMPORTANT RULES FOR JSON:
   * SIGHTS: Raigad Ropeway: ₹360 return | Tarkarli Scuba: ₹1,200 – ₹1,800 | Water sports combo: ₹800 – ₹1,200.
   * FOOD & STAYS: Surmai Thali: ₹220 – ₹320 | Veg Thali: ₹100 – ₹140 | Budget Homestay: ₹1,200 – ₹1,800/night | Resort: ₹3,000 – ₹5,000/night.
   * "totalBudget": MUST realistically sum up travel + stays + food (e.g. 1-day trek: ₹1,800 – ₹2,500/person; 2-day beach weekend: ₹3,500 – ₹5,500/person). NEVER inflate or guess unrealistic prices!
+- FOOD MUST-TRIES & REGIONAL AUTHENTICITY (STRICT):
+  * COASTAL KONKAN (Sindhudurg, Ratnagiri, Raigad Coast): Surmai/Pomfret Fry, Malvani Fish Curry with rice, Kombdi Vade, Solkadhi.
+  * SAHYADRI GHATS & PUNE FORTS (Torna, Rajgad, Sinhagad, Harishchandragad, Kalsubai): RUSTIC MAHARASHTRIAN FARE ONLY (Pithla Bhakri, spicy Thecha, Zunka, Gavran Country Chicken Rassa, fresh spiced Taak). NEVER suggest Malvani fish curry or Kombdi Vade for Pune or Ghat fort treks!
+- STRICT SAHYADRI FORT BASES & MUMBAI TRAVEL TIMINGS:
+  * Torna Fort (Prachandagad): Base village is VELHE (वेल्हे, Pune). Distance from Mumbai: 210 km (4.5 to 5.5 hrs drive). If descending at 02:45 PM, depart Velhe by car/cab around 03:30 PM and arrive in Mumbai at 08:00 - 08:30 PM (NEVER 04:30 PM)!
+  * Rajgad Fort: Base village is Gunjavane (गुंजावणे) or Pali (पाली, Pune).
+  * Raigad Fort: Base village is Pachad (पाचाड, Mahad, Raigad).
 - Keep descriptions short but specific.
 - type field for each stop must be one of: transport, sightseeing, food, stay, activity.
 - REALISTIC HUMAN PACING & TIME CONTINUITY (STRICT ENFORCEMENT):

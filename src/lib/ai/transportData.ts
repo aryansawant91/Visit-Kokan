@@ -208,7 +208,39 @@ ${roadInfo || "No road data available"}
 
 // Deterministic validator & corrector for transport timings & fares
 export function validateAndCorrectTransport(itinerary: any, contextText: string = ""): any {
-  if (!itinerary || !itinerary.transportSummary) return itinerary;
+  if (!itinerary) return itinerary;
+
+  const destContext = `${itinerary.title || ""} ${itinerary.subtitle || ""} ${contextText} ${itinerary.destination || ""}`.toLowerCase();
+
+  // Programmatic safeguard for Pune / Sahyadri Ghat Forts (Torna, Rajgad, Sinhagad)
+  const isPuneTrek =
+    destContext.includes("torna") ||
+    destContext.includes("rajgad") ||
+    destContext.includes("sinhagad");
+
+  if (isPuneTrek && Array.isArray(itinerary.days)) {
+    itinerary.days.forEach((d: any) => {
+      if (Array.isArray(d.stops)) {
+        d.stops.forEach((s: any) => {
+          const desc = (s.description || "").toLowerCase();
+          const title = (s.title || "").toLowerCase();
+          if (
+            s.type === "food" ||
+            desc.includes("malvani") ||
+            desc.includes("fish curry") ||
+            desc.includes("kombdi vade") ||
+            title.includes("malvani")
+          ) {
+            s.title = "Authentic Rustic Maharashtrian Meal";
+            s.description =
+              "Enjoy authentic rustic Maharashtrian food at the base village: piping hot Pithla Bhakri with fiery Thecha, Zunka, and fresh spiced buttermilk (taak).";
+          }
+        });
+      }
+    });
+  }
+
+  if (!itinerary.transportSummary) return itinerary;
   const transport = itinerary.transportSummary;
   
   const isTrain =
@@ -218,15 +250,15 @@ export function validateAndCorrectTransport(itinerary: any, contextText: string 
     Boolean(transport.name?.toLowerCase().includes("express"));
   if (!isTrain) return itinerary;
 
-  const destContext = `${itinerary.title || ""} ${itinerary.subtitle || ""} ${contextText} ${transport.to || ""}`.toLowerCase();
+  const fullTrainContext = `${destContext} ${transport.to || ""}`.toLowerCase();
   const trainName = `${transport.name || ""} ${transport.number || ""}`.toLowerCase();
 
-  const isSindhudurg = destContext.includes("kankavli") || destContext.includes("kudal") || destContext.includes("malvan") || destContext.includes("tarkarli") || destContext.includes("sindhudurg") || destContext.includes("vengurla") || destContext.includes("devbag");
-  const isRatnagiri = !isSindhudurg && (destContext.includes("ratnagiri") || destContext.includes("ganpatipule") || destContext.includes("jaigad") || destContext.includes("pawas"));
-  const isChiplun = !isSindhudurg && !isRatnagiri && (destContext.includes("chiplun") || destContext.includes("guhagar") || destContext.includes("velneshwar"));
-  const isKhed = !isSindhudurg && !isRatnagiri && !isChiplun && (destContext.includes("khed") || destContext.includes("dapoli") || destContext.includes("harnai") || destContext.includes("anjarle"));
-  const isRaigad = !isSindhudurg && !isRatnagiri && !isChiplun && !isKhed && (destContext.includes("raigad") || destContext.includes("mangaon") || destContext.includes("mahad") || destContext.includes("pachad"));
-  const isSawantwadi = !isSindhudurg && (destContext.includes("sawantwadi") || destContext.includes("amboli"));
+  const isSindhudurg = fullTrainContext.includes("kankavli") || fullTrainContext.includes("kudal") || fullTrainContext.includes("malvan") || fullTrainContext.includes("tarkarli") || fullTrainContext.includes("sindhudurg") || fullTrainContext.includes("vengurla") || fullTrainContext.includes("devbag");
+  const isRatnagiri = !isSindhudurg && (fullTrainContext.includes("ratnagiri") || fullTrainContext.includes("ganpatipule") || fullTrainContext.includes("jaigad") || fullTrainContext.includes("pawas"));
+  const isChiplun = !isSindhudurg && !isRatnagiri && (fullTrainContext.includes("chiplun") || fullTrainContext.includes("guhagar") || fullTrainContext.includes("velneshwar"));
+  const isKhed = !isSindhudurg && !isRatnagiri && !isChiplun && (fullTrainContext.includes("khed") || fullTrainContext.includes("dapoli") || fullTrainContext.includes("harnai") || fullTrainContext.includes("anjarle"));
+  const isRaigad = !isSindhudurg && !isRatnagiri && !isChiplun && !isKhed && (fullTrainContext.includes("raigad") || fullTrainContext.includes("mangaon") || fullTrainContext.includes("mahad") || fullTrainContext.includes("pachad"));
+  const isSawantwadi = !isSindhudurg && (fullTrainContext.includes("sawantwadi") || fullTrainContext.includes("amboli"));
 
   const isJanShatabdi = trainName.includes("jan shatabdi") || trainName.includes("12051");
   const isTutari = trainName.includes("tutari") || trainName.includes("10103");

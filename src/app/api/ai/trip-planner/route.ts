@@ -79,35 +79,8 @@ export async function POST(req: NextRequest) {
         .filter(Boolean)
         .join("\n\n");
     } else {
-      let transportContext = "";
-      const queryText = (lastUserMessage?.content || "").toLowerCase();
-      const isTransportHeavy = 
-        queryText.includes("train") ||
-        queryText.includes("station") ||
-        queryText.includes("reach") ||
-        queryText.includes("route") ||
-        queryText.includes("ferry") ||
-        queryText.includes("nh66") ||
-        queryText.includes("drive") ||
-        queryText.includes("timing");
-
-      if (isTransportHeavy) {
-        try {
-          const [trains, roads] = await Promise.all([
-            getAllTrains(),
-            getAllRoads(),
-          ]);
-          if (trains.length > 0 || roads.length > 0) {
-            transportContext = formatTransportContext(trains, roads);
-          }
-        } catch (err) {
-          console.error("⚠️ Could not fetch transport data:", err);
-          transportContext = KONKAN_DESTINATION_GATEWAYS;
-        }
-      } else {
-        // Lean gateway directory for quick reference without token bloat
-        transportContext = KONKAN_DESTINATION_GATEWAYS;
-      }
+      // Use lean, verified destination gateway directory to prevent input token blowout
+      const transportContext = KONKAN_DESTINATION_GATEWAYS;
 
       systemPrompt = [
         KOKAN_SYSTEM_PROMPT,

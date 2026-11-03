@@ -161,3 +161,4 @@ export function getPageContext(pathname?: string | null): PageContextResult {
       "Namaskar! 🙏 I'm Kokan Mitra, your local guide on Visit Kokan. Where are you dreaming of heading, or would you like me to suggest the perfect trip?",
   };
 }
+

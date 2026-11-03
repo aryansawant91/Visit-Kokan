@@ -12,6 +12,163 @@ interface Message {
     itinerary?: ItineraryData;
 }
 
+function parseInlineTokens(rawText: string, lineIdx: number): React.ReactNode[] {
+    const parts: React.ReactNode[] = [];
+    let keyCounter = 0;
+    // 1: **[label](url)** | 2: [**label**](url) | 3: [label](url) | 4: **bold** | 5: *italic* | 6: `code`
+    const tokenRegex = /\*\*\[([^\]]+)\]\(([^)]+)\)\*\*|\[\*\*([^*]+)\*\*\]\(([^)]+)\)|\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`/g;
+    let match: RegExpExecArray | null;
+    let lastIndex = 0;
+
+    while ((match = tokenRegex.exec(rawText)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push(rawText.substring(lastIndex, match.index));
+        }
+
+        // Branch 1: **[label](url)**
+        if (match[1] && match[2]) {
+            const label = match[1];
+            const url = match[2];
+            const isInternal = url.startsWith("/");
+            parts.push(
+                isInternal ? (
+                    <Link
+                        key={`link-${lineIdx}-${keyCounter++}`}
+                        href={url}
+                        className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
+                    >
+                        {label}
+                    </Link>
+                ) : (
+                    <a
+                        key={`ext-${lineIdx}-${keyCounter++}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
+                    >
+                        {label}
+                    </a>
+                )
+            );
+        }
+        // Branch 2: [**label**](url)
+        else if (match[3] && match[4]) {
+            const label = match[3];
+            const url = match[4];
+            const isInternal = url.startsWith("/");
+            parts.push(
+                isInternal ? (
+                    <Link
+                        key={`link-${lineIdx}-${keyCounter++}`}
+                        href={url}
+                        className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
+                    >
+                        {label}
+                    </Link>
+                ) : (
+                    <a
+                        key={`ext-${lineIdx}-${keyCounter++}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
+                    >
+                        {label}
+                    </a>
+                )
+            );
+        }
+        // Branch 3: [label](url)
+        else if (match[5] && match[6]) {
+            const label = match[5];
+            const url = match[6];
+            const isInternal = url.startsWith("/");
+            parts.push(
+                isInternal ? (
+                    <Link
+                        key={`link-${lineIdx}-${keyCounter++}`}
+                        href={url}
+                        className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
+                    >
+                        {label}
+                    </Link>
+                ) : (
+                    <a
+                        key={`ext-${lineIdx}-${keyCounter++}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
+                    >
+                        {label}
+                    </a>
+                )
+            );
+        }
+        // Branch 4: **bold**
+        else if (match[7]) {
+            const innerLink = match[7].match(/\[([^\]]+)\]\(([^)]+)\)/);
+            if (innerLink) {
+                const label = innerLink[1];
+                const url = innerLink[2];
+                const isInternal = url.startsWith("/");
+                parts.push(
+                    isInternal ? (
+                        <Link
+                            key={`bold-link-${lineIdx}-${keyCounter++}`}
+                            href={url}
+                            className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
+                        >
+                            {label}
+                        </Link>
+                    ) : (
+                        <a
+                            key={`bold-ext-${lineIdx}-${keyCounter++}`}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
+                        >
+                            {label}
+                        </a>
+                    )
+                );
+            } else {
+                parts.push(
+                    <strong key={`bold-${lineIdx}-${keyCounter++}`} className="font-semibold text-gray-900">
+                        {match[7]}
+                    </strong>
+                );
+            }
+        }
+        // Branch 5: *italic*
+        else if (match[8]) {
+            parts.push(
+                <em key={`italic-${lineIdx}-${keyCounter++}`} className="italic">
+                    {match[8]}
+                </em>
+            );
+        }
+        // Branch 6: `code`
+        else if (match[9]) {
+            parts.push(
+                <code key={`code-${lineIdx}-${keyCounter++}`} className="bg-gray-100 text-teal-800 px-1 py-0.5 rounded text-xs">
+                    {match[9]}
+                </code>
+            );
+        }
+
+        lastIndex = tokenRegex.lastIndex;
+    }
+
+    if (lastIndex < rawText.length) {
+        parts.push(rawText.substring(lastIndex));
+    }
+
+    return parts;
+}
+
 function renderFormattedContent(content: string | undefined | null, isUser: boolean) {
     if (isUser) {
         return <span className="whitespace-pre-wrap">{content || ""}</span>;
@@ -21,69 +178,44 @@ function renderFormattedContent(content: string | undefined | null, isUser: bool
         return <span>{String(content || "")}</span>;
     }
 
-    const lines = content.split("\n");
+    // Replace literal <br> or <br/> tags with newlines
+    const cleanContent = content.replace(/<br\s*\/?>/gi, "\n");
+    const lines = cleanContent.split("\n");
 
     return (
         <div className="space-y-1.5 leading-relaxed text-sm">
             {lines.map((line, lineIdx) => {
-                if (!line.trim()) return <div key={lineIdx} className="h-1.5" />;
+                const trimmed = line.trim();
+                if (!trimmed) return <div key={lineIdx} className="h-1.5" />;
+
+                // Skip markdown table separator lines like | --- | --- | or |:---|:---|
+                if (/^\|[\s\-:]+(\|[\s\-:]+)+\|?$/.test(trimmed)) {
+                    return null;
+                }
+
+                // Check for table rows like | Key | Value |
+                if (trimmed.startsWith("|") && trimmed.includes("|", 1)) {
+                    const cols = trimmed.split("|").map(c => c.trim()).filter(Boolean);
+                    if (cols.length >= 2) {
+                        return (
+                            <div key={lineIdx} className="my-1.5 p-2 bg-teal-50/70 border border-teal-100/80 rounded-xl text-xs space-y-0.5">
+                                <span className="font-bold text-teal-900 block">
+                                    {parseInlineTokens(cols[0], lineIdx)}
+                                </span>
+                                <span className="text-gray-700 block">
+                                    {parseInlineTokens(cols.slice(1).join(" — "), lineIdx)}
+                                </span>
+                            </div>
+                        );
+                    }
+                }
 
                 const isH3 = line.startsWith("### ");
                 const isH2 = line.startsWith("## ");
                 const isBullet = line.startsWith("- ") || line.startsWith("* ");
                 const rawLine = isH3 ? line.slice(4) : isH2 ? line.slice(3) : isBullet ? line.slice(2) : line;
 
-                const parts: React.ReactNode[] = [];
-                let keyCounter = 0;
-                const tokenRegex = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;
-                let match: RegExpExecArray | null;
-                let lastIndex = 0;
-
-                while ((match = tokenRegex.exec(rawLine)) !== null) {
-                    if (match.index > lastIndex) {
-                        parts.push(rawLine.substring(lastIndex, match.index));
-                    }
-                    if (match[1] && match[2]) {
-                        const label = match[1];
-                        const url = match[2];
-                        const isInternal = url.startsWith("/");
-
-                        if (isInternal) {
-                            parts.push(
-                                <Link
-                                    key={`link-${lineIdx}-${keyCounter++}`}
-                                    href={url}
-                                    className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
-                                >
-                                    {label}
-                                </Link>
-                            );
-                        } else {
-                            parts.push(
-                                <a
-                                    key={`ext-${lineIdx}-${keyCounter++}`}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-0.5 text-teal-800 font-bold underline decoration-teal-400 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-1.5 py-0.5 rounded transition-colors text-xs"
-                                >
-                                    {label}
-                                </a>
-                            );
-                        }
-                    } else if (match[3]) {
-                        parts.push(
-                            <strong key={`bold-${lineIdx}-${keyCounter++}`} className="font-semibold text-gray-900">
-                                {match[3]}
-                            </strong>
-                        );
-                    }
-                    lastIndex = tokenRegex.lastIndex;
-                }
-
-                if (lastIndex < rawLine.length) {
-                    parts.push(rawLine.substring(lastIndex));
-                }
+                const parts = parseInlineTokens(rawLine, lineIdx);
 
                 if (isH2) {
                     return (

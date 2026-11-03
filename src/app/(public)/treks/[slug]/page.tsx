@@ -87,7 +87,7 @@ export default async function TrekPage({
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
 
   return (
-    <div className="min-h-screen bg-[#dce5da]">
+    <div className="min-h-screen bg-[#dce5da] sm:py-6 sm:px-4 flex justify-center items-start">
       <TrekJsonLd
         name={trek.name}
         description={trek.description}
@@ -97,7 +97,7 @@ export default async function TrekPage({
         price={trek.price}
       />
 
-      {/* Main dual-column client view with Durg trail guide and dedicated booking panel */}
+      {/* Main client view matching destination phone canvas layout */}
       <TrekDetailClientView
         trek={trek}
         category={category}

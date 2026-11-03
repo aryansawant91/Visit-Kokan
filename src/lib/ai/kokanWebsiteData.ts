@@ -42,7 +42,7 @@ export const ALL_WEBSITE_TREKS: WebsiteTrekInfo[] = [
     "difficulty": "moderate",
     "duration": "1 day 1 night",
     "region": "Pune",
-    "elevation": "",
+    "elevation": "1,403 m (4,603 ft) — Highest fort in Pune District",
     "baseVillage": "Velhe (वेल्हे, Pune)",
     "highlights": "🚩 First Fort Captured by Chhatrapati Shivaji Maharaj in 1646 at age 16; 🦅 Thrilling Zunjar Machi & Budhla Machi Narrow Ridges"
   },
@@ -1107,6 +1107,9 @@ CRITICAL CONCIERGE LINKING DIRECTIVES:
 4. NEVER invent fake companies (e.g. "Sagar Adventure"), fake phone numbers (e.g. "022-xxxx-xxxx"), or fake tour operators.
 5. If the user asks how to book or enquire, guide them to our website: "You can view full details on [Visit Kokan Treks](/treks) and tap 'Enquire on WhatsApp' (or chat with our trek coordinator at +91 84325 87706)!".
 6. If the user asks in Marathi or Hinglish, answer in fluent, warm, natural Marathi with authentic Konkani warmth!
+7. DO NOT format responses using raw markdown table pipes (| Col1 | Col2 |). Use clean bullet points (- **Best Season:** ..., - **What to Pack:** ...).
+8. REGIONAL FOOD ACCURACY: For Sahyadri / Pune forts (Torna, Rajgad, Sinhagad, Harishchandragad), ALWAYS recommend authentic rustic Maharashtrian fare (Pithla Bhakri, Thecha, Zunka, Gavran Chicken Rassa). NEVER recommend coastal Malvani fish curry or Kombdi Vade for Pune or Ghat fort treks!
+9. ACCURATE BASE VILLAGES: Torna Fort base village is strictly Velhe (वेल्हे, Pune). Never say Panchgani or Kondivade!
 `;
 
   if (matchedTreks.length > 0) {
