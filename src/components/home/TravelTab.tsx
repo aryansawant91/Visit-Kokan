@@ -158,10 +158,10 @@ const BANNERS = [
     image: "/images/banners/alphonso-mangoes.jpg",
   },
   {
-    title: "Hidden Beach Stays",
-    sub: "Authentic Coastal Homestays",
-    cta: "Explore",
-    href: "/listings",
+    title: "Curated Konkan Homestays",
+    sub: "Authentic Coastal Wadas & Village Stays",
+    cta: "Request Stay",
+    href: "/listings?category=homestay",
     image: "/images/banners/coastal-getaways.jpg",
   },
 ];
@@ -563,6 +563,8 @@ export default function TravelTab() {
   const showProducts =
     activeCategory === "all" || activeCategory === "products" || activeCategory === "food";
 
+  const showHomestays = activeCategory === "all" || activeCategory === "homestays";
+
   return (
     <div className="bg-kokan-cream/20">
       {/* Category pills */}
@@ -728,6 +730,105 @@ export default function TravelTab() {
                 <p className="text-sm text-kokan-earth/40 py-4">No products available right now.</p>
               )}
             </HorizontalScroll>
+          </div>
+        )}
+
+        {/* 4. Homestays Section — Curated On Demand & Partner Registration (Option A) */}
+        {showHomestays && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="font-semibold text-kokan-earth flex items-center gap-2">
+                🏡 Curated Konkan Homestays & Wadas
+              </h2>
+              <span className="text-xs text-[#2D6A4F] font-bold bg-[#2D6A4F]/10 px-2.5 py-0.5 rounded-full">
+                Curated On Demand
+              </span>
+            </div>
+
+            {/* Traveler Request Card */}
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#122b1c] via-[#1c3d28] to-[#0d1e13] text-white p-5 sm:p-7 shadow-sm border border-emerald-900/40">
+              <div className="relative z-10">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md text-amber-300 font-extrabold text-[10px] sm:text-[11px] rounded-full uppercase tracking-wider mb-2.5">
+                  <span>🌴</span> 100% Genuine Local Families · Zero Fake Listings
+                </div>
+                <h3 className="text-xl sm:text-2xl font-display font-black leading-tight text-white mb-2">
+                  Stay with Real Families in Coastal Cottages & Heritage Wadas
+                </h3>
+                <p className="text-white/80 text-xs sm:text-sm leading-relaxed mb-5 max-w-xl">
+                  We verify every homestay partner offline before recommending. Tell us your dates and destination (Tarkarli, Alibaug, Dapoli, Ganpatipule, Malvan) — Kokan Mitra concierge will arrange verified authentic stays.
+                </p>
+
+                {/* Quality Guarantee Pills */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+                  {[
+                    { label: "Verified Hosts", icon: "🤝" },
+                    { label: "Home-cooked Food", icon: "🍛" },
+                    { label: "Coastal & Orchards", icon: "🌴" },
+                    { label: "Zero Fake Listings", icon: "🛡️" },
+                  ].map((chip, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/10 text-center"
+                    >
+                      <span className="text-base block mb-0.5">{chip.icon}</span>
+                      <span className="text-[10px] font-bold text-white/90 leading-tight block">
+                        {chip.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Traveler Actions */}
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <a
+                    href={`https://wa.me/918432587706?text=${encodeURIComponent(
+                      "Hi Visit Kokan! I am looking for a curated authentic homestay in Konkan.\n• Preferred Region (Tarkarli/Malvan/Alibaug/Dapoli/Ganpatipule):\n• Dates:\n• Number of Guests:\n• Budget per night:"
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-black bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] shadow-sm transition-all active:scale-95"
+                  >
+                    <span>Request Verified Homestay (WhatsApp)</span>
+                    <ArrowRight size={13} />
+                  </a>
+
+                  <Link
+                    href="/trip-planner"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-md transition-all active:scale-95"
+                  >
+                    <span>Plan with Kokan Mitra AI</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Homestay Owners Partner Onboarding Strip */}
+            <div className="p-4 sm:p-5 bg-white rounded-2xl border border-kokan-sand/30 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#2D6A4F] flex items-center justify-center text-xl shrink-0">
+                  🏡
+                </div>
+                <div>
+                  <h4 className="font-bold text-kokan-earth text-xs sm:text-sm">
+                    Are You a Homestay Owner in Konkan?
+                  </h4>
+                  <p className="text-[11px] text-kokan-earth/60 mt-0.5 leading-snug">
+                    List your coastal wada, orchard cottage, or village stay. Zero listing fees, verified direct bookings.
+                  </p>
+                </div>
+              </div>
+
+              <a
+                href={`https://wa.me/918432587706?text=${encodeURIComponent(
+                  "Hi Visit Kokan Team! I own a homestay/cottage in Konkan and would like to partner with Visit Kokan to list my property.\n• Property Name:\n• Location:\n• Contact Number:"
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto px-4 py-2 rounded-full text-xs font-bold bg-kokan-green hover:bg-emerald-800 text-white shadow-xs transition-all text-center whitespace-nowrap"
+              >
+                List Your Homestay →
+              </a>
+            </div>
           </div>
         )}
 

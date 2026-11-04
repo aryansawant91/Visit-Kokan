@@ -205,7 +205,46 @@ export default function ListingsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        {/* Curated Homestays On Demand & Partner Registration Notice */}
+        {(selectedCategory === "all" || selectedCategory === "homestay") && (
+          <div className="mb-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#122b1c] via-[#1c3d28] to-[#0d1e13] text-white shadow-md border border-emerald-900/40">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md text-amber-300 font-extrabold text-[11px] rounded-full uppercase tracking-wider mb-3">
+              <span>🏡</span> 100% Verified Local Stays · Curated on Request
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-display font-black leading-tight text-white mb-2">
+              Looking for an Authentic Konkan Homestay or Coastal Wada?
+            </h2>
+            <p className="text-white/80 text-xs sm:text-sm leading-relaxed mb-6 max-w-2xl">
+              We never show unverified dummy listings. All private coastal stays are curated on demand with genuine local families across Sindhudurg, Ratnagiri & Raigad to ensure clean rooms and delicious homemade Malvani meals.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a
+                href={`https://wa.me/918432587706?text=${encodeURIComponent(
+                  "Hi Visit Kokan! I am looking for a curated authentic homestay in Konkan.\n• Preferred Region:\n• Travel Dates:\n• Number of Guests:\n• Budget per night:"
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs sm:text-sm font-black bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] shadow-sm transition-all active:scale-95"
+              >
+                <span>Request a Verified Stay (WhatsApp)</span>
+                <ArrowRight size={14} />
+              </a>
+
+              <a
+                href={`https://wa.me/918432587706?text=${encodeURIComponent(
+                  "Hi Visit Kokan Team! I own a homestay in Konkan and would like to partner with Visit Kokan to list my property.\n• Property Name:\n• Location:\n• Contact Number:"
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs sm:text-sm font-bold bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-md transition-all active:scale-95"
+              >
+                <span>Homestay Owners: Partner with Us →</span>
+              </a>
+            </div>
+          </div>
+        )}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
