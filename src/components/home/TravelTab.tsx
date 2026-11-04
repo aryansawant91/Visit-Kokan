@@ -4,17 +4,30 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  MapPin, Clock, ChevronRight, ArrowRight, Star, Compass
+  MapPin,
+  Clock,
+  ChevronRight,
+  ArrowRight,
+  Star,
+  Compass,
+  ShoppingCart,
+  Package,
+  Check,
+  Lock,
 } from "lucide-react";
 import { Trek } from "@/types/trek";
+import { Product } from "@/types/product";
+import { useCart } from "@/context/CartContext";
 
 const TRAVEL_CATEGORIES = [
   { label: "All", emoji: "🗺️", value: "all" },
-  { label: "Beaches", emoji: "🏖️", value: "beaches" },
-  { label: "Forts", emoji: "🏰", value: "forts" },
+  { label: "Destinations", emoji: "🏖️", value: "destinations" },
   { label: "Treks", emoji: "🧗", value: "treks" },
+  { label: "Products", emoji: "🥥", value: "products" },
+  { label: "Beaches", emoji: "🌊", value: "beaches" },
+  { label: "Forts", emoji: "🏰", value: "forts" },
   { label: "Homestays", emoji: "🏡", value: "homestays" },
-  { label: "Food Tours", emoji: "🍛", value: "food" },
+  { label: "Food & Spices", emoji: "🍛", value: "food" },
   { label: "Water Sports", emoji: "🤿", value: "water" },
   { label: "Temples", emoji: "🛕", value: "temples" },
 ];
@@ -138,18 +151,18 @@ const BANNERS = [
     image: "/images/banners/monsoon-treks.jpg",
   },
   {
+    title: "Authentic Kokan Products",
+    sub: "Pure Kokum, Hapus & Malvani Spices",
+    cta: "Shop Now",
+    href: "/products",
+    image: "/images/banners/alphonso-mangoes.jpg",
+  },
+  {
     title: "Hidden Beach Stays",
     sub: "Authentic Coastal Homestays",
     cta: "Explore",
     href: "/listings",
     image: "/images/banners/coastal-getaways.jpg",
-  },
-  {
-    title: "Untouched Kokan",
-    sub: "Historic Forts & Secret Coves",
-    cta: "Explore",
-    href: "/trip-planner",
-    image: "/images/banners/alphonso-mangoes.jpg",
   },
 ];
 
@@ -158,15 +171,28 @@ const difficultyColor: Record<string, string> = {
   moderate: "bg-amber-100 text-amber-700",
   hard: "bg-red-100 text-red-700",
   expert: "bg-red-200 text-red-800",
-  // capitalised fallbacks (just in case)
   Easy: "bg-green-100 text-green-700",
   Moderate: "bg-amber-100 text-amber-700",
   Hard: "bg-red-100 text-red-700",
 };
 
+const PRODUCT_EMOJIS: Record<string, string> = {
+  fruits: "🥭",
+  beverages: "🥤",
+  nuts: "🥜",
+  spices: "🌶️",
+  condiments: "🍯",
+  pickles: "🥒",
+  flour: "🌾",
+  "gift-pack": "🎁",
+};
+
 function HorizontalScroll({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
+    <div
+      className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory"
+      style={{ scrollbarWidth: "none" }}
+    >
       {children}
     </div>
   );
@@ -206,7 +232,9 @@ function DestinationCard({ dest }: { dest: DestinationItem }) {
           </div>
         </div>
         <div className="bg-white px-3 py-2">
-          <span className="text-xs text-kokan-earth/60 bg-kokan-sand/20 px-2 py-0.5 rounded-full">{dest.tag}</span>
+          <span className="text-xs text-kokan-earth/60 bg-kokan-sand/20 px-2 py-0.5 rounded-full">
+            {dest.tag}
+          </span>
         </div>
       </div>
     </Link>
@@ -229,7 +257,7 @@ function TrekCard({ trek }: { trek: Trek }) {
   const hasImg = !imgErr && Boolean(trek.images?.[0]);
   return (
     <Link href={`/treks/${trek.slug}`} className="flex-shrink-0 snap-start">
-      <div className="w-48 sm:w-56 bg-white rounded-2xl overflow-hidden border border-kokan-sand/20 hover:shadow-md transition-all">
+      <div className="w-48 sm:w-56 bg-white rounded-2xl overflow-hidden border border-kokan-sand/20 hover:shadow-md transition-all flex flex-col justify-between h-full">
         <div className="relative h-32 bg-emerald-950/20">
           {hasImg ? (
             <Image
@@ -242,35 +270,43 @@ function TrekCard({ trek }: { trek: Trek }) {
               className="object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#1B4332] to-[#081C15] flex items-center justify-center text-3xl">🥾</div>
+            <div className="w-full h-full bg-gradient-to-br from-[#1B4332] to-[#081C15] flex items-center justify-center text-3xl">
+              🥾
+            </div>
           )}
           <div className="absolute top-2 left-2 flex items-center gap-1">
             <span className="text-[10px] bg-amber-400 text-amber-950 font-black px-1.5 py-0.5 rounded-full shadow-xs">
               ⏳ Soon
             </span>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${difficultyColor[trek.difficulty] ?? "bg-gray-100 text-gray-600"}`}>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                difficultyColor[trek.difficulty] ?? "bg-gray-100 text-gray-600"
+              }`}
+            >
               {trek.difficulty}
             </span>
           </div>
         </div>
-        <div className="p-3">
-          <p className="font-semibold text-kokan-earth text-sm line-clamp-1">{trek.name}</p>
-          <div className="flex items-center gap-3 text-xs text-kokan-earth/50 mt-1">
-            {trek.duration && (
+        <div className="p-3 flex flex-col justify-between flex-1">
+          <div>
+            <p className="font-semibold text-kokan-earth text-sm line-clamp-1">{trek.name}</p>
+            <div className="flex items-center gap-3 text-xs text-kokan-earth/50 mt-1">
+              {trek.duration && (
+                <span className="flex items-center gap-0.5">
+                  <Clock className="w-3 h-3" /> {trek.duration}
+                </span>
+              )}
               <span className="flex items-center gap-0.5">
-                <Clock className="w-3 h-3" /> {trek.duration}
+                <MapPin className="w-3 h-3" /> {trek.region}
               </span>
-            )}
-            <span className="flex items-center gap-0.5">
-              <MapPin className="w-3 h-3" /> {trek.region}
-            </span>
+            </div>
           </div>
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-kokan-sand/15">
             <span className="text-kokan-green font-bold text-sm">
               ₹{trek.price?.toLocaleString("en-IN")}
               <span className="text-[11px] text-kokan-earth/40 font-normal"> / person</span>
             </span>
-            <span className="text-xs font-bold text-kokan-green bg-kokan-green/10 px-2.5 py-0.5 rounded-md">
+            <span className="text-xs font-bold text-kokan-green bg-kokan-green/10 px-2.5 py-1 rounded-md">
               Enquire
             </span>
           </div>
@@ -293,6 +329,139 @@ function TrekCardSkeleton() {
   );
 }
 
+function ProductCard({ product }: { product: Product }) {
+  const [imgErr, setImgErr] = useState(false);
+  const { addToCart, isInCart } = useCart();
+  const [justAdded, setJustAdded] = useState(false);
+  const inCart = isInCart(product.id);
+  const hasImg = !imgErr && Boolean(product.images?.[0]);
+  const emoji = PRODUCT_EMOJIS[product.category] || "🥥";
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (product.isComingSoon) return;
+    addToCart(product);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 2000);
+  };
+
+  return (
+    <Link href={`/products/${product.slug}`} className="flex-shrink-0 snap-start">
+      <div className="w-48 sm:w-56 bg-white rounded-2xl overflow-hidden border border-kokan-sand/20 hover:shadow-md transition-all flex flex-col justify-between h-full">
+        <div className="relative h-32 bg-emerald-950/10">
+          {hasImg ? (
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 192px, 224px"
+              unoptimized={Boolean(product.images[0] && !product.images[0].startsWith("/"))}
+              onError={() => setImgErr(true)}
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-emerald-900 to-kokan-earth/80 flex items-center justify-center text-3xl">
+              {emoji}
+            </div>
+          )}
+
+          {/* Badges on product image */}
+          <div className="absolute top-2 left-2 flex items-center gap-1">
+            {product.isComingSoon ? (
+              <span className="text-[10px] bg-amber-400 text-amber-950 font-black px-1.5 py-0.5 rounded-full shadow-xs flex items-center gap-0.5">
+                <Clock className="w-2.5 h-2.5" /> Soon
+              </span>
+            ) : (
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-800 capitalize shadow-xs">
+                {product.category || "Konkan Special"}
+              </span>
+            )}
+          </div>
+
+          <div className="absolute top-2 right-2 bg-white/90 text-xs font-bold text-yellow-600 px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-xs">
+            <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+            {product.rating ? product.rating.toFixed(1) : "4.8"}
+          </div>
+        </div>
+
+        <div className="p-3 flex flex-col justify-between flex-1">
+          <div>
+            <p className="font-semibold text-kokan-earth text-sm line-clamp-1">{product.name}</p>
+            <div className="flex items-center gap-3 text-xs text-kokan-earth/50 mt-1">
+              <span className="flex items-center gap-0.5">
+                <Package className="w-3 h-3" /> {product.unit || "Pack"}
+              </span>
+              <span className="flex items-center gap-0.5">
+                <MapPin className="w-3 h-3" /> {product.region || "Sindhudurg"}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-kokan-sand/15">
+            {product.hidePrice ? (
+              <span className="text-kokan-earth/50 font-bold text-sm flex items-center gap-1">
+                <Lock className="w-3 h-3" /> ₹***
+              </span>
+            ) : (
+              <span className="text-kokan-green font-bold text-sm">
+                ₹{product.price?.toLocaleString("en-IN")}
+                <span className="text-[11px] text-kokan-earth/40 font-normal">
+                  {" "}
+                  / {product.unit || "pack"}
+                </span>
+              </span>
+            )}
+
+            {product.isComingSoon ? (
+              <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-md">
+                Soon
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleAdd}
+                className={`text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1 transition-all ${
+                  justAdded || inCart
+                    ? "bg-kokan-green text-white shadow-xs"
+                    : "text-kokan-green bg-kokan-green/10 hover:bg-kokan-green hover:text-white"
+                }`}
+              >
+                {justAdded ? (
+                  <>
+                    <Check className="w-3 h-3" /> Added
+                  </>
+                ) : inCart ? (
+                  <>
+                    <ShoppingCart className="w-3 h-3" /> In Cart
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-3 h-3" /> Add
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function ProductCardSkeleton() {
+  return (
+    <div className="flex-shrink-0 w-48 sm:w-56 bg-white rounded-2xl overflow-hidden border border-kokan-sand/20">
+      <div className="h-32 bg-kokan-sand/20 animate-pulse" />
+      <div className="p-3 space-y-2">
+        <div className="h-3 bg-kokan-sand/20 rounded animate-pulse w-3/4" />
+        <div className="h-3 bg-kokan-sand/20 rounded animate-pulse w-1/2" />
+        <div className="h-4 bg-kokan-sand/20 rounded animate-pulse w-1/3" />
+      </div>
+    </div>
+  );
+}
+
 export default function TravelTab() {
   const [activeBanner, setActiveBanner] = useState(0);
   const [activeCategory, setActiveCategory] = useState("all");
@@ -300,6 +469,8 @@ export default function TravelTab() {
   const [destinationsLoading, setDestinationsLoading] = useState(true);
   const [treks, setTreks] = useState<Trek[]>([]);
   const [treksLoading, setTreksLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
 
   // Auto-rotate banner
   useEffect(() => {
@@ -316,8 +487,18 @@ export default function TravelTab() {
           const mapped: DestinationItem[] = data.map((d: any) => ({
             name: d.name?.replace(/\s+(Beach|Fort|Museum)$/i, "") || d.name,
             region: d.region || "Konkan",
-            tag: d.category === "beach" ? "Beach" : d.category === "fort" ? "Historic Fort" : d.category === "temple" ? "Temple" : "Explore",
-            image: d.coverImage || d.images?.[0] || "https://upload.wikimedia.org/wikipedia/commons/d/d3/Tarkarli_beach.JPG",
+            tag:
+              d.category === "beach"
+                ? "Beach"
+                : d.category === "fort"
+                ? "Historic Fort"
+                : d.category === "temple"
+                ? "Temple"
+                : "Explore",
+            image:
+              d.coverImage ||
+              d.images?.[0] ||
+              "https://upload.wikimedia.org/wikipedia/commons/d/d3/Tarkarli_beach.JPG",
             slug: d.slug,
             rating: d.rating ? Number(d.rating) : 4.8,
             category: d.category || "all",
@@ -342,33 +523,60 @@ export default function TravelTab() {
           seen.add(key);
           return true;
         });
-        setTreks(unique.slice(0, 6));
+        setTreks(unique.slice(0, 8));
         setTreksLoading(false);
       })
       .catch(() => setTreksLoading(false));
   }, []);
 
+  // Fetch authentic products from Firestore via API
+  useEffect(() => {
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const active = data.filter((p: any) => p.isActive !== false);
+          setProducts(active.slice(0, 10));
+        }
+        setProductsLoading(false);
+      })
+      .catch(() => setProductsLoading(false));
+  }, []);
+
   const filteredDestinations = destinations.filter((dest) => {
-    if (activeCategory === "all") return true;
+    if (activeCategory === "all" || activeCategory === "destinations") return true;
     if (activeCategory === "beaches" || activeCategory === "beach") return dest.category === "beach";
     if (activeCategory === "forts" || activeCategory === "fort") return dest.category === "fort";
     if (activeCategory === "temples" || activeCategory === "temple") return dest.category === "temple";
     return true;
   });
 
+  const showDestinations =
+    activeCategory === "all" ||
+    activeCategory === "destinations" ||
+    activeCategory === "beaches" ||
+    activeCategory === "forts" ||
+    activeCategory === "temples";
+
+  const showTreks = activeCategory === "all" || activeCategory === "treks";
+
+  const showProducts =
+    activeCategory === "all" || activeCategory === "products" || activeCategory === "food";
+
   return (
     <div className="bg-kokan-cream/20">
       {/* Category pills */}
-      <div className="bg-white border-b border-kokan-sand/20 px-4 py-3">
+      <div className="bg-white border-b border-kokan-sand/20 px-4 py-3 sticky top-[52px] z-30 shadow-xs">
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
           {TRAVEL_CATEGORIES.map((c) => (
             <button
               key={c.value}
               onClick={() => setActiveCategory(c.value)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${activeCategory === c.value
-                  ? "bg-kokan-green text-white"
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+                activeCategory === c.value
+                  ? "bg-kokan-green text-white shadow-xs"
                   : "bg-kokan-sand/20 text-kokan-earth/70 hover:bg-kokan-sand/30"
-                }`}
+              }`}
             >
               {c.emoji} {c.label}
             </button>
@@ -377,8 +585,7 @@ export default function TravelTab() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-5 space-y-8">
-
-        {/* Banner */}
+        {/* Banner Carousel */}
         <div>
           <div
             className="relative h-48 sm:h-56 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm"
@@ -402,12 +609,11 @@ export default function TravelTab() {
                   style={{ objectFit: "cover", width: "100%", height: "100%" }}
                 />
 
-                {/* Left gradient overlay — keeps text readable while right side stays completely vibrant */}
+                {/* Left gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 
-                {/* Content: Name on left side top, Explore button at bottom */}
+                {/* Content */}
                 <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-between items-start max-w-[70%] sm:max-w-sm">
-                  {/* Left Top */}
                   <div>
                     <span className="text-amber-300/95 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] drop-shadow-sm block mb-1">
                       {banner.sub}
@@ -417,7 +623,6 @@ export default function TravelTab() {
                     </h3>
                   </div>
 
-                  {/* Left Bottom: Frosted transparent explore button */}
                   <Link
                     href={banner.href}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/35 shadow-sm transition-all hover:scale-105 active:scale-95"
@@ -446,51 +651,85 @@ export default function TravelTab() {
           </div>
         </div>
 
-        {/* Destinations */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-kokan-earth flex items-center gap-2">
-              🏖️ Top Destinations
-            </h2>
-            <Link href="/destinations" className="text-xs text-kokan-green flex items-center gap-1 font-medium">
-              See all <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
+        {/* 1. Destinations Section */}
+        {showDestinations && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-kokan-earth flex items-center gap-2">
+                🏖️ Top Destinations
+              </h2>
+              <Link
+                href="/destinations"
+                className="text-xs text-kokan-green flex items-center gap-1 font-medium hover:underline"
+              >
+                See all <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <HorizontalScroll>
+              {destinationsLoading ? (
+                Array.from({ length: 6 }).map((_, i) => <DestinationCardSkeleton key={i} />)
+              ) : filteredDestinations.length > 0 ? (
+                filteredDestinations.map((dest) => <DestinationCard key={dest.slug} dest={dest} />)
+              ) : (
+                <p className="text-sm text-kokan-earth/40 py-4">
+                  No destinations found for this category.
+                </p>
+              )}
+            </HorizontalScroll>
           </div>
-          <HorizontalScroll>
-            {destinationsLoading
-              ? Array.from({ length: 6 }).map((_, i) => <DestinationCardSkeleton key={i} />)
-              : filteredDestinations.length > 0
-                ? filteredDestinations.map((dest) => (
-                    <DestinationCard key={dest.slug} dest={dest} />
-                  ))
-                : (
-                    <p className="text-sm text-kokan-earth/40 py-4">No destinations found for this category.</p>
-                  )
-            }
-          </HorizontalScroll>
-        </div>
+        )}
 
-        {/* Treks — live from Firestore */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-kokan-earth flex items-center gap-2">
-              🧗 Popular Treks
-            </h2>
-            <Link href="/treks" className="text-xs text-kokan-green flex items-center gap-1 font-medium">
-              See all <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
+        {/* 2. Treks Section */}
+        {showTreks && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-kokan-earth flex items-center gap-2">
+                🧗 Popular Treks
+              </h2>
+              <Link
+                href="/treks"
+                className="text-xs text-kokan-green flex items-center gap-1 font-medium hover:underline"
+              >
+                See all <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <HorizontalScroll>
+              {treksLoading ? (
+                Array.from({ length: 4 }).map((_, i) => <TrekCardSkeleton key={i} />)
+              ) : treks.length > 0 ? (
+                treks.map((trek) => <TrekCard key={trek.id} trek={trek} />)
+              ) : (
+                <p className="text-sm text-kokan-earth/40 py-4">No treks available right now.</p>
+              )}
+            </HorizontalScroll>
           </div>
-          <HorizontalScroll>
-            {treksLoading
-              ? Array.from({ length: 4 }).map((_, i) => <TrekCardSkeleton key={i} />)
-              : treks.length > 0
-                ? treks.map((trek) => <TrekCard key={trek.id} trek={trek} />)
-                : (
-                  <p className="text-sm text-kokan-earth/40 py-4">No treks available right now.</p>
-                )
-            }
-          </HorizontalScroll>
-        </div>
+        )}
+
+        {/* 3. Products Section — matched layout with Destinations & Treks */}
+        {showProducts && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-kokan-earth flex items-center gap-2">
+                🥥 Authentic Konkan Products
+              </h2>
+              <Link
+                href="/products"
+                className="text-xs text-kokan-green flex items-center gap-1 font-medium hover:underline"
+              >
+                See all <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <HorizontalScroll>
+              {productsLoading ? (
+                Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
+              ) : products.length > 0 ? (
+                products.map((product) => <ProductCard key={product.id} product={product} />)
+              ) : (
+                <p className="text-sm text-kokan-earth/40 py-4">No products available right now.</p>
+              )}
+            </HorizontalScroll>
+          </div>
+        )}
 
         {/* Quick links grid */}
         <div>
@@ -501,40 +740,44 @@ export default function TravelTab() {
             {[
               { label: "Beaches", emoji: "🏖️", href: "/destinations?category=beach" },
               { label: "Treks", emoji: "🧗", href: "/treks" },
+              { label: "Products", emoji: "🥥", href: "/products" },
               { label: "Homestays", emoji: "🏡", href: "/listings?category=homestay" },
               { label: "Food Tours", emoji: "🍛", href: "/listings?category=food" },
-              { label: "Water Sports", emoji: "🤿", href: "/listings?category=water" },
               { label: "Forts", emoji: "🏰", href: "/destinations?category=fort" },
               { label: "Temples", emoji: "🛕", href: "/destinations?category=temple" },
-              { label: "Blogs", emoji: "📝", href: "/blogs" },
+              { label: "Water Sports", emoji: "🤿", href: "/listings?category=water" },
             ].map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className="flex flex-col items-center gap-1.5 p-3 bg-white rounded-2xl border border-kokan-sand/30 hover:border-kokan-green/40 hover:bg-kokan-green/5 transition-all"
+                className="flex flex-col items-center gap-1.5 p-3 bg-white rounded-2xl border border-kokan-sand/30 hover:border-kokan-green/40 hover:bg-kokan-green/5 transition-all shadow-2xs"
               >
                 <span className="text-2xl">{item.emoji}</span>
-                <span className="text-xs text-kokan-earth/70 text-center leading-tight font-medium">{item.label}</span>
+                <span className="text-xs text-kokan-earth/70 text-center leading-tight font-medium">
+                  {item.label}
+                </span>
               </Link>
             ))}
           </div>
         </div>
 
         {/* Plan your trip CTA */}
-        <div className="bg-kokan-green rounded-2xl p-6 text-center">
+        <div className="bg-kokan-green rounded-2xl p-6 text-center shadow-xs">
           <div className="text-4xl mb-3">🗺️</div>
           <h3 className="font-playfair font-bold text-white text-xl mb-2">Plan Your Kokan Trip</h3>
-          <p className="text-white/70 text-sm mb-4">Tell us your dates and budget — we&apos;ll build the perfect itinerary</p>
+          <p className="text-white/70 text-sm mb-4">
+            Tell us your dates and budget — Kokan Mitra builds your custom itinerary
+          </p>
           <Link
             href="/trip-planner"
-            className="inline-block bg-white text-kokan-green font-bold px-6 py-2.5 rounded-full text-sm hover:bg-kokan-cream transition-colors"
+            className="inline-block bg-white text-kokan-green font-bold px-6 py-2.5 rounded-full text-sm hover:bg-kokan-cream transition-colors shadow-xs"
           >
             Start Planning →
           </Link>
         </div>
 
         {/* View all CTAs */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Link
             href="/destinations"
             className="flex items-center justify-center gap-2 py-3 border-2 border-kokan-green text-kokan-green rounded-2xl font-semibold text-sm hover:bg-kokan-green hover:text-white transition-colors"
@@ -543,9 +786,15 @@ export default function TravelTab() {
           </Link>
           <Link
             href="/treks"
-            className="flex items-center justify-center gap-2 py-3 bg-kokan-green text-white rounded-2xl font-semibold text-sm hover:bg-kokan-green/90 transition-colors"
+            className="flex items-center justify-center gap-2 py-3 border-2 border-kokan-green text-kokan-green rounded-2xl font-semibold text-sm hover:bg-kokan-green hover:text-white transition-colors"
           >
             All Treks <ArrowRight className="w-4 h-4" />
+          </Link>
+          <Link
+            href="/products"
+            className="flex items-center justify-center gap-2 py-3 bg-kokan-green text-white rounded-2xl font-semibold text-sm hover:bg-kokan-green/90 transition-colors shadow-xs"
+          >
+            All Products <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
