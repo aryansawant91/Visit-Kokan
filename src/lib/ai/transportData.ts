@@ -248,13 +248,59 @@ export function validateAndCorrectTransport(itinerary: any, contextText: string 
 
   const destContext = `${itinerary.title || ""} ${itinerary.subtitle || ""} ${contextText} ${itinerary.destination || ""}`.toLowerCase();
 
-  // Programmatic safeguard for Pune / Sahyadri Ghat Forts (Torna, Rajgad, Sinhagad)
-  const isPuneTrek =
+  // 1. Comprehensive Trek Verification & Correction (for all 59 Sahyadri & coastal treks)
+  let matchedTrekSlug: string | null = null;
+  let matchedTransit: any = null;
+
+  for (const [slug, transit] of Object.entries(TREK_TRANSIT_GATEWAYS)) {
+    const slugKey = slug.replace(/-trek$/, "").replace(/-fort$/, "");
+    if (
+      destContext.includes(slug) ||
+      destContext.includes(slugKey) ||
+      (transit.baseVillage && destContext.includes(transit.baseVillage.toLowerCase().split(" ")[0]))
+    ) {
+      matchedTrekSlug = slug;
+      matchedTransit = transit;
+      break;
+    }
+  }
+
+  const isAnyTrek =
+    Boolean(matchedTrekSlug) ||
+    destContext.includes("kalsubai") ||
     destContext.includes("torna") ||
     destContext.includes("rajgad") ||
-    destContext.includes("sinhagad");
+    destContext.includes("sinhagad") ||
+    destContext.includes("harishchandra") ||
+    destContext.includes("ratangad") ||
+    destContext.includes("kalavantin") ||
+    destContext.includes("prabalgad") ||
+    destContext.includes("amk") ||
+    destContext.includes("sandhan") ||
+    destContext.includes("lohagad") ||
+    destContext.includes("visapur") ||
+    destContext.includes("rajmachi") ||
+    destContext.includes("sarasgad") ||
+    destContext.includes("sudhagad") ||
+    destContext.includes("mahipatgad") ||
+    destContext.includes("karnala") ||
+    destContext.includes("manikgad") ||
+    destContext.includes("rohida") ||
+    destContext.includes("purandar") ||
+    destContext.includes("shivneri") ||
+    destContext.includes("tikona") ||
+    destContext.includes("tung") ||
+    destContext.includes("trek") ||
+    destContext.includes("summit") ||
+    destContext.includes("peak");
 
-  if (isPuneTrek && Array.isArray(itinerary.days)) {
+  const isSindhudurgCoastalTrek =
+    destContext.includes("sindhudurg-sea-wall") ||
+    destContext.includes("kunkeshwar-cliffside") ||
+    destContext.includes("vijaydurg-coastal");
+
+  // For all mountain / Sahyadri treks: NEVER allow Malvani fish curry or coastal seafood!
+  if (isAnyTrek && !isSindhudurgCoastalTrek && Array.isArray(itinerary.days)) {
     itinerary.days.forEach((d: any) => {
       if (Array.isArray(d.stops)) {
         d.stops.forEach((s: any) => {
@@ -265,6 +311,7 @@ export function validateAndCorrectTransport(itinerary: any, contextText: string 
             desc.includes("malvani") ||
             desc.includes("fish curry") ||
             desc.includes("kombdi vade") ||
+            desc.includes("seafood") ||
             title.includes("malvani")
           ) {
             s.title = "Authentic Rustic Maharashtrian Meal";
@@ -276,29 +323,63 @@ export function validateAndCorrectTransport(itinerary: any, contextText: string 
     });
   }
 
-  // Programmatic safeguard: Ensure Torna / Pune treks use realistic road travel
-  if (isPuneTrek && itinerary.transportSummary) {
+  // Programmatic safeguard: For all mountain / Sahyadri treks, guarantee authentic expedition transport!
+  if (isAnyTrek && !isSindhudurgCoastalTrek) {
+    if (!itinerary.transportSummary) {
+      itinerary.transportSummary = {};
+    }
     const t = itinerary.transportSummary;
-    t.type = "road";
-    t.from = "Mumbai / Pune";
-    t.to = "Velhe Base Village (Torna Fort)";
-    t.duration = "4.5 to 5.5 hours from Mumbai (210 km) or 1.5 to 2 hours from Pune (65 km)";
-    t.cost = "₹3,500 - ₹4,500 private cab / self-drive toll ₹350 fuel ₹1,400";
+    const isSaturdayNight =
+      destContext.includes("saturday") ||
+      destContext.includes("night") ||
+      destContext.includes("overnight") ||
+      destContext.includes("batch") ||
+      destContext.includes("weekend") ||
+      (t.departs && (t.departs.includes("23:") || t.departs.includes("10:") || t.departs.includes("11:") || t.departs.includes("PM")));
+
+    const baseVillage = matchedTransit?.baseVillage || (destContext.includes("kalsubai") ? "Bari (बारी, Akole)" : destContext.includes("torna") ? "Velhe (वेल्हे, Pune)" : "Base Village");
+
+    // Set genuine trek transport: AC Trekking Bus / Tempo Traveler
+    t.type = "bus";
+    t.name = "AC Trekking Bus / Tempo Traveler";
+    t.number = "Expedition Bus";
+    t.from = destContext.includes("from pune")
+      ? "Pune (Swargate / Chandani Chowk)"
+      : "Mumbai (Borivali / Sion / Thane / Kalyan)";
+    t.to = `${baseVillage}`;
+    t.departs = isSaturdayNight ? "10:30 PM (Sat Night)" : "05:00 AM (Sun Morning)";
+    t.arrives = isSaturdayNight ? "03:30 AM (Sun Morning)" : "08:30 AM (Sun Morning)";
+    t.duration = destContext.includes("from pune") ? "2h 30m" : "4h 30m overnight drive";
+    t.cost = "Included in ₹1,499 trek package (Advance: ₹750)";
+
+    // Clean up Day 1 stops if it had Tutari Express or 07:30 AM Mumbai CSMT
+    if (Array.isArray(itinerary.days) && itinerary.days[0] && Array.isArray(itinerary.days[0].stops)) {
+      const stops = itinerary.days[0].stops;
+      if (stops[0] && (stops[0].place?.toLowerCase().includes("csmt") || stops[0].place?.toLowerCase().includes("kankavli") || stops[0].description?.toLowerCase().includes("tutari") || stops[0].time?.includes("07:30 AM"))) {
+        stops[0].time = isSaturdayNight ? "10:30 PM" : "05:00 AM";
+        stops[0].place = "Mumbai Pickups (Borivali, Sion, Thane, Kalyan)";
+        stops[0].type = "transport";
+        stops[0].description = "Board the AC trekking bus from your selected pickup point. Overnight scenic highway drive towards the base village.";
+        stops[0].cost = "Included";
+      }
+    }
+
+    return itinerary;
   }
 
   // Programmatic safeguard: Ensure Pali / Sarasgad / Sudhagad treks never get Kankavli
   const isPaliTrek = destContext.includes("pali") || destContext.includes("sarasgad") || destContext.includes("sudhagad");
   if (isPaliTrek && itinerary.transportSummary) {
     const t = itinerary.transportSummary;
-    t.type = "train";
-    t.name = "Central Railway / Konkan Railway Local";
+    t.type = "bus";
+    t.name = "AC Trekking Bus / Khopoli Local";
     t.number = "";
-    t.departs = "06:00 AM";
-    t.arrives = "08:15 AM";
-    t.duration = "2h 15m";
-    t.cost = "₹45 Local / ₹120 Express";
-    t.from = "Mumbai CSMT / Dadar";
-    t.to = "Nagothane (NGTN - 14 km) / Khopoli (38 km)";
+    t.departs = "05:30 AM";
+    t.arrives = "08:00 AM";
+    t.duration = "2h 30m";
+    t.cost = "Included in ₹1,499 trek package";
+    t.from = "Mumbai (CSMT / Dadar / Thane)";
+    t.to = "Pali Base Village (Nagothane / Khopoli)";
     return itinerary;
   }
 
@@ -306,14 +387,15 @@ export function validateAndCorrectTransport(itinerary: any, contextText: string 
   const isKhedTrek = destContext.includes("mahipatgad") || destContext.includes("rasalgad") || destContext.includes("sumargad");
   if (isKhedTrek && itinerary.transportSummary) {
     const t = itinerary.transportSummary;
-    t.name = "Tutari Express";
-    t.number = "10103";
-    t.departs = "23:05";
-    t.arrives = "03:30";
-    t.duration = "4h 25m";
-    t.cost = "₹160 (SL) / ₹500 (3AC)";
-    t.from = "Mumbai CSMT";
-    t.to = "Khed (KHED - 25 km)";
+    t.type = "bus";
+    t.name = "AC Trekking Bus / Khed Route";
+    t.number = "";
+    t.departs = "10:30 PM (Sat Night)";
+    t.arrives = "04:00 AM (Sun Morning)";
+    t.duration = "5h 30m";
+    t.cost = "Included in ₹1,499 trek package";
+    t.from = "Mumbai (Borivali / Thane / Vashi)";
+    t.to = "Wadi Beldar Base Village (Khed)";
     return itinerary;
   }
 

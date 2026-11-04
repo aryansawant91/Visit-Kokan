@@ -23,7 +23,9 @@ import {
   Train,
   Car,
   Waves,
-  Ticket
+  Ticket,
+  Bus,
+  MessageCircle
 } from "lucide-react";
 import { ItineraryData } from "./ItineraryModal";
 
@@ -590,7 +592,7 @@ export default function AIPlanTripView() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="w-8 h-8 rounded-full bg-[#2D6A4F] text-white flex items-center justify-center text-sm">
-                          {itinerary.transportSummary.type === "train" ? <Train size={16} /> : itinerary.transportSummary.type === "ferry" ? <Waves size={16} /> : <Car size={16} />}
+                          {itinerary.transportSummary.type === "bus" ? <Bus size={16} /> : itinerary.transportSummary.type === "train" ? <Train size={16} /> : itinerary.transportSummary.type === "ferry" ? <Waves size={16} /> : <Car size={16} />}
                         </span>
                         <div>
                           <h4 className="font-bold text-gray-900 text-sm">
@@ -633,7 +635,30 @@ export default function AIPlanTripView() {
 
                     {/* Quick Booking & Navigation Bar */}
                     <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-emerald-200/60 flex-wrap">
-                      {itinerary.transportSummary.type === "train" ? (
+                      {itinerary.transportSummary.type === "bus" ? (
+                        <>
+                          <a
+                            href={`https://wa.me/918432587706?text=${encodeURIComponent(
+                              `Hi Visit Kokan, I want to confirm my batch seat for ${itinerary.transportSummary.to}!`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3.5 py-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all active:scale-95"
+                          >
+                            <MessageCircle size={12} />
+                            <span>Confirm Slot on WhatsApp</span>
+                          </a>
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(itinerary.transportSummary.from)}&destination=${encodeURIComponent(itinerary.transportSummary.to)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-xs font-medium transition-colors flex items-center gap-1"
+                          >
+                            <Compass size={12} />
+                            <span>Route</span>
+                          </a>
+                        </>
+                      ) : itinerary.transportSummary.type === "train" ? (
                         <>
                           <a
                             href="https://www.irctc.co.in/nget/train-search"

@@ -65,48 +65,143 @@ export const ITINERARY_JSON_PROMPT = `
 When the user asks for a trip plan or itinerary, respond with a JSON object.
 Return ONLY valid JSON, no markdown, no explanation, just the JSON.
 
+CRITICAL DISTINCTION:
+1. FOR SAHYADRI & FORT TREKS (Kalsubai, Torna, Rajgad, Harishchandragad, Ratangad, Kalavantin, AMK, etc.):
+   - Weekend batches typically depart SATURDAY NIGHT (10:00 PM – 11:30 PM) from Mumbai (Borivali/Sion/Thane/Kalyan) or Pune via AC Trekking Bus / Tempo Traveler.
+   - Trekkers arrive at the Base Village (e.g. Bari for Kalsubai, Velhe for Torna) between 03:30 AM – 04:30 AM.
+   - Freshen up at a local villager home with hot Kanda Poha & ginger Chai.
+   - Start overnight ascent under the stars with headlamps at 04:30 AM to summit for the breathtaking GOLDEN SUNRISE (06:30 AM – 07:00 AM)!
+   - Mountain trek duration is 4 to 5 hours (ascent + summit exploration + descent).
+   - Descend by 12:00 PM – 12:30 PM.
+   - Lunch at base: Authentic rustic Maharashtrian feast (hot Pithla Bhakri with fiery Thecha, Zunka, Gavran Chicken Rassa).
+   - Depart base at 02:30 PM -> Arrive back in Mumbai/Pune by 08:00 PM – 09:00 PM Sunday evening.
+   - "transportSummary" MUST be:
+     {
+       "type": "bus",
+       "name": "AC Trekking Bus / Tempo Traveler",
+       "number": "Expedition Bus",
+       "from": "Mumbai (Borivali / Sion / Thane / Kalyan)",
+       "to": "Base Village (e.g. Bari Base Village - Kalsubai)",
+       "departs": "10:30 PM (Sat Night)",
+       "arrives": "03:30 AM (Sun Morning)",
+       "duration": "4h 30m overnight drive",
+       "cost": "Included in ₹1,499 trek fee (Advance: ₹750)"
+     }
+   - ⚠️ ABSOLUTE RULE: NEVER recommend Konkan Railway, Tutari Express, or Kankavli for mountain treks!
+
+2. FOR COASTAL BEACH DESTINATIONS (Malvan, Tarkarli, Ganpatipule, Alibaug, Dapoli):
+   - Use Konkan Railway trains (Tutari Express / Jan Shatabdi) to closest station (Mangaon for Raigad, Khed for Dapoli, Ratnagiri for Ganpatipule, Kankavli/Kudal for Malvan/Tarkarli).
+   - Coastal food: Malvani fish curry, Surmai fry, Solkadhi.
+
 Format:
 {
   "type": "itinerary",
   "summary": "Brief 1-2 line response to show in chat",
   "data": {
-    "title": "Trip title e.g. 1-Day Sarasgad Pinnacle Expedition",
-    "subtitle": "e.g. Mumbai → Khopoli/Nagothane → Pali Base",
-    "totalBudget": "e.g. ₹1,499 trek fee + ₹500 travel per person",
+    "title": "Trip title e.g. Kalsubai Sunrise Trek – Weekend Overnight Expedition",
+    "subtitle": "e.g. Mumbai → Bari Base → Summit Sunrise (1,646m) → Mumbai",
+    "totalBudget": "₹1,499 per person (₹750 advance deposit)",
     "transportSummary": {
-      "type": "train",
-      "name": "Central Railway Suburban / Express",
-      "number": "",
-      "from": "Mumbai CSMT / Dadar",
-      "to": "Nearest Station (e.g. Nagothane / Khopoli / Pune / Mangaon)",
-      "duration": "2h 15m",
-      "cost": "₹45 Local / ₹120 Express",
-      "departs": "06:00 AM",
-      "arrives": "08:15 AM"
+      "type": "bus",
+      "name": "AC Trekking Bus / Tempo Traveler",
+      "number": "Expedition Bus",
+      "from": "Mumbai (Borivali / Sion / Thane / Kalyan)",
+      "to": "Bari Base Village (Kalsubai)",
+      "departs": "10:30 PM (Sat Night)",
+      "arrives": "03:30 AM (Sun Morning)",
+      "duration": "4h 30m overnight drive",
+      "cost": "Included in ₹1,499 trek fee"
     },
     "days": [
       {
         "day": 1,
-        "title": "Summit Climb & Heritage Exploration",
+        "title": "Saturday Night Departure to Sunday Summit Sunrise",
         "stops": [
           {
-            "time": "08:15 AM",
-            "place": "Base Village / Station Arrival",
+            "time": "10:30 PM",
+            "place": "Mumbai Pickups (Borivali, Sion, Thane, Kalyan)",
             "type": "transport",
-            "description": "Arrive at base village and fuel up with hot breakfast.",
-            "cost": "₹120",
+            "description": "Board the AC trekking bus from your selected pickup point. Overnight scenic highway drive.",
+            "cost": "Included",
             "contact": null,
             "whatsapp": null,
-            "mapsQuery": "Pali Maharashtra",
+            "mapsQuery": "Bari Maharashtra",
+            "duration": "4h 30m"
+          },
+          {
+            "time": "03:45 AM",
+            "place": "Bari Base Village Arrival & Fuel Up",
+            "type": "food",
+            "description": "Arrive at Bari base village. Freshen up, hot Kanda Poha & ginger Chai at local village home.",
+            "cost": "Included",
+            "contact": null,
+            "whatsapp": null,
+            "mapsQuery": "Bari Village Kalsubai",
             "duration": "45 min"
+          },
+          {
+            "time": "04:30 AM",
+            "place": "Kalsubai Night Ascent via Iron Ladders",
+            "type": "activity",
+            "description": "Headlamps on! Begin the 4 to 5 hour trek climbing the rock-cut steps and steel ladder sections under starlit skies.",
+            "cost": "Included",
+            "contact": null,
+            "whatsapp": null,
+            "mapsQuery": "Kalsubai Trail Bari",
+            "duration": "2h 15m"
+          },
+          {
+            "time": "06:45 AM",
+            "place": "Kalsubai Summit Golden Sunrise (1,646 m)",
+            "type": "sightseeing",
+            "description": "Reach the Highest Peak in Maharashtra! Witness the breathtaking sunrise over the sea of clouds and visit Kalsubai Devi Temple.",
+            "cost": "Free",
+            "contact": null,
+            "whatsapp": null,
+            "mapsQuery": "Kalsubai Peak Summit",
+            "duration": "1h 45m"
+          },
+          {
+            "time": "08:30 AM",
+            "place": "Daylight Descent to Bari Base",
+            "type": "activity",
+            "description": "Careful descent down the ladders and mountain trail back towards Bari village.",
+            "cost": "Included",
+            "contact": null,
+            "whatsapp": null,
+            "mapsQuery": "Bari Village Akole",
+            "duration": "3h 30m"
+          },
+          {
+            "time": "12:30 PM",
+            "place": "Authentic Rustic Village Feast (गावरान जेवण)",
+            "type": "food",
+            "description": "Hearty Maharashtrian lunch prepared by local villagers: hot Pithla Bhakri, fiery Thecha, Zunka, Gavran Chicken, and cold spiced buttermilk.",
+            "cost": "Included",
+            "contact": null,
+            "whatsapp": null,
+            "mapsQuery": "Bari Base Village",
+            "duration": "1h 30m"
+          },
+          {
+            "time": "02:30 PM",
+            "place": "Return Journey to Mumbai",
+            "type": "transport",
+            "description": "Board the return AC bus. Arrive back in Mumbai by 08:30 PM relaxed and energized for the week ahead.",
+            "cost": "Included",
+            "contact": null,
+            "whatsapp": null,
+            "mapsQuery": "Mumbai Maharashtra",
+            "duration": "5 hours"
           }
         ]
       }
     ],
     "tips": [
-      "Carry at least 2.5L water and wear sturdy trekking shoes",
-      "Start early morning to avoid peak sun on exposed rock patches",
-      "Enquire on WhatsApp at +91 84325 87706 to confirm batch slot"
+      "Carry headlamp or high-beam torch with fresh batteries for the night climb",
+      "Wear proper trekking shoes with deep lug grip for the steel ladders and rock patches",
+      "Carry 2.5 to 3 liters of water and energy bars / electrolytes",
+      "Confirm your batch slot with ₹750 advance deposit on WhatsApp at +91 84325 87706"
     ]
   }
 }
@@ -118,9 +213,4 @@ CRITICAL RULES FOR MULTI-DAY ITINERARIES:
   * 3 Day trip: EXACTLY 3 days (Day 1, Day 2, and Day 3). NEVER stop early!
   * 4+ Day trip: EXACTLY 4 days (Day 1, 2, 3, 4).
   * Each day should feature 3 to 4 well-paced stops (Morning, Mid-day, Afternoon/Sunset, Dinner).
-
-CRITICAL RULES FOR SAHYADRI TREK ITINERARIES:
-- Food: Rustic Maharashtrian meals only (Pithla Bhakri, Thecha, Zunka, Gavran Chicken). NEVER recommend coastal fish curry for Pune/Sahyadri mountain treks!
-- Travel: Velhe (Torna Base) to Mumbai is 210 km (4.5 to 5.5 hrs by car/Expressway). Return arrival in Mumbai must be ~08:30-10:00 PM (never 04:30 PM).
-- Verified Stations: Sarasgad -> Nagothane/Khopoli | Torna -> Pune Junction | Mahipatgad -> Khed | Raigad -> Mangaon. NEVER Kankavli for inland treks!
 `.trim();

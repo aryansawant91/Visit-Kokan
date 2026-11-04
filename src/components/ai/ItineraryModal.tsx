@@ -13,6 +13,7 @@ import {
   Train,
   Car,
   Ship,
+  Bus,
   Share2,
   Copy,
   Check,
@@ -25,7 +26,8 @@ import {
   Compass,
   Mountain,
   Footprints,
-  Phone
+  Phone,
+  MessageCircle
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -58,7 +60,7 @@ export interface ItineraryData {
   tips?: string[];
   totalBudget?: string;
   transportSummary?: {
-    type: "train" | "road" | "ferry";
+    type: "train" | "road" | "ferry" | "bus";
     name?: string;
     number?: string;
     from: string;
@@ -89,8 +91,9 @@ function StopIcon({ type, place }: { type: Stop["type"]; place: string }) {
 function TransportCard({ data }: { data: ItineraryData["transportSummary"] }) {
   if (!data) return null;
 
-  const isRoad = data.type === "road";
-  const isTrain = data.type === "train";
+  const isBus = data.type === "bus";
+  const isRoad = data.type === "road" || isBus;
+  const isTrain = data.type === "train" && !isBus;
   const isFerry = data.type === "ferry";
 
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
@@ -108,15 +111,15 @@ function TransportCard({ data }: { data: ItineraryData["transportSummary"] }) {
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
           <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-emerald-300">
-            {isTrain ? <Train size={17} /> : isFerry ? <Ship size={17} /> : <Car size={17} />}
+            {isBus ? <Bus size={17} /> : isTrain ? <Train size={17} /> : isFerry ? <Ship size={17} /> : <Car size={17} />}
           </span>
           <div>
             <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#B7895A]">
               Transit Connection
             </div>
             <div className="text-sm font-black text-white">
-              {isTrain ? data.name || "Konkan Railway" : isFerry ? "Coastal Ferry Service" : "Scenic Highway Route"}
-              {data.number && (
+              {isBus ? data.name || "AC Trekking Bus / Expedition Transport" : isTrain ? data.name || "Konkan Railway" : isFerry ? "Coastal Ferry Service" : data.name || "Scenic Highway Route"}
+              {data.number && !isBus && (
                 <span className="ml-2 text-xs font-semibold text-emerald-200">
                   #{data.number}
                 </span>
@@ -131,13 +134,19 @@ function TransportCard({ data }: { data: ItineraryData["transportSummary"] }) {
             LIVE TRAIN
           </span>
         )}
+        {isBus && (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            WEEKEND EXPEDITION BUS
+          </span>
+        )}
       </div>
 
       {/* Boarding Pass Route */}
       <div className="bg-white/5 rounded-xl p-3 border border-white/10 flex items-center justify-between gap-3 my-3">
         <div className="flex-1">
           <div className="text-[10px] text-emerald-200 font-bold uppercase tracking-wider">Departure</div>
-          <div className="text-sm font-black text-white">{data.departs || "05:25 AM"}</div>
+          <div className="text-sm font-black text-white">{data.departs || "10:30 PM"}</div>
           <div className="text-xs text-white/80 font-medium truncate">{data.from}</div>
         </div>
 
@@ -146,12 +155,12 @@ function TransportCard({ data }: { data: ItineraryData["transportSummary"] }) {
           <div className="w-16 sm:w-24 h-px bg-white/20 relative my-1">
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#b8dc26]" />
           </div>
-          <span className="text-[9px] uppercase tracking-wider text-white/50">Direct</span>
+          <span className="text-[9px] uppercase tracking-wider text-white/50">{isBus ? "Overnight" : "Direct"}</span>
         </div>
 
         <div className="flex-1 text-right">
           <div className="text-[10px] text-emerald-200 font-bold uppercase tracking-wider">Arrival</div>
-          <div className="text-sm font-black text-white">{data.arrives || "01:55 PM"}</div>
+          <div className="text-sm font-black text-white">{data.arrives || "03:30 AM"}</div>
           <div className="text-xs text-white/80 font-medium truncate">{data.to}</div>
         </div>
       </div>
@@ -160,12 +169,25 @@ function TransportCard({ data }: { data: ItineraryData["transportSummary"] }) {
       <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-white/10">
         {data.cost && (
           <div className="text-xs font-bold text-amber-300 flex items-center gap-1">
-            <span>💰 Fare:</span>
+            <span>💰 {isBus ? "Package:" : "Fare:"}</span>
             <span>{data.cost}</span>
           </div>
         )}
 
         <div className="flex items-center gap-1.5 ml-auto flex-wrap">
+          {isBus && (
+            <a
+              href={`https://wa.me/918432587706?text=${encodeURIComponent(
+                `Hi Visit Kokan, I want to confirm my batch seat for ${data.to || "this trek"}!`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1 rounded-lg bg-[#25D366] hover:bg-[#20ba5a] text-white text-[11px] font-bold transition-all shadow-xs flex items-center gap-1"
+            >
+              <MessageCircle size={12} />
+              <span>Confirm Slot</span>
+            </a>
+          )}
           {irctcUrl && (
             <a
               href={irctcUrl}
