@@ -1393,36 +1393,40 @@ export function getWebsiteGroundingContext(
     lowerQuery.includes("visit") ||
     (pathname && pathname.includes("/destinations"));
 
-  const matchedTreks = findMatchingTreks(lowerQuery, isTrekTopic ? 8 : 4);
-  const matchedDests = findMatchingDestinations(lowerQuery, isDestinationTopic ? 6 : 3);
+  let matchedTreks: WebsiteTrekInfo[] = [];
+  let matchedDests: WebsiteDestinationInfo[] = [];
+
+  // Targeted grounding: if user is on a specific trek page, focus ONLY on that trek
+  if (pathname && pathname.startsWith("/treks/") && pathname !== "/treks") {
+    const activeSlug = pathname.replace("/treks/", "").split("?")[0].replace(/\/$/, "");
+    const activeTrek = ALL_WEBSITE_TREKS.find(t => t.slug === activeSlug);
+    if (activeTrek) {
+      matchedTreks = [activeTrek];
+    } else {
+      matchedTreks = findMatchingTreks(lowerQuery, 2);
+    }
+    matchedDests = [];
+  } else if (pathname && pathname.startsWith("/destinations/") && pathname !== "/destinations") {
+    const activeSlug = pathname.replace("/destinations/", "").split("?")[0].replace(/\/$/, "");
+    const activeDest = ALL_WEBSITE_DESTINATIONS.find(d => d.slug === activeSlug);
+    if (activeDest) {
+      matchedDests = [activeDest];
+    } else {
+      matchedDests = findMatchingDestinations(lowerQuery, 2);
+    }
+    matchedTreks = [];
+  } else {
+    // Lean limits for general queries (max 3 items to prevent token blowout)
+    matchedTreks = findMatchingTreks(lowerQuery, isTrekTopic ? 3 : 1);
+    matchedDests = findMatchingDestinations(lowerQuery, isDestinationTopic ? 3 : 1);
+  }
 
   let out = `
-=== VISIT KOKAN (visitkokan.in) OFFICIAL PLATFORM KNOWLEDGE ===
-- Platform Name: Visit Kokan
-- Trek Batches Pricing: ₹1,499 per trekker (Advance: ₹750 deposit to confirm slot).
-- Trek Enquiry Method: All treks are opening for upcoming weekend batches with 'Coming Soon' enquiry status. Visitors can click 'Enquire on WhatsApp' on the trek page or message directly at ${PLATFORM_INFO.whatsappNumber} (${PLATFORM_INFO.whatsappUrl}).
-- Stays & Homestays: Authentic Konkan homestays available at [/listings](/listings).
-- Kokan Products: Alphonso Mangoes, Cashews, Kokum syrup, Malvani spices at [/products](/products).
-
-CRITICAL CONCIERGE LINKING DIRECTIVES:
-1. You are Kokan Mitra, the resident expert on the Visit Kokan website (visitkokan.in).
-2. Whenever you mention a trek, ALWAYS format it as a clickable markdown internal link: [Trek Name](/treks/slug). Example: [Torna Fort Trek](/treks/torna-fort-trek) or [Mahipatgad Dense Forest Expedition](/treks/mahipatgad-forest-fort-trek).
-3. Whenever you mention a destination, ALWAYS format it as: [Destination Name](/destinations/slug). Example: [Tarkarli](/destinations/tarkarli) or [Ganpatipule Beach](/destinations/ganpatipule-beach).
-4. NEVER invent fake companies (e.g. "Sagar Adventure"), fake phone numbers (e.g. "022-xxxx-xxxx"), or fake tour operators.
-5. If the user asks how to book or enquire, guide them to our website: "You can view full details on [Visit Kokan Treks](/treks) and tap 'Enquire on WhatsApp' (or chat with our trek coordinator at +91 84325 87706)!".
-6. If the user asks in Marathi or Hinglish, answer in fluent, warm, natural Marathi with authentic Konkani warmth!
-7. DO NOT format responses using raw markdown table pipes (| Col1 | Col2 |). Use clean bullet points (- **Best Season:** ..., - **What to Pack:** ...).
-8. REGIONAL FOOD ACCURACY: For Sahyadri / Pune forts (Torna, Rajgad, Sinhagad, Harishchandragad), ALWAYS recommend authentic rustic Maharashtrian fare (Pithla Bhakri, Thecha, Zunka, Gavran Chicken Rassa). NEVER recommend coastal Malvani fish curry or Kombdi Vade for Pune or Ghat fort treks!
-9. ACCURATE BASE VILLAGES: Torna Fort base village is strictly Velhe (वेल्हे, Pune). Never say Panchgani or Kondivade!
-10. ⚠️ STRICT RAILWAY STATIONS BY REGION (DO NOT GUESS OR HALLUCINATE):
-    * Sarasgad & Sudhagad (Pali, Raigad): Nearest station is NAGOTHANE (NGTN - 14 km) / KHOPOLI (38 km). NEVER KANKAVLI!
-    * Mahipatgad / Rasalgad / Sumargad (Khed, Ratnagiri): Nearest station is KHED (KHED - 25 km). NEVER KANKAVLI!
-    * Raigad Fort: MANGAON (MNG - 45 km). NEVER KANKAVLI!
-    * Kalavantin Durg / Karnala / Manikgad: PANVEL (PNVL - 12 to 16 km).
-    * Lohagad / Visapur / Rajmachi / Tung / Tikona: LONAVALA (LNL) / MALAVLI (MVL - 2 km) / KAMSHET.
-    * Kalsubai / Harishchandragad / AMK / Ratangad / Sandhan: IGATPURI (IGP) / KASARA (KSRA) / KALYAN (KYN).
-    * Torna / Rajgad / Sinhagad / Rohida: PUNE JUNCTION (PUNE - 60 km).
-    * Kankavli (KKW) is ONLY for extreme south Sindhudurg (Devgad, Malvan, Tarkarli, Kunkeshwar)! NEVER recommend Kankavli for treks in Raigad, Pune, Igatpuri, or North Ratnagiri (Khed)!
+VISIT KOKAN VERIFIED PLATFORM DATA:
+- Platform: Visit Kokan (visitkokan.in).
+- Trek Fee: ₹1,499 per person (Advance: ₹750 to confirm slot).
+- Enquiry: WhatsApp ${PLATFORM_INFO.whatsappNumber} (${PLATFORM_INFO.whatsappUrl}) or on-page lead form.
+- Stays: [/listings](/listings) | Products: [/products](/products)
 `;
 
   if (matchedTreks.length > 0) {

@@ -1,6 +1,7 @@
 import { adminDb } from "@/lib/firebaseAdmin";
 import { db } from "@/lib/firestore";
 import { collection, getDocs } from "firebase/firestore";
+import { TREK_TRANSIT_GATEWAYS } from "./kokanWebsiteData";
 
 export interface TrainStop {
   station: string;
@@ -119,81 +120,80 @@ export function getArrivalAtStation(
 
 export const KONKAN_DESTINATION_GATEWAYS = `
 VERIFIED DESTINATION TO NEAREST RAILWAY STATION & GATEWAY DIRECTORY:
-
-VERIFIED TREK & FORT NEAREST RAILWAY STATIONS DIRECTORY (MANDATORY RULES):
-- Pali (Raigad) / Sarasgad Fort / Sudhagad Fort:
-  * Nearest Station: NAGOTHANE (NGTN - 14 km, 20 min auto), ROHA (ROHA - 25 km), or KHOPOLI (38 km).
-  * Route from Mumbai: Mumbai-Pune Expressway -> Khopoli exit -> Pali (105 km, 2.5 hrs). Central Railway local train to Khopoli.
-  * Route from Pune: Expressway -> Khopoli exit -> Pali (95 km, 2 hrs).
-  * ⚠️ ABSOLUTE ANTI-HALLUCINATION: NEVER RECOMMEND KANKAVLI FOR PALI, SARASGAD, OR SUDHAGAD! Kankavli is in Sindhudurg (400 km away)!
-- Khed Treks (Mahipatgad, Rasalgad, Sumargad):
-  * Nearest Station: KHED (KHED - 18 to 25 km). Tutari Express (arr 03:30) / Jan Shatabdi (arr 09:20).
-  * Route: Mumbai to Khed via NH66 (230 km, 5 hrs) -> Wadi Beldar / Rasalwadi (20 km via local jeep).
-  * ⚠️ ABSOLUTE ANTI-HALLUCINATION: NEVER RECOMMEND KANKAVLI FOR MAHIPATGAD OR KHED!
-- Raigad Fort / Mahad / Pachad:
-  * Nearest Station: MANGAON (MNG - 45 km, 1 hr auto). Jan Shatabdi arr 08:05 / Tutari arr 02:10.
-  * ⚠️ ABSOLUTE ANTI-HALLUCINATION: NEVER RECOMMEND KANKAVLI FOR RAIGAD FORT!
-- Panvel & Karjat Treks (Kalavantin Durg, Prabalgad, Karnala, Manikgad, Kothaligad, Kondane Caves, Sondai, Bhimashankar):
-  * Nearest Station: PANVEL (PNVL - 12 to 16 km) or KARJAT (KJT - 9 to 28 km).
-  * Frequent Mumbai suburban local trains run directly from CSMT / Thane to Panvel & Karjat!
-- Lonavala, Pawna & Maval Treks (Lohagad, Visapur, Rajmachi, Tung, Tikona, Korigad):
-  * Nearest Station: MALAVLI (MVL - 2 km) for Lohagad/Visapur, LONAVALA (LNL) for Rajmachi/Korigad, KAMSHET for Tung/Tikona.
-- Igatpuri, Kasara & Akole Treks (Kalsubai, Harishchandragad, AMK, Ratangad, Sandhan Valley):
-  * Nearest Station: IGATPURI (IGP - 32 km) or KASARA (KSRA - 60 km). Suburban train to Kasara, then shared jeep.
-- Pune District Treks (Torna, Rajgad, Sinhagad, Rohida, Kenjalgad, Purandar):
-  * Nearest Station: PUNE JUNCTION (PUNE - 30 to 65 km). Direct road via Mumbai-Pune Expressway -> NH48 bypass.
-- Chiplun & Guhagar Treks (Gopalgad, Anjanvel, Prachitgad):
-  * Nearest Station: CHIPLUN (CHI - 48 km) or SANGAMESHWAR ROAD (SGR).
-- Central Ratnagiri Treks (Jaigad, Purnagad, Ratnadurg, Marleshwar):
-  * Nearest Station: RATNAGIRI (RN - 6 to 45 km).
-- Sindhudurg Treks (The ONLY treks served by Kankavli or Kudal):
-  * Devgad Windmill Cliff -> KANKAVLI (KKW - 48 km).
-  * Kunkeshwar Cliffside -> KANKAVLI (KKW - 45 km).
-  * Sindhudurg Fort Sea Wall -> KANKAVLI (KKW - 48 km) or KUDAL (KUDL - 45 km).
-  * Nivti Beach Golden Rocks -> KUDAL (KUDL - 28 km).
-  * Amboli Sunset Trek -> SAWANTWADI ROAD (SWV - 30 km).
-⚠️ CRITICAL RULE: NEVER recommend Kankavli for any trek in Raigad, Pune, Igatpuri, Karjat, or North Ratnagiri (Khed)!
-
-COASTAL DESTINATIONS & BEACH HUBS:
-- Raigad Fort / Mahad / Pachad:
-  * Nearest Station: Mangaon (MNG) (approx 45 km, 1 hr by auto/cab to Raigad base at Pachad). NEVER USE Kankavli (which is 350 km south in Sindhudurg)!
-  * Jan Shatabdi Express (12051): CSMT dep 05:25 -> Mangaon arr 08:05 (duration 2h 40m, Fare: ₹120 2S / ₹380 CC). Ideal for 1-day or weekend trip!
-  * Tutari Express (10103): CSMT dep 23:05 -> Mangaon arr 02:10 (duration 3h 05m, Fare: ₹160 SL / ₹500 3AC).
-  * Road: Mumbai to Raigad Fort via NH66 (140 km, 3.5 hrs via Vadkhal-Mangaon-Mahad-Pachad).
-  * REALISTIC PACING FOR RAIGAD FORT (CRITICAL):
-    - Hill fort at 2,700 ft with 1,737 steep stone steps. Climb takes 2.5-3.5 hrs. Descent takes 1.5-2 hrs.
-    - Raigad Ropeway operates 8:00 AM – 5:00 PM (Queue wait is 30–60 mins on weekends, ride is 5 mins).
-    - Exploring the vast fort top (Maha Darwaja, Nagarkhana, Rajbhavan, Takmak Tok, Jagdishwar Temple, Shivaji Samadhi) takes MINIMUM 3.5 to 4.5 hours!
-    - Total time spent at the fort must be 5 to 6.5 hours. NEVER schedule fort descent after only 1-2 hours or at 11:00 AM!
-    - For night arrival (Tutari arr Mangaon 02:10 AM): Travelers rest at Mangaon/Pachad base room till dawn (5:30 AM), start climbing around 06:00 AM in cool weather, reach top ~08:30-09:00 AM, explore till 01:30 PM, have lunch on top, and descend around 02:30-04:00 PM.
-- Alibaug / Mandwa / Nagaon / Kashid / Kihim:
-  * Gateway: Ferry from Gateway of India to Mandwa Jetty (1 hr, ₹250) then 20 min local auto/bus, OR Road via NH66 (95 km, 2.5-3 hrs). NO direct railway station!
-- Murud-Janjira:
-  * Nearest Station: Roha (ROHA) (approx 40 km) or Mangaon. Or Road via Alibaug (165 km, 3.5-4 hrs).
-  * Realistic Pacing: Sailboat ferry from Rajapuri jetty + boat wait + exploring island fort takes 3 to 3.5 hours.
-- Dapoli / Harnai / Anjarle / Velas:
-  * Nearest Station: Khed (KHED) (approx 30 km).
-  * Tutari Express: arr Khed 03:30 (Fare: ₹220 SL / ₹600 3AC).
-  * Jan Shatabdi: arr Khed 09:20 (Fare: ₹160 2S / ₹480 CC).
-- Chiplun / Guhagar / Parshuram:
-  * Nearest Station: Chiplun (CHI).
-  * Tutari Express: arr Chiplun 04:45. Jan Shatabdi: arr Chiplun 10:20.
-- Ganpatipule / Ratnagiri / Jaigad:
-  * Nearest Station: Ratnagiri (RN) (Ganpatipule is 28 km).
-  * Tutari Express: arr Ratnagiri 06:15. Jan Shatabdi: arr Ratnagiri 11:45 (Fare: ₹330 SL / ₹900 3AC).
-  * Realistic Pacing: Ganpatipule Mandir Darshan + Pradakshina + beach relaxation takes 3 hours.
-- Devgad / Vijaydurg / Kunkeshwar:
-  * Nearest Station: Kankavli (KKW) (approx 45-50 km).
-  * Tutari Express: arr Kankavli 07:30. Jan Shatabdi: arr Kankavli 13:55.
-- Malvan / Tarkarli / Sindhudurg Fort / Devbag:
-  * Nearest Station: Kankavli (KKW) (48 km) or Kudal (KUDL) (45 km).
-  * Tutari Express: arr Kankavli 07:30 / arr Kudal 08:15 (Fare: ₹450 SL / ₹1,200 3AC).
-  * Jan Shatabdi: arr Kankavli 13:55 / arr Kudal 14:35.
-  * Realistic Pacing: Scuba diving & watersports take 3.5 to 4.5 hours. Sindhudurg Fort ferry & visit takes 2.5 to 3 hours.
-- Sawantwadi / Vengurla / Amboli:
-  * Nearest Station: Sawantwadi Road (SWV).
-  * Tutari Express: arr Sawantwadi 08:45. Jan Shatabdi: arr Sawantwadi 15:07.
+- Raigad: Mangaon (MNG) for Raigad Fort | Roha (ROHA) for Murud | Nagothane (NGTN)/Khopoli for Pali
+- North Ratnagiri: Khed (KHED) for Dapoli/Mahipatgad | Chiplun (CHI) for Guhagar
+- Central Ratnagiri: Ratnagiri (RN) for Ganpatipule/Jaigad
+- Sindhudurg (South): Kankavli (KKW) / Kudal (KUDL) for Malvan/Tarkarli/Devgad | Sawantwadi Road (SWV) for Amboli
+- Pune/Lonavala/Karjat: Pune Junction / Lonavala / Panvel / Karjat
 `;
+
+/**
+ * Returns targeted transit context (only 50-150 tokens) based on the user's current trek or destination.
+ * Eliminates input token blowout and guarantees zero 413 rate limit errors on Groq.
+ */
+export function getRelevantTransportContext(
+  query: string,
+  pageContext: string = "",
+  pathname: string = ""
+): string {
+  const combined = `${query} ${pageContext} ${pathname}`.toLowerCase();
+
+  // 1. Check if user is looking at or asking about a specific trek
+  for (const [slug, transit] of Object.entries(TREK_TRANSIT_GATEWAYS)) {
+    const slugKey = slug.replace(/-trek$/, "").replace(/-fort$/, "");
+    if (
+      combined.includes(slug) ||
+      combined.includes(slugKey) ||
+      (transit.baseVillage && combined.includes(transit.baseVillage.toLowerCase().split(" ")[0]))
+    ) {
+      return `
+VERIFIED TRANSIT FOR THIS SPECIFIC TREK:
+- Trek: ${slug}
+- Base Village: ${transit.baseVillage}
+- Nearest Railway Station: ${transit.nearestStation}
+- Highway Route: ${transit.roadRoute}
+⚠️ MANDATORY: When asked how to reach, ALWAYS provide this verified station (${transit.nearestStation}) and route. NEVER recommend Kankavli or any other wrong station!
+`.trim();
+    }
+  }
+
+  // 2. Specific coastal hubs
+  if (combined.includes("raigad") || combined.includes("pachad") || combined.includes("mahad") || combined.includes("mangaon")) {
+    return `- Raigad Fort / Mahad: Nearest Station is Mangaon (MNG - 45 km, 1 hr auto). Jan Shatabdi dep CSMT 05:25 -> arr 08:05. Tutari arr 02:10. Road via NH66 (140 km, 3.5 hrs).`;
+  }
+  if (combined.includes("alibaug") || combined.includes("mandwa") || combined.includes("nagaon") || combined.includes("kashid")) {
+    return `- Alibaug: Ferry from Gateway of India to Mandwa (1 hr, ₹250) + 20 min local bus/auto. Road via NH66 (95 km, 2.5-3 hrs). NO direct train.`;
+  }
+  if (combined.includes("murud") || combined.includes("janjira")) {
+    return `- Murud-Janjira: Nearest Station is Roha (ROHA - 42 km). Sailboats operate from Rajapuri jetty.`;
+  }
+  if (combined.includes("dapoli") || combined.includes("harnai") || combined.includes("anjarle") || combined.includes("velas") || combined.includes("khed")) {
+    return `- Dapoli / Khed / Harnai: Nearest Station is Khed (KHED - 30 km). Tutari arr 03:30, Jan Shatabdi arr 09:20.`;
+  }
+  if (combined.includes("chiplun") || combined.includes("guhagar")) {
+    return `- Chiplun / Guhagar: Nearest Station is Chiplun (CHI). Tutari arr 04:45, Jan Shatabdi arr 10:20.`;
+  }
+  if (combined.includes("ganpatipule") || combined.includes("ratnagiri") || combined.includes("jaigad")) {
+    return `- Ganpatipule / Ratnagiri: Nearest Station is Ratnagiri (RN - 28 km to Ganpatipule). Tutari arr 06:15, Jan Shatabdi arr 11:45.`;
+  }
+  if (combined.includes("malvan") || combined.includes("tarkarli") || combined.includes("devbag") || combined.includes("devgad") || combined.includes("kunkeshwar") || combined.includes("sindhudurg")) {
+    return `- Sindhudurg (Malvan/Tarkarli/Devgad): Nearest Station is Kankavli (KKW - 48 km) or Kudal (KUDL - 45 km). Tutari arr 07:30 / 08:15. Jan Shatabdi arr 13:55.`;
+  }
+  if (combined.includes("sawantwadi") || combined.includes("amboli") || combined.includes("vengurla")) {
+    return `- Sawantwadi / Amboli: Nearest Station is Sawantwadi Road (SWV - 30 km to Amboli). Tutari arr 08:45, Jan Shatabdi arr 15:07.`;
+  }
+
+  // 3. Compact lean overview
+  return `
+KONKAN RAILWAY GATEWAYS DIRECTORY:
+- Raigad: Mangaon (MNG) for Raigad Fort | Roha (ROHA) for Murud | Nagothane/Khopoli for Pali
+- North Ratnagiri: Khed (KHED) for Dapoli/Mahipatgad | Chiplun (CHI) for Guhagar
+- Central Ratnagiri: Ratnagiri (RN) for Ganpatipule
+- Sindhudurg (South ONLY): Kankavli (KKW) / Kudal (KUDL) for Malvan/Tarkarli/Devgad | Sawantwadi Road (SWV) for Amboli
+- Pune/Lonavala/Karjat Treks: Pune Junction / Lonavala / Panvel / Karjat
+⚠️ Match the closest station to the traveler's specific destination. Never default to Kankavli!
+`.trim();
+}
 
 // Format transport context for Groq prompt
 export function formatTransportContext(trains: Train[], roads: Road[]): string {
@@ -610,6 +610,19 @@ export function sanitizeTrekText(text: string, contextQuery: string = ""): strin
   // 4. Correct base village hallucinations if any
   sanitized = sanitized.replace(/\bPanchgani\b/gi, "Velhe (वेल्हे, Pune)");
   sanitized = sanitized.replace(/\bKondivade\b/gi, "Velhe (वेल्हे, Pune)");
+
+  // 5. Generic safeguard for all 59 treks: ensure no non-Sindhudurg trek gets Kankavli
+  for (const [slug, transit] of Object.entries(TREK_TRANSIT_GATEWAYS)) {
+    const slugKey = slug.replace(/-trek$/, "").replace(/-fort$/, "");
+    if (combined.includes(slug) || combined.includes(slugKey)) {
+      const isSouthSindhudurgTrek = slug.includes("sindhudurg") || slug.includes("vijaydurg") || slug.includes("devgad") || slug.includes("tarkarli") || slug.includes("malvan");
+      if (!isSouthSindhudurgTrek && /kankavli/i.test(sanitized)) {
+        sanitized = sanitized.replace(/Kankavli\s*\(KKW\)[^,\n.]*/gi, transit.nearestStation);
+        sanitized = sanitized.replace(/\bKankavli\b/gi, transit.nearestStation);
+      }
+      break;
+    }
+  }
 
   return sanitized;
 }

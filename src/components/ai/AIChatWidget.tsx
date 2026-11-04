@@ -135,6 +135,31 @@ function extractMentionedEntitiesFromText(content: string): EntityCardData[] {
         }
     }
 
+    // Name keyword fallback for treks
+    if (results.length === 0) {
+        const lower = content.toLowerCase();
+        for (const trek of ALL_WEBSITE_TREKS) {
+            const cleanName = trek.name.toLowerCase().replace(/trek|expedition|trail|fort|pinnacle/g, "").trim();
+            if (cleanName.length > 3 && lower.includes(cleanName) && !seen.has(trek.slug)) {
+                seen.add(trek.slug);
+                results.push({
+                    type: "trek",
+                    name: trek.name,
+                    image: `/images/treks/${trek.slug}/1.jpg`,
+                    badge: `🥾 ${trek.difficulty.toUpperCase()} TREK`,
+                    priceOrRating: `₹1,499 / person`,
+                    location: `${trek.baseVillage || trek.region} • ${trek.elevation || "Sahyadri"}`,
+                    highlights: trek.highlights
+                        ? trek.highlights.split(";").map(h => h.trim().replace(/^[^a-zA-Z0-9]+/, "")).slice(0, 3)
+                        : ["Guided Expedition", "Safety Briefing"],
+                    href: `/treks/${trek.slug}`,
+                    slug: trek.slug,
+                });
+                break;
+            }
+        }
+    }
+
     // Destinations: /destinations/[slug]
     const destMatches = Array.from(content.matchAll(/\/destinations\/([a-z0-9-]+)/g));
     for (const m of destMatches) {

@@ -6,10 +6,7 @@ import {
   detectItineraryIntent,
 } from "@/lib/ai/tripPlanner";
 import {
-  getAllTrains,
-  getAllRoads,
-  formatTransportContext,
-  KONKAN_DESTINATION_GATEWAYS,
+  getRelevantTransportContext,
   validateAndCorrectTransport,
   sanitizeTrekText,
 } from "@/lib/ai/transportData";
@@ -60,29 +57,32 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Generate laser-focused platform knowledge (59 verified treks, destinations, pricing, WhatsApp)
+    // Generate laser-focused platform knowledge (matching active trek or destination only)
     const websiteGrounding = getWebsiteGroundingContext(
       lastUserMessage?.content || "",
       pageContext,
       pathname
     );
 
-    // Use lean, focused prompt for itinerary generation
+    // Dynamic lean transit context (only 50-80 tokens matching the specific destination/trek)
+    const transportContext = getRelevantTransportContext(
+      lastUserMessage?.content || "",
+      pageContext,
+      pathname
+    );
+
     let systemPrompt = "";
     if (isItinerary) {
       systemPrompt = [
         ITINERARY_JSON_PROMPT,
         durationRule,
-        KONKAN_DESTINATION_GATEWAYS,
+        transportContext,
         websiteGrounding,
-        pageContext ? `CONTEXT: ${pageContext}` : "",
+        pageContext ? `CURRENT PAGE CONTEXT: ${pageContext}` : "",
       ]
         .filter(Boolean)
         .join("\n\n");
     } else {
-      // Use lean, verified destination gateway directory to prevent input token blowout
-      const transportContext = KONKAN_DESTINATION_GATEWAYS;
-
       systemPrompt = [
         KOKAN_SYSTEM_PROMPT,
         websiteGrounding,
@@ -93,8 +93,8 @@ export async function POST(req: NextRequest) {
         .join("\n\n");
     }
 
-    // Only include last 4 messages to save context tokens
-    const trimmedMessages = messages.slice(-4);
+    // Include only last 2 messages to prevent token accumulation and eliminate TPM / ITPM 413 errors
+    const trimmedMessages = messages.slice(-2);
 
     const groqMessages = [
       {
@@ -118,12 +118,12 @@ export async function POST(req: NextRequest) {
 
     let completion;
     try {
-      // Primary model: openai/gpt-oss-20b (high OTPM token limit, fast ~2s completion with low reasoning effort)
+      // Primary model: openai/gpt-oss-20b (fast, concise, low reasoning overhead)
       completion = await (groq.chat.completions.create as any)({
         model: "openai/gpt-oss-20b",
         messages: groqMessages,
         temperature: isItinerary ? 0.2 : 0.7,
-        max_tokens: 8192,
+        max_tokens: isItinerary ? 2048 : 1200,
         reasoning_effort: "low",
         response_format: responseFormat,
       });
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
           model: "openai/gpt-oss-120b",
           messages: groqMessages,
           temperature: isItinerary ? 0.2 : 0.7,
-          max_tokens: 8192,
+          max_tokens: isItinerary ? 2048 : 1200,
           reasoning_effort: "low",
           response_format: responseFormat,
         });
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
           model: "qwen/qwen3.8-27b",
           messages: groqMessages,
           temperature: isItinerary ? 0.2 : 0.7,
-          max_tokens: 4096,
+          max_tokens: isItinerary ? 2048 : 1200,
           response_format: responseFormat,
         });
       }
@@ -160,7 +160,10 @@ export async function POST(req: NextRequest) {
         const parsed = JSON.parse(jsonMatch[0]);
         if (parsed.type === "itinerary" || parsed.days || parsed.data?.days) {
           const itineraryObj = parsed.data || parsed;
-          const sanitizedData = validateAndCorrectTransport(itineraryObj, lastUserMessage?.content || "");
+          const sanitizedData = validateAndCorrectTransport(
+            itineraryObj,
+            `${pageContext || ""} ${pathname || ""} ${lastUserMessage?.content || ""}`
+          );
           return NextResponse.json({
             message: parsed.summary || "Here's your Konkan itinerary! 🌊",
             itinerary: sanitizedData,
@@ -178,7 +181,10 @@ export async function POST(req: NextRequest) {
       .trim();
 
     // Sanitize any potential hallucinations in conversational trek text
-    cleanText = sanitizeTrekText(cleanText, lastUserMessage?.content || "");
+    cleanText = sanitizeTrekText(
+      cleanText,
+      `${pageContext || ""} ${pathname || ""} ${lastUserMessage?.content || ""}`
+    );
 
     // If text looks like JSON, show friendly message instead
     if (cleanText.startsWith("{") || cleanText.startsWith("[")) {
@@ -190,18 +196,19 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: cleanText });
 
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("❌ Groq error:", error);
 
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+    // Friendly fallback if rate limits ever occur on free tier
+    const errMsg = error?.message || "";
+    if (errMsg.includes("rate_limit") || errMsg.includes("413") || errMsg.includes("tokens")) {
+      return NextResponse.json({
+        message: "🌊 Kokan Mitra is experiencing high demand right now! Please tap send again in a few moments.",
+      });
     }
 
     return NextResponse.json(
-      { error: "Unknown error" },
+      { error: errMsg || "AI service temporarily unavailable" },
       { status: 500 }
     );
   }
