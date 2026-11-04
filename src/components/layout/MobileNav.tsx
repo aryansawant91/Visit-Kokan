@@ -7,8 +7,14 @@ import { Home, Compass, Mountain, ShoppingBag, Sparkles } from "lucide-react";
 export default function MobileNav() {
   const pathname = usePathname();
 
-  // Hide mobile nav on admin or vendor dashboards
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/vendor")) {
+  // Hide mobile nav on admin or vendor dashboards, and detail pages with their own action bar
+  if (
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/vendor") ||
+    (pathname?.startsWith("/destinations/") && pathname.split("/").filter(Boolean).length >= 2) ||
+    (pathname?.startsWith("/treks/") && pathname.split("/").filter(Boolean).length >= 2) ||
+    (pathname?.startsWith("/products/") && pathname.split("/").filter(Boolean).length >= 2)
+  ) {
     return null;
   }
 

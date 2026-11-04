@@ -242,44 +242,38 @@ export default function ProductDetailPage() {
             product={product}
             quantity={quantity}
             setQuantity={setQuantity}
+            onAddToCart={handleAddToCart}
+            onBuyNow={handleBuyNow}
+            inCart={inCart}
+            justAdded={justAdded}
           />
         </div>
 
-        {/* 4. Sticky Bottom Action Bar (App Dual Action Bar) */}
-        <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#d6e2d4] py-2.5 px-4 shadow-lg">
+        {/* 4. Sticky Bottom Action Bar (App Dual Action Bar - Always On Top) */}
+        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#d6e2d4] py-3 px-4 shadow-[0_-4px_25px_rgba(0,0,0,0.12)]">
           <div className="max-w-md sm:max-w-lg mx-auto flex items-center gap-3">
             {/* Button 1: Add to Cart */}
             <button
               onClick={handleAddToCart}
-              disabled={product.isComingSoon}
               className={`flex-1 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
-                product.isComingSoon
-                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                  : justAdded || inCart
+                justAdded || inCart
                   ? "bg-emerald-50 border-emerald-300 text-kokan-green shadow-xs"
                   : "bg-white hover:bg-[#f7faf6] border-[#cfddce] text-[#142607] shadow-2xs"
               }`}
             >
               <ShoppingCart size={15} className={inCart ? "text-kokan-green" : "text-[#2D6A4F]"} />
               <span>
-                {product.isComingSoon ? "Coming Soon" : justAdded ? "Added ✓" : inCart ? "In Cart (Add +)" : "Add to Cart"}
+                {justAdded ? "Added ✓" : inCart ? "In Cart (Add +)" : "Add to Cart"}
               </span>
             </button>
 
             {/* Button 2: Buy Now */}
             <button
               onClick={handleBuyNow}
-              disabled={product.isComingSoon}
-              className={`flex-1 py-3 px-3 rounded-xl font-black text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
-                product.isComingSoon
-                  ? "bg-amber-100 text-amber-700 cursor-not-allowed"
-                  : "bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] shadow-[#b8dc26]/30"
-              }`}
+              className="flex-1 py-3 px-3 rounded-xl font-black text-xs sm:text-sm bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] shadow-md shadow-[#b8dc26]/30 transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
             >
               <span>
-                {product.isComingSoon
-                  ? "Releases Soon"
-                  : `Buy Now · ₹${(product.price * quantity).toLocaleString("en-IN")}`}
+                Buy Now · ₹{(product.price * quantity).toLocaleString("en-IN")}
               </span>
               <Sparkles size={14} className="text-[#142607]" />
             </button>

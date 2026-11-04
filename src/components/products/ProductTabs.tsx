@@ -15,6 +15,7 @@ import {
   Award,
   ChevronDown,
   ChevronUp,
+  ShoppingCart,
 } from "lucide-react";
 import { Product } from "@/types/product";
 import ProductCouponWidget from "@/components/products/ProductCouponWidget";
@@ -25,6 +26,10 @@ interface ProductTabsProps {
   quantity: number;
   setQuantity: (q: number) => void;
   similarProducts?: Product[];
+  onAddToCart?: () => void;
+  onBuyNow?: () => void;
+  inCart?: boolean;
+  justAdded?: boolean;
 }
 
 export default function ProductTabs({
@@ -32,6 +37,10 @@ export default function ProductTabs({
   quantity,
   setQuantity,
   similarProducts = [],
+  onAddToCart,
+  onBuyNow,
+  inCart = false,
+  justAdded = false,
 }: ProductTabsProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "features" | "specs" | "reviews">("overview");
 
@@ -72,32 +81,61 @@ export default function ProductTabs({
         {activeTab === "overview" && (
           <div className="space-y-5 animate-in fade-in duration-200">
             {/* Quantity Stepper */}
-            {!product.isComingSoon && (
-              <div className="flex items-center justify-between p-3.5 bg-[#f4f8f3] rounded-2xl border border-[#d6e4d5]">
-                <div>
-                  <p className="text-xs font-bold text-[#142607]">Select Quantity</p>
-                  <p className="text-[11px] text-[#4d6653]">Order more to save on shipping</p>
-                </div>
-                <div className="flex items-center gap-2 bg-white rounded-xl p-1 border border-[#cfdfce] shadow-2xs">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                    className="w-8 h-8 rounded-lg bg-[#edf4ec] hover:bg-[#dce7db] active:scale-95 disabled:opacity-40 text-sm font-black flex items-center justify-center text-[#142607] transition-all"
-                  >
-                    -
-                  </button>
-                  <span className="w-8 text-center font-black text-sm text-[#142607]">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity(Math.min(product.stock || 99, quantity + 1))}
-                    className="w-8 h-8 rounded-lg bg-[#edf4ec] hover:bg-[#dce7db] active:scale-95 text-sm font-black flex items-center justify-center text-[#142607] transition-all"
-                  >
-                    +
-                  </button>
-                </div>
+            <div className="flex items-center justify-between p-3.5 bg-[#f4f8f3] rounded-2xl border border-[#d6e4d5]">
+              <div>
+                <p className="text-xs font-bold text-[#142607]">Select Quantity</p>
+                <p className="text-[11px] text-[#4d6653]">Order more to save on shipping</p>
               </div>
-            )}
+              <div className="flex items-center gap-2 bg-white rounded-xl p-1 border border-[#cfdfce] shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                  className="w-8 h-8 rounded-lg bg-[#edf4ec] hover:bg-[#dce7db] active:scale-95 disabled:opacity-40 text-sm font-black flex items-center justify-center text-[#142607] transition-all"
+                >
+                  -
+                </button>
+                <span className="w-8 text-center font-black text-sm text-[#142607]">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.min(product.stock || 99, quantity + 1))}
+                  className="w-8 h-8 rounded-lg bg-[#edf4ec] hover:bg-[#dce7db] active:scale-95 text-sm font-black flex items-center justify-center text-[#142607] transition-all"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Inline Action Buttons: Add to Cart & Buy Now */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onAddToCart}
+                className={`flex-1 py-3 px-3 rounded-2xl font-bold text-xs sm:text-sm border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
+                  justAdded || inCart
+                    ? "bg-emerald-50 border-emerald-300 text-kokan-green shadow-xs"
+                    : "bg-white hover:bg-[#f7faf6] border-[#cfddce] text-[#142607] shadow-2xs"
+                }`}
+              >
+                <ShoppingCart size={15} className={inCart ? "text-kokan-green" : "text-[#2D6A4F]"} />
+                <span>
+                  {justAdded ? "Added ✓" : inCart ? "In Cart (Add +)" : "Add to Cart"}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onBuyNow}
+                className="flex-1 py-3 px-3 rounded-2xl font-black text-xs sm:text-sm bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] shadow-md shadow-[#b8dc26]/30 transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
+              >
+                <span>
+                  Buy Now · ₹{(product.price * quantity).toLocaleString("en-IN")}
+                </span>
+                <Sparkles size={14} className="text-[#142607]" />
+              </button>
+            </div>
 
             {/* Description Paragraph */}
             <div>

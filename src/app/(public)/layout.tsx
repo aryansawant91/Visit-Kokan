@@ -14,12 +14,14 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     pathname === "/treks" ||
     pathname === "/products" ||
     (pathname?.startsWith("/destinations/") && pathname.split("/").filter(Boolean).length >= 2) ||
-    (pathname?.startsWith("/treks/") && pathname.split("/").filter(Boolean).length >= 2);
+    (pathname?.startsWith("/treks/") && pathname.split("/").filter(Boolean).length >= 2) ||
+    (pathname?.startsWith("/products/") && pathname.split("/").filter(Boolean).length >= 2);
 
   // Detail pages with their own bottom action bars:
   const isFullBleedDetailPage =
     (pathname?.startsWith("/destinations/") && pathname.split("/").filter(Boolean).length >= 2) ||
-    (pathname?.startsWith("/treks/") && pathname.split("/").filter(Boolean).length >= 2);
+    (pathname?.startsWith("/treks/") && pathname.split("/").filter(Boolean).length >= 2) ||
+    (pathname?.startsWith("/products/") && pathname.split("/").filter(Boolean).length >= 2);
 
   return (
     <>
