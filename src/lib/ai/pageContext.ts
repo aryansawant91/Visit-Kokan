@@ -1,6 +1,8 @@
 // Client-safe page context helper for AIChatWidget
 // Decoupled from server prompts to ensure zero client bundle bloat or hydration issues
 
+import { TREK_TRANSIT_GATEWAYS } from "@/lib/ai/kokanWebsiteData";
+
 export interface PageContextResult {
   context: string;
   suggestions: string[];
@@ -20,8 +22,13 @@ export function getPageContext(pathname?: string | null): PageContextResult {
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
 
+    const transit = TREK_TRANSIT_GATEWAYS[slug];
+    const transitDetails = transit
+      ? ` Base Village: ${transit.baseVillage}. Nearest Railway Station: ${transit.nearestStation}. Road Route: ${transit.roadRoute}. CRITICAL TRAVEL DIRECTIVE: When asked how to reach, ALWAYS provide this verified station (${transit.nearestStation}) and route. NEVER recommend Kankavli or any other wrong station!`
+      : "";
+
     return {
-      context: `User is viewing trek page for: ${formattedName} (slug: ${slug}). Official trek price is ₹1,499 per trekker (₹750 advance deposit to confirm slot). Status: Coming Soon, open for WhatsApp enquiry.`,
+      context: `User is viewing trek page for: ${formattedName} (slug: ${slug}). Official trek price is ₹1,499 per trekker (₹750 advance deposit to confirm slot). Status: Coming Soon, open for WhatsApp enquiry.${transitDetails}`,
       suggestions: [
         "Difficulty & trail info?",
         "How to reach base?",

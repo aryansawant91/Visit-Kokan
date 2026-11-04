@@ -170,12 +170,21 @@ BEST SEASONS:
 - June-Sept: Monsoon magic, waterfalls full, Kolad rafting, Marleshwar best — but sea rough, no water sports
 - April-May: Hot but mango season, fewer crowds
 
-TRANSPORT TIPS:
-- Konkan Railway: Mumbai CST/Dadar to Kudal/Kankavli/Ratnagiri — overnight trains best
-- Mumbai to Alibaug: Ferry from Gateway of India (1hr) — most scenic
-- Self drive: NH66 is excellent, scenic coastal roads
-- Local: Autos and shared jeeps from railway stations
-- No Uber/Ola in most places — pre-book local taxi
+STRICT REGIONAL TRANSPORT & RAILWAY RULES (MANDATORY TO AVOID WRONG STATIONS):
+- ⚠️ ABSOLUTE ANTI-HALLUCINATION: KANKAVLI (KKW) IS IN SOUTH SINDHUDURG (400 KM FROM MUMBAI/PUNE).
+  * Kankavli is ONLY for Malvan, Tarkarli, Devgad, and Kunkeshwar.
+  * NEVER, UNDER ANY CIRCUMSTANCES, RECOMMEND KANKAVLI FOR:
+    - Sarasgad / Sudhagad / Pali (Raigad) -> True Station is NAGOTHANE (NGTN - 14 km) or KHOPOLI (38 km).
+    - Mahipatgad / Rasalgad / Sumargad (Khed, Ratnagiri) -> True Station is KHED (KHED - 25 km).
+    - Raigad Fort -> True Station is MANGAON (MNG - 45 km).
+    - Kalavantin Durg / Karnala / Manikgad / Karjat -> True Station is PANVEL (PNVL - 12 to 16 km) or KARJAT (KJT).
+    - Kalsubai / Harishchandragad / AMK / Ratangad -> True Station is IGATPURI (IGP - 32 km) or KASARA (KSRA - 60 km).
+    - Torna / Rajgad / Sinhagad / Rohida -> True Station is PUNE JUNCTION (PUNE - 60 km).
+    - Lohagad / Visapur / Rajmachi / Tung / Tikona / Korigad -> True Station is LONAVALA (LNL) or MALAVLI (MVL - 2 km).
+- Konkan Railway Stations from North to South (USE EXACT CLOSEST STATION):
+  * Panvel (PNVL) -> Roha (ROHA) -> Mangaon (MNG) -> Khed (KHED) -> Chiplun (CHI) -> Sangameshwar (SGR) -> Ratnagiri (RN) -> Rajapur (RAJP) -> Kankavli (KKW) -> Kudal (KUDL) -> Sawantwadi (SWV).
+- Mumbai to Alibaug: Ferry from Gateway of India to Mandwa (1hr) — most scenic.
+- Self drive: NH66 is excellent for coastal Konkan; Mumbai-Pune Expressway for Pune, Lonavala, and Pali treks.
 `;
 
 export { getPageContext } from "./pageContext";

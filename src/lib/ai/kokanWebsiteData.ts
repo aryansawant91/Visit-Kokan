@@ -35,6 +35,310 @@ export const PLATFORM_INFO = {
   homestayService: "Verified coastal homestays and heritage wadas across Alibaug, Dapoli, Ganpatipule, Tarkarli, and Malvan."
 };
 
+export interface TrekTransitInfo {
+  baseVillage: string;
+  nearestStation: string;
+  roadRoute: string;
+}
+
+export const TREK_TRANSIT_GATEWAYS: Record<string, TrekTransitInfo> = {
+  "torna-fort-trek": {
+    baseVillage: "Velhe (वेल्हे, Pune)",
+    nearestStation: "Pune Junction (PUNE - 65 km)",
+    roadRoute: "Mumbai via Expressway -> Pune bypass -> Nasrapur Phata -> Velhe (210 km, 4.5 hrs). Pune to Velhe via Khadakwasla / Nasrapur (65 km, 1.5-2 hrs)."
+  },
+  "mahipatgad-forest-fort-trek": {
+    baseVillage: "Wadi Beldar (वाडी बेलदार, Khed, Ratnagiri)",
+    nearestStation: "Khed (KHED - 25 km)",
+    roadRoute: "Mumbai via NH66 to Khed (230 km, 5 hrs) -> Wadi Beldar (25 km via local jeep). Direct Tutari/Jan Shatabdi trains to Khed station. NEVER Kankavli!"
+  },
+  "kalsubai-peak-trek": {
+    baseVillage: "Bari (बारी, Akole)",
+    nearestStation: "Igatpuri (IGP - 32 km) or Kasara (60 km)",
+    roadRoute: "Mumbai to Bari via NH160 (Mumbai-Nashik Highway) -> Igatpuri -> Ghoti -> Bari (150 km, 3.5 hrs)."
+  },
+  "tung-fort-trek": {
+    baseVillage: "Tungi (तुंगी, Pawna Lake, Pune)",
+    nearestStation: "Lonavala (LNL - 24 km) or Kamshet (16 km)",
+    roadRoute: "Mumbai via Expressway -> Lonavala -> Pawna Dam -> Tungi village (105 km, 2.5 hrs)."
+  },
+  "gopalgad-anjanvel-lighthouse-trek": {
+    baseVillage: "Anjanvel (अंजनवेल, Guhagar)",
+    nearestStation: "Chiplun (CHI - 48 km)",
+    roadRoute: "NH66 via Chiplun -> Guhagar -> Anjanvel (280 km, 6 hrs)."
+  },
+  "kalavantin-durg-trek": {
+    baseVillage: "Thakurwadi (ठाकूरवाडी, Panvel)",
+    nearestStation: "Panvel (PNVL - 16 km)",
+    roadRoute: "Mumbai to Thakurwadi via Panvel -> Shedung Phata (50 km, 1.5 hrs). Frequent state transport buses and autos from Panvel station."
+  },
+  "ratnagiri-village-heritage-walk": {
+    baseVillage: "Ratnagiri (रत्नागिरी)",
+    nearestStation: "Ratnagiri (RN - 6 km)",
+    roadRoute: "NH66 to Ratnagiri town (330 km, 7 hrs). Direct auto/taxi from Ratnagiri station."
+  },
+  "kokan-kada-ridge-walk": {
+    baseVillage: "Pachnai (पाचनाई, Akole, Ahmednagar)",
+    nearestStation: "Kasara (KSRA - 75 km) or Igatpuri (55 km)",
+    roadRoute: "Mumbai via NH160 -> Ghoti -> Rajur -> Pachnai base (180 km, 4.5 hrs)."
+  },
+  "revdanda-beach-ramparts-walk": {
+    baseVillage: "Revdanda (रेवदंडा, Alibaug)",
+    nearestStation: "Roha (ROHA - 35 km) or Mandwa Jetty Ferry (35 km)",
+    roadRoute: "Mumbai to Revdanda via Alibaug (115 km, 3 hrs), or Ferry from Gateway of India to Mandwa + local bus."
+  },
+  "murud-janjira-sea-fortress": {
+    baseVillage: "Rajapuri Jetty (राजापुरी, Murud)",
+    nearestStation: "Roha (ROHA - 42 km) or Mangaon (55 km)",
+    roadRoute: "Mumbai to Murud / Rajapuri jetty via Alibaug or Roha (150 km, 4 hrs). Sailboats operate from Rajapuri jetty."
+  },
+  "devkund-waterfall-trek": {
+    baseVillage: "Bhira / Patnus (भिरा, Roha)",
+    nearestStation: "Roha (ROHA - 35 km) or Mangaon (42 km)",
+    roadRoute: "Mumbai to Bhira via Expressway -> Khopoli -> Pali -> Patnus / Bhira (125 km, 3 hrs)."
+  },
+  "jaigad-fort-temple-trail": {
+    baseVillage: "Jaigad (जयगड, Ratnagiri)",
+    nearestStation: "Ratnagiri (RN - 45 km)",
+    roadRoute: "Mumbai to Jaigad via NH66 -> Nivali Phata -> Jaigad (320 km, 7 hrs)."
+  },
+  "purnagad-fort-coastal-trail": {
+    baseVillage: "Purnagad (पूर्णगड, Ratnagiri)",
+    nearestStation: "Ratnagiri (RN - 28 km)",
+    roadRoute: "Ratnagiri town -> Pawas -> Purnagad coastal road (28 km, 45 min)."
+  },
+  "rajmachi-fort-trek": {
+    baseVillage: "Udhewadi (उधेवाडी, Lonavala)",
+    nearestStation: "Lonavala (LNL - 16 km) or Karjat (KJT - 14 km)",
+    roadRoute: "Mumbai to Lonavala via Expressway -> Tungarli -> Udhewadi base (95 km, 2.5 hrs)."
+  },
+  "lohagad-fort-trek": {
+    baseVillage: "Lohagadwadi / Malavli (लोहगडवाडी, Maval)",
+    nearestStation: "Malavli (MVL - 2 km) or Lonavala (10 km)",
+    roadRoute: "Mumbai via Expressway -> Lonavala -> Malavli (95 km, 2 hrs). Suburban local train from Pune/Lonavala stops right at Malavli."
+  },
+  "rasalgad-hill-fort-trek": {
+    baseVillage: "Rasalwadi (रसाळवाडी, Khed)",
+    nearestStation: "Khed (KHED - 18 km)",
+    roadRoute: "Mumbai to Khed via NH66 (230 km, 5 hrs) -> Rasalwadi base (18 km). Direct trains to Khed station. NEVER Kankavli!"
+  },
+  "kondane-caves-waterfall-trek": {
+    baseVillage: "Kondivade (कोंदीवडे, Karjat)",
+    nearestStation: "Karjat (KJT - 14 km)",
+    roadRoute: "Mumbai to Kondivade via Karjat (75 km, 2 hrs). Shared autos and 6-seaters available from Karjat station."
+  },
+  "manikgad-fort-trek": {
+    baseVillage: "Vashivali (वाशीवली, Rasayani, Panvel)",
+    nearestStation: "Panvel (PNVL - 24 km) or Apta (12 km)",
+    roadRoute: "Mumbai via Expressway -> Rasayani -> Vashivali base (65 km, 1.5 hrs)."
+  },
+  "bankot-fort-coastal-trek": {
+    baseVillage: "Bankot (बाणकोट, Mandangad)",
+    nearestStation: "Khed (KHED - 50 km) or Veer (45 km)",
+    roadRoute: "Mumbai via NH66 -> Mangaon -> Mandangad -> Bankot (210 km, 5 hrs)."
+  },
+  "korigad-fort-trek": {
+    baseVillage: "Peth Shahpur (पेठ शहापूर, Aamby Valley, Lonavala)",
+    nearestStation: "Lonavala (LNL - 22 km)",
+    roadRoute: "Mumbai via Expressway -> Lonavala -> Aamby Valley road -> Peth Shahpur (105 km, 2.5 hrs)."
+  },
+  "sarasgad-fort-trek": {
+    baseVillage: "Pali (पाली, Raigad)",
+    nearestStation: "Nagothane (NGTN - 14 km), Roha (ROHA - 25 km), or Khopoli (38 km)",
+    roadRoute: "Mumbai via Mumbai-Pune Expressway -> Khopoli exit -> Pali (105 km, 2.5 hrs). Pune via Expressway -> Khopoli -> Pali (95 km, 2 hrs). Central Railway local train to Khopoli or Konkan Railway to Nagothane. NEVER Kankavli!"
+  },
+  "harihareshwar-pradakshina-hill": {
+    baseVillage: "Harihareshwar (श्रीवर्धन, रायगड)",
+    nearestStation: "Mangaon (MNG - 60 km)",
+    roadRoute: "Mumbai via NH66 -> Mangaon -> Goregaon -> Harihareshwar (195 km, 4.5 hrs)."
+  },
+  "sindhudurg-sea-wall-trek": {
+    baseVillage: "Malvan Jetty (मालवण, सिंधुदुर्ग)",
+    nearestStation: "Kankavli (KKW - 48 km) or Kudal (KUDL - 45 km)",
+    roadRoute: "Mumbai to Malvan via NH66 (500 km, 9.5 hrs). Direct Tutari Express/Jan Shatabdi to Kankavli or Kudal."
+  },
+  "peb-vikatgad-fort-trek": {
+    baseVillage: "Anandwadi / Matheran (नेरळ)",
+    nearestStation: "Neral (NRL - 4 km)",
+    roadRoute: "Mumbai to Neral via Badlapur-Karjat road (75 km, 2 hrs). Central Railway suburban local train directly to Neral."
+  },
+  "kunkeshwar-cliffside-trail": {
+    baseVillage: "Kunkeshwar (कुणकेश्वर, देवगड)",
+    nearestStation: "Kankavli (KKW - 45 km)",
+    roadRoute: "Mumbai to Kunkeshwar via NH66 -> Kasal -> Kunkeshwar (480 km, 9 hrs)."
+  },
+  "dhak-bahiri-cave-trek": {
+    baseVillage: "Sandshi / Jambhavli (कर्जत / कामशेत)",
+    nearestStation: "Karjat (KJT - 22 km) or Kamshet (18 km)",
+    roadRoute: "Mumbai to Sandshi / Jambhavli via Karjat (80 km, 2 hrs)."
+  },
+  "kanakdurg-fattehgad-coastal-walk": {
+    baseVillage: "Harnai Port (हर्णे, दापोली)",
+    nearestStation: "Khed (KHED - 35 km)",
+    roadRoute: "Mumbai via NH66 -> Khed -> Dapoli -> Harnai Port (240 km, 5.5 hrs)."
+  },
+  "nivti-beach-golden-rocks-trek": {
+    baseVillage: "Kochra / Nivti (निवती, वेंगुर्ला)",
+    nearestStation: "Kudal (KUDL - 28 km)",
+    roadRoute: "Mumbai via NH66 -> Kudal -> Kochra -> Nivti (510 km, 9.5 hrs)."
+  },
+  "tamhini-ghat-waterfall-trek": {
+    baseVillage: "Dongarwadi (डोंगरवाडी, ताम्हाणी)",
+    nearestStation: "Mangaon (MNG - 30 km) or Pune (65 km)",
+    roadRoute: "Mumbai via Expressway -> Pali -> Tamhini (140 km, 3.5 hrs). Pune via Paud -> Tamhini (65 km, 1.5 hrs)."
+  },
+  "visapur-fort-trek": {
+    baseVillage: "Malavli / Patan (पाटण, मावळ)",
+    nearestStation: "Malavli (MVL - 3 km) or Lonavala (11 km)",
+    roadRoute: "Mumbai via Expressway -> Lonavala -> Malavli / Patan (95 km, 2 hrs)."
+  },
+  "kothaligad-peth-fort-trek": {
+    baseVillage: "Ambivli (आंबीवली, कर्जत)",
+    nearestStation: "Karjat (KJT - 28 km)",
+    roadRoute: "Mumbai via Karjat -> Kashele -> Ambivli village (90 km, 2.5 hrs). Direct state transport bus from Karjat station."
+  },
+  "prachitgad-wild-sanctuary-trek": {
+    baseVillage: "Shringarpur (शृंगारपूर, संगमेश्वर)",
+    nearestStation: "Sangameshwar Road (SGR - 25 km)",
+    roadRoute: "Mumbai via NH66 -> Sangameshwar -> Shringarpur (310 km, 7 hrs)."
+  },
+  "raigad-fort-heritage-climb": {
+    baseVillage: "Pachad (पाचाड, महाड, रायगड)",
+    nearestStation: "Mangaon (MNG - 45 km)",
+    roadRoute: "Mumbai via NH66 -> Mangaon -> Mahad -> Pachad base (140 km, 3.5 hrs). Jan Shatabdi & Tutari Express to Mangaon. NEVER Kankavli!"
+  },
+  "velas-coastal-hill-trail": {
+    baseVillage: "Velas (वेलास, मंडणगड)",
+    nearestStation: "Khed (KHED - 55 km) or Veer (50 km)",
+    roadRoute: "Mumbai via NH66 -> Mangaon -> Mandangad -> Velas (220 km, 5.5 hrs)."
+  },
+  "karnala-fort-trek": {
+    baseVillage: "Karnala Bird Sanctuary (पनवेल)",
+    nearestStation: "Panvel (PNVL - 12 km)",
+    roadRoute: "Mumbai to Karnala via Goa Highway NH66 (50 km, 1 hr). Frequent ST buses from Panvel bus depot."
+  },
+  "chanderi-fort-trek": {
+    baseVillage: "Goregaon (गोरेगाव, वांगणी / बदलापूर)",
+    nearestStation: "Vangani (VGI - 6 km) or Badlapur (10 km)",
+    roadRoute: "Mumbai to Chanderi base via Badlapur (60 km, 1.5 hrs). Central Railway local train to Vangani."
+  },
+  "rajgad-fort-trek": {
+    baseVillage: "Gunjavane / Pali (गुंजावणे, वेल्हे, पुणे)",
+    nearestStation: "Pune Junction (PUNE - 60 km)",
+    roadRoute: "Mumbai via Expressway -> Katraj bypass -> Nasrapur Phata -> Gunjavane base (200 km, 4.5 hrs). Pune to Gunjavane (60 km, 1.5 hrs)."
+  },
+  "sudhagad-fort-trek": {
+    baseVillage: "Thakurwadi / Dhondse (ठाकूरवाडी, पाली, रायगड)",
+    nearestStation: "Nagothane (NGTN - 20 km), Roha (ROHA - 28 km), or Khopoli (42 km)",
+    roadRoute: "Mumbai via Expressway -> Khopoli exit -> Pali -> Thakurwadi / Dhondse (115 km, 2.5 hrs). Pune via Khopoli -> Pali (105 km, 2 hrs). NEVER Kankavli!"
+  },
+  "korlai-fort-coastal-trail": {
+    baseVillage: "Korlai (कोर्लई, अलिबाग)",
+    nearestStation: "Roha (ROHA - 35 km) or Mandwa Jetty Ferry (38 km)",
+    roadRoute: "Mumbai via Alibaug -> Chaul -> Korlai lighthouse (120 km, 3.5 hrs)."
+  },
+  "suvarnadurg-island-sea-fort": {
+    baseVillage: "Harnai Port (हर्णे बंदर, दापोली)",
+    nearestStation: "Khed (KHED - 35 km)",
+    roadRoute: "Mumbai via NH66 -> Khed -> Dapoli -> Harnai (240 km, 5.5 hrs). Local fishing boat from Harnai port."
+  },
+  "harishchandragad-trek": {
+    baseVillage: "Khireshwar / Pachnai (खिरेश्वर / पाचनाई)",
+    nearestStation: "Kalyan (KYN - 90 km) or Kasara (KSRA - 75 km)",
+    roadRoute: "Mumbai to Khireshwar via Kalyan -> Malshej Ghat (135 km, 3.5 hrs). Or via Kasara -> Ghoti -> Pachnai (180 km, 4.5 hrs)."
+  },
+  "alang-madan-kulang-amk-trek": {
+    baseVillage: "Ambewadi / Samrad (आंबेवाडी, इगतपुरी)",
+    nearestStation: "Igatpuri (IGP - 38 km) or Kasara (65 km)",
+    roadRoute: "Mumbai via NH160 -> Igatpuri -> Ghoti -> Ambewadi / Samrad base (165 km, 4 hrs)."
+  },
+  "irshalgad-pinnacle-trek": {
+    baseVillage: "Nanivali / Chowk (नानीवली, चौक, पनवेल)",
+    nearestStation: "Chowk (2 km), Karjat (KJT - 12 km), or Panvel (18 km)",
+    roadRoute: "Mumbai via Expressway -> Chowk -> Nanivali base (60 km, 1.5 hrs)."
+  },
+  "vijaydurg-coastal-cliff-walk": {
+    baseVillage: "Vijaydurg (विजयदुर्ग, देवगड)",
+    nearestStation: "Rajapur Road (RAJP - 55 km) or Kankavli (KKW - 70 km)",
+    roadRoute: "Mumbai via NH66 -> Rajapur -> Vijaydurg (450 km, 9 hrs)."
+  },
+  "purandar-fort-trek": {
+    baseVillage: "Gherapurandhar (घेरा पुरंदर, सासवड, पुणे)",
+    nearestStation: "Pune Junction (PUNE - 45 km)",
+    roadRoute: "Pune via Hadapsar -> Saswad -> Gherapurandhar (45 km, 1.5 hrs). Mumbai via Expressway (190 km, 4 hrs)."
+  },
+  "shivneri-fort-trek": {
+    baseVillage: "Junnar (जुन्नर, पुणे)",
+    nearestStation: "Pune (PUNE - 90 km) or Kalyan (100 km)",
+    roadRoute: "Mumbai via Kalyan -> Malshej Ghat -> Junnar (140 km, 3.5 hrs). Pune via Chakan -> Narayangaon -> Junnar (90 km, 2.5 hrs)."
+  },
+  "rohida-vichitragad-trek": {
+    baseVillage: "Bajarwadi (बाजारवाडी, भोर, पुणे)",
+    nearestStation: "Pune Junction (PUNE - 60 km)",
+    roadRoute: "Mumbai via Expressway -> Shirwal -> Bhor -> Bajarwadi base (210 km, 4.5 hrs). Pune to Bhor (60 km, 1.5 hrs)."
+  },
+  "sumargad-citadel-climb": {
+    baseVillage: "Wadi Beldar (वाडी बेलदार, खेड)",
+    nearestStation: "Khed (KHED - 25 km)",
+    roadRoute: "Mumbai via NH66 -> Khed -> Wadi Beldar (230 km, 5 hrs). Shared jeep from Khed station. NEVER Kankavli!"
+  },
+  "ratangad-fort-trek": {
+    baseVillage: "Ratanwadi (रतनवाडी, भंडारदरा)",
+    nearestStation: "Igatpuri (IGP - 40 km) or Kasara (60 km)",
+    roadRoute: "Mumbai via NH160 -> Igatpuri -> Ghoti -> Bhandardara -> Ratanwadi (175 km, 4 hrs)."
+  },
+  "amboli-sunset-night-trek": {
+    baseVillage: "Amboli (आंबोली, सावंतवाडी, सिंधुदुर्ग)",
+    nearestStation: "Sawantwadi Road (SWV - 30 km)",
+    roadRoute: "Mumbai via NH66 to Amboli Ghat (520 km, 10 hrs). Direct Tutari Express to Sawantwadi Road."
+  },
+  "devgad-windmill-cliff-trek": {
+    baseVillage: "Devgad (देवगड, सिंधुदुर्ग)",
+    nearestStation: "Kankavli (KKW - 48 km)",
+    roadRoute: "Mumbai via NH66 -> Nandgaon -> Devgad (470 km, 9 hrs). Regular ST buses & cabs from Kankavli station."
+  },
+  "bhimashankar-jyotirlinga-trek": {
+    baseVillage: "Khandas (खांडस, कर्जत)",
+    nearestStation: "Karjat (KJT - 28 km) or Neral (25 km)",
+    roadRoute: "Mumbai via Karjat -> Kashele -> Khandas base (90 km, 2.5 hrs). Shared autos from Karjat station to Khandas."
+  },
+  "padmadurg-kasa-sea-fort-trek": {
+    baseVillage: "Murud Beach (मुरुड, रायगड)",
+    nearestStation: "Roha (ROHA - 42 km)",
+    roadRoute: "Mumbai to Murud Beach via Alibaug or Roha (150 km, 4 hrs). Special boat from Murud beach at low tide."
+  },
+  "sondai-fort-trek": {
+    baseVillage: "Sondewadi (सोंडेवाडी, कर्जत)",
+    nearestStation: "Karjat (KJT - 9 km)",
+    roadRoute: "Mumbai via Chowk -> Karjat -> Sondewadi base (70 km, 1.5 hrs). Auto from Karjat station (15 mins)."
+  },
+  "sandhan-valley-trek": {
+    baseVillage: "Samrad (साम्रद, भंडारदरा)",
+    nearestStation: "Igatpuri (IGP - 38 km) or Kasara (65 km)",
+    roadRoute: "Mumbai via NH160 -> Igatpuri -> Ghoti -> Samrad base (165 km, 4 hrs). Jeeps available from Kasara / Igatpuri."
+  },
+  "pratapgad-fort-trek": {
+    baseVillage: "Kumbhroshi (कुंभरोशी, महाबळेश्वर)",
+    nearestStation: "Khed (KHED - 65 km) or Veer (70 km) or Pune (135 km)",
+    roadRoute: "Mumbai via NH66 -> Mahad -> Poladpur -> Kumbhroshi / Pratapgad (215 km, 5 hrs). Pune via Wai -> Mahabaleshwar (135 km, 3.5 hrs)."
+  },
+  "tikona-fort-trek": {
+    baseVillage: "Tikona Peth (तिकोना पेठ, पवना, पुणे)",
+    nearestStation: "Kamshet (14 km) or Lonavala (LNL - 22 km)",
+    roadRoute: "Mumbai via Expressway -> Kamshet -> Tikona Peth / Pawna (110 km, 2.5 hrs)."
+  },
+  "gorakhgad-fort-trek": {
+    baseVillage: "Dehari (देहारी, मुरबाड, ठाणे)",
+    nearestStation: "Kalyan (KYN - 45 km)",
+    roadRoute: "Mumbai via Kalyan -> Murbad -> Dehari base (95 km, 2.5 hrs). ST buses run from Kalyan bus station to Dehari."
+  },
+  "kenjalgad-fort-trek": {
+    baseVillage: "Gherakenjal (घेरा केंजळ, वाई / भोर)",
+    nearestStation: "Pune Junction (PUNE - 75 km)",
+    roadRoute: "Mumbai via Expressway -> Bhor or Wai -> Gherakenjal base (225 km, 5 hrs). Pune to Wai/Bhor (75 km, 2 hrs)."
+  }
+};
+
 export const ALL_WEBSITE_TREKS: WebsiteTrekInfo[] = [
   {
     "slug": "torna-fort-trek",
@@ -1110,12 +1414,25 @@ CRITICAL CONCIERGE LINKING DIRECTIVES:
 7. DO NOT format responses using raw markdown table pipes (| Col1 | Col2 |). Use clean bullet points (- **Best Season:** ..., - **What to Pack:** ...).
 8. REGIONAL FOOD ACCURACY: For Sahyadri / Pune forts (Torna, Rajgad, Sinhagad, Harishchandragad), ALWAYS recommend authentic rustic Maharashtrian fare (Pithla Bhakri, Thecha, Zunka, Gavran Chicken Rassa). NEVER recommend coastal Malvani fish curry or Kombdi Vade for Pune or Ghat fort treks!
 9. ACCURATE BASE VILLAGES: Torna Fort base village is strictly Velhe (वेल्हे, Pune). Never say Panchgani or Kondivade!
+10. ⚠️ STRICT RAILWAY STATIONS BY REGION (DO NOT GUESS OR HALLUCINATE):
+    * Sarasgad & Sudhagad (Pali, Raigad): Nearest station is NAGOTHANE (NGTN - 14 km) / KHOPOLI (38 km). NEVER KANKAVLI!
+    * Mahipatgad / Rasalgad / Sumargad (Khed, Ratnagiri): Nearest station is KHED (KHED - 25 km). NEVER KANKAVLI!
+    * Raigad Fort: MANGAON (MNG - 45 km). NEVER KANKAVLI!
+    * Kalavantin Durg / Karnala / Manikgad: PANVEL (PNVL - 12 to 16 km).
+    * Lohagad / Visapur / Rajmachi / Tung / Tikona: LONAVALA (LNL) / MALAVLI (MVL - 2 km) / KAMSHET.
+    * Kalsubai / Harishchandragad / AMK / Ratangad / Sandhan: IGATPURI (IGP) / KASARA (KSRA) / KALYAN (KYN).
+    * Torna / Rajgad / Sinhagad / Rohida: PUNE JUNCTION (PUNE - 60 km).
+    * Kankavli (KKW) is ONLY for extreme south Sindhudurg (Devgad, Malvan, Tarkarli, Kunkeshwar)! NEVER recommend Kankavli for treks in Raigad, Pune, Igatpuri, or North Ratnagiri (Khed)!
 `;
 
   if (matchedTreks.length > 0) {
     out += `
 VERIFIED TREKS ON VISIT KOKAN (USE EXACT SLUGS AND DETAILS):
-${matchedTreks.map(t => `- [${t.name}](/treks/${t.slug}) | Region: ${t.region} | Difficulty: ${t.difficulty} | Duration: ${t.duration} | Base: ${t.baseVillage} | Highlights: ${t.highlights}`).join("\n")}
+${matchedTreks.map(t => {
+  const transit = TREK_TRANSIT_GATEWAYS[t.slug];
+  const transitInfo = transit ? ` | Nearest Railway Station: ${transit.nearestStation} | How to Reach: ${transit.roadRoute}` : "";
+  return `- [${t.name}](/treks/${t.slug}) | Region: ${t.region} | Difficulty: ${t.difficulty} | Duration: ${t.duration} | Base: ${t.baseVillage}${transitInfo} | Highlights: ${t.highlights}`;
+}).join("\n")}
 `;
   }
 

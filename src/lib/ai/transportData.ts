@@ -119,6 +119,42 @@ export function getArrivalAtStation(
 
 export const KONKAN_DESTINATION_GATEWAYS = `
 VERIFIED DESTINATION TO NEAREST RAILWAY STATION & GATEWAY DIRECTORY:
+
+VERIFIED TREK & FORT NEAREST RAILWAY STATIONS DIRECTORY (MANDATORY RULES):
+- Pali (Raigad) / Sarasgad Fort / Sudhagad Fort:
+  * Nearest Station: NAGOTHANE (NGTN - 14 km, 20 min auto), ROHA (ROHA - 25 km), or KHOPOLI (38 km).
+  * Route from Mumbai: Mumbai-Pune Expressway -> Khopoli exit -> Pali (105 km, 2.5 hrs). Central Railway local train to Khopoli.
+  * Route from Pune: Expressway -> Khopoli exit -> Pali (95 km, 2 hrs).
+  * ⚠️ ABSOLUTE ANTI-HALLUCINATION: NEVER RECOMMEND KANKAVLI FOR PALI, SARASGAD, OR SUDHAGAD! Kankavli is in Sindhudurg (400 km away)!
+- Khed Treks (Mahipatgad, Rasalgad, Sumargad):
+  * Nearest Station: KHED (KHED - 18 to 25 km). Tutari Express (arr 03:30) / Jan Shatabdi (arr 09:20).
+  * Route: Mumbai to Khed via NH66 (230 km, 5 hrs) -> Wadi Beldar / Rasalwadi (20 km via local jeep).
+  * ⚠️ ABSOLUTE ANTI-HALLUCINATION: NEVER RECOMMEND KANKAVLI FOR MAHIPATGAD OR KHED!
+- Raigad Fort / Mahad / Pachad:
+  * Nearest Station: MANGAON (MNG - 45 km, 1 hr auto). Jan Shatabdi arr 08:05 / Tutari arr 02:10.
+  * ⚠️ ABSOLUTE ANTI-HALLUCINATION: NEVER RECOMMEND KANKAVLI FOR RAIGAD FORT!
+- Panvel & Karjat Treks (Kalavantin Durg, Prabalgad, Karnala, Manikgad, Kothaligad, Kondane Caves, Sondai, Bhimashankar):
+  * Nearest Station: PANVEL (PNVL - 12 to 16 km) or KARJAT (KJT - 9 to 28 km).
+  * Frequent Mumbai suburban local trains run directly from CSMT / Thane to Panvel & Karjat!
+- Lonavala, Pawna & Maval Treks (Lohagad, Visapur, Rajmachi, Tung, Tikona, Korigad):
+  * Nearest Station: MALAVLI (MVL - 2 km) for Lohagad/Visapur, LONAVALA (LNL) for Rajmachi/Korigad, KAMSHET for Tung/Tikona.
+- Igatpuri, Kasara & Akole Treks (Kalsubai, Harishchandragad, AMK, Ratangad, Sandhan Valley):
+  * Nearest Station: IGATPURI (IGP - 32 km) or KASARA (KSRA - 60 km). Suburban train to Kasara, then shared jeep.
+- Pune District Treks (Torna, Rajgad, Sinhagad, Rohida, Kenjalgad, Purandar):
+  * Nearest Station: PUNE JUNCTION (PUNE - 30 to 65 km). Direct road via Mumbai-Pune Expressway -> NH48 bypass.
+- Chiplun & Guhagar Treks (Gopalgad, Anjanvel, Prachitgad):
+  * Nearest Station: CHIPLUN (CHI - 48 km) or SANGAMESHWAR ROAD (SGR).
+- Central Ratnagiri Treks (Jaigad, Purnagad, Ratnadurg, Marleshwar):
+  * Nearest Station: RATNAGIRI (RN - 6 to 45 km).
+- Sindhudurg Treks (The ONLY treks served by Kankavli or Kudal):
+  * Devgad Windmill Cliff -> KANKAVLI (KKW - 48 km).
+  * Kunkeshwar Cliffside -> KANKAVLI (KKW - 45 km).
+  * Sindhudurg Fort Sea Wall -> KANKAVLI (KKW - 48 km) or KUDAL (KUDL - 45 km).
+  * Nivti Beach Golden Rocks -> KUDAL (KUDL - 28 km).
+  * Amboli Sunset Trek -> SAWANTWADI ROAD (SWV - 30 km).
+⚠️ CRITICAL RULE: NEVER recommend Kankavli for any trek in Raigad, Pune, Igatpuri, Karjat, or North Ratnagiri (Khed)!
+
+COASTAL DESTINATIONS & BEACH HUBS:
 - Raigad Fort / Mahad / Pachad:
   * Nearest Station: Mangaon (MNG) (approx 45 km, 1 hr by auto/cab to Raigad base at Pachad). NEVER USE Kankavli (which is 350 km south in Sindhudurg)!
   * Jan Shatabdi Express (12051): CSMT dep 05:25 -> Mangaon arr 08:05 (duration 2h 40m, Fare: ₹120 2S / ₹380 CC). Ideal for 1-day or weekend trip!
@@ -248,6 +284,37 @@ export function validateAndCorrectTransport(itinerary: any, contextText: string 
     t.to = "Velhe Base Village (Torna Fort)";
     t.duration = "4.5 to 5.5 hours from Mumbai (210 km) or 1.5 to 2 hours from Pune (65 km)";
     t.cost = "₹3,500 - ₹4,500 private cab / self-drive toll ₹350 fuel ₹1,400";
+  }
+
+  // Programmatic safeguard: Ensure Pali / Sarasgad / Sudhagad treks never get Kankavli
+  const isPaliTrek = destContext.includes("pali") || destContext.includes("sarasgad") || destContext.includes("sudhagad");
+  if (isPaliTrek && itinerary.transportSummary) {
+    const t = itinerary.transportSummary;
+    t.type = "train";
+    t.name = "Central Railway / Konkan Railway Local";
+    t.number = "";
+    t.departs = "06:00 AM";
+    t.arrives = "08:15 AM";
+    t.duration = "2h 15m";
+    t.cost = "₹45 Local / ₹120 Express";
+    t.from = "Mumbai CSMT / Dadar";
+    t.to = "Nagothane (NGTN - 14 km) / Khopoli (38 km)";
+    return itinerary;
+  }
+
+  // Programmatic safeguard: Ensure Khed treks (Mahipatgad / Rasalgad / Sumargad) never get Kankavli
+  const isKhedTrek = destContext.includes("mahipatgad") || destContext.includes("rasalgad") || destContext.includes("sumargad");
+  if (isKhedTrek && itinerary.transportSummary) {
+    const t = itinerary.transportSummary;
+    t.name = "Tutari Express";
+    t.number = "10103";
+    t.departs = "23:05";
+    t.arrives = "03:30";
+    t.duration = "4h 25m";
+    t.cost = "₹160 (SL) / ₹500 (3AC)";
+    t.from = "Mumbai CSMT";
+    t.to = "Khed (KHED - 25 km)";
+    return itinerary;
   }
 
   if (!itinerary.transportSummary) return itinerary;
@@ -443,46 +510,90 @@ export function validateAndCorrectTransport(itinerary: any, contextText: string 
 
 /**
  * Deterministic text sanitizer for trek conversational responses.
- * Guarantees zero hallucinations for base villages, food, and return travel times.
+ * Guarantees zero hallucinations for railway stations, base villages, food, and return travel times.
  */
 export function sanitizeTrekText(text: string, contextQuery: string = ""): string {
   if (!text) return text;
   const combined = `${contextQuery} ${text}`.toLowerCase();
-  const isPuneOrGhatTrek =
-    combined.includes("torna") ||
-    combined.includes("rajgad") ||
-    combined.includes("sinhagad") ||
-    combined.includes("kalsubai") ||
-    combined.includes("harishchandragad") ||
-    combined.includes("kalavantin");
-
-  if (!isPuneOrGhatTrek) return text;
-
   let sanitized = text;
 
-  // 1. Correct seafood hallucination for Pune/Ghat treks
-  sanitized = sanitized.replace(
-    /Malvani fish curry with rice at a nearby dhaba/gi,
-    "authentic rustic Maharashtrian meal (hot Pithla Bhakri with fiery Thecha & Gavran Chicken Rassa)"
-  );
-  sanitized = sanitized.replace(
-    /Malvani fish curry with rice/gi,
-    "hot Pithla Bhakri with fiery Thecha & Indrayani rice"
-  );
-  sanitized = sanitized.replace(
-    /Malvani fish curry/gi,
-    "hot Pithla Bhakri & fiery Thecha"
-  );
-  sanitized = sanitized.replace(
-    /fish curry with rice/gi,
-    "Pithla Bhakri with Indrayani rice"
-  );
-  sanitized = sanitized.replace(
-    /seafood thali/gi,
-    "Gavran chicken thali or rustic Pithla Bhakri"
-  );
+  // 1. Correct railway station hallucinations: NEVER allow Kankavli for non-Sindhudurg treks!
+  const isPaliTrek = combined.includes("pali") || combined.includes("sarasgad") || combined.includes("sudhagad");
+  const isKhedTrek = combined.includes("mahipatgad") || combined.includes("rasalgad") || combined.includes("sumargad");
+  const isPuneTrek = combined.includes("torna") || combined.includes("rajgad") || combined.includes("sinhagad") || combined.includes("purandar") || combined.includes("rohida") || combined.includes("kenjalgad");
+  const isIgatpuriTrek = combined.includes("kalsubai") || combined.includes("harishchandra") || combined.includes("samrad") || combined.includes("bari") || combined.includes("ratangad") || combined.includes("sandhan");
+  const isPanvelKarjatTrek = combined.includes("kalavantin") || combined.includes("prabalgad") || combined.includes("karnala") || combined.includes("manikgad") || combined.includes("kothaligad") || combined.includes("sondai");
+  const isLonavalaTrek = combined.includes("lohagad") || combined.includes("visapur") || combined.includes("rajmachi") || combined.includes("tung") || combined.includes("tikona") || combined.includes("korigad");
+  const isRaigadFort = combined.includes("raigad fort") || combined.includes("pachad") || combined.includes("heritage-climb");
 
-  // 2. Correct impossible travel times from Velhe/Torna to Mumbai (210 km)
+  if (isPaliTrek) {
+    sanitized = sanitized.replace(
+      /Take the Konkan Railway \(Mumbai CST\/Dadar\s*->\s*Kankavli\) or a private cab via NH66\.\s*The drive from Kankavli to Pali is about 30 km and takes ~45 min on the coastal road\./gi,
+      "Take the Central Railway suburban train to Khopoli (or Konkan Railway to Nagothane/Roha), or drive via Mumbai-Pune Expressway -> Khopoli exit -> Pali (105 km, 2.5 hrs)."
+    );
+    sanitized = sanitized.replace(
+      /Kankavli \(KKW\) - 48 km away \(~1 hr drive\)/gi,
+      "Nagothane (NGTN) - 14 km away (~20 min auto) or Khopoli (38 km away)"
+    );
+    sanitized = sanitized.replace(
+      /•\s*From Ratnagiri\s*[-–]\s*A 1-hr drive \(45 km\) from Ratnagiri town to Pali via NH66\.?/gi,
+      "• From Navi Mumbai / Thane - Drive via Sion-Panvel Highway -> Mumbai-Pune Expressway -> Khopoli exit -> Pali (90 km, 2 hrs)."
+    );
+    sanitized = sanitized.replace(/\(Mumbai CST\/Dadar\s*->\s*Kankavli\)/gi, "(Mumbai CSMT -> Khopoli / Nagothane)");
+    sanitized = sanitized.replace(/drive from Kankavli to Pali/gi, "drive from Khopoli/Nagothane to Pali");
+    sanitized = sanitized.replace(/Kankavli \(KKW\)/gi, "Nagothane (NGTN - 14 km) / Khopoli (38 km)");
+    sanitized = sanitized.replace(/\bKankavli\b/gi, "Nagothane / Khopoli");
+  } else if (isKhedTrek) {
+    sanitized = sanitized.replace(/\(Mumbai CST\/Dadar\s*->\s*Kankavli\)/gi, "(Mumbai CSMT -> Khed (KHED))");
+    sanitized = sanitized.replace(/Kankavli \(KKW\)[^,\n.]*/gi, "Khed (KHED - 25 km)");
+    sanitized = sanitized.replace(/\bKankavli\b/gi, "Khed (KHED)");
+  } else if (isPuneTrek) {
+    sanitized = sanitized.replace(/\(Mumbai CST\/Dadar\s*->\s*Kankavli\)/gi, "(Mumbai -> Pune Junction (PUNE) or direct Expressway)");
+    sanitized = sanitized.replace(/Kankavli \(KKW\)[^,\n.]*/gi, "Pune Junction (PUNE - 60 km)");
+    sanitized = sanitized.replace(/\bKankavli\b/gi, "Pune Junction");
+  } else if (isIgatpuriTrek) {
+    sanitized = sanitized.replace(/\(Mumbai CST\/Dadar\s*->\s*Kankavli\)/gi, "(Mumbai CSMT -> Kasara / Igatpuri)");
+    sanitized = sanitized.replace(/Kankavli \(KKW\)[^,\n.]*/gi, "Igatpuri (IGP - 32 km) / Kasara (60 km)");
+    sanitized = sanitized.replace(/\bKankavli\b/gi, "Igatpuri / Kasara");
+  } else if (isPanvelKarjatTrek) {
+    sanitized = sanitized.replace(/\(Mumbai CST\/Dadar\s*->\s*Kankavli\)/gi, "(Mumbai CSMT -> Panvel / Karjat Suburban Local)");
+    sanitized = sanitized.replace(/Kankavli \(KKW\)[^,\n.]*/gi, "Panvel (PNVL - 16 km) / Karjat (KJT)");
+    sanitized = sanitized.replace(/\bKankavli\b/gi, "Panvel / Karjat");
+  } else if (isLonavalaTrek) {
+    sanitized = sanitized.replace(/\(Mumbai CST\/Dadar\s*->\s*Kankavli\)/gi, "(Mumbai CSMT -> Lonavala / Malavli)");
+    sanitized = sanitized.replace(/Kankavli \(KKW\)[^,\n.]*/gi, "Malavli (MVL - 2 km) / Lonavala (10 km)");
+    sanitized = sanitized.replace(/\bKankavli\b/gi, "Lonavala / Malavli");
+  } else if (isRaigadFort) {
+    sanitized = sanitized.replace(/Kankavli \(KKW\)[^,\n.]*/gi, "Mangaon (MNG - 45 km)");
+    sanitized = sanitized.replace(/\bKankavli\b/gi, "Mangaon (MNG)");
+  }
+
+  // 2. Correct seafood hallucination for Sahyadri/Ghat/Pune treks
+  const isGhatOrInlandTrek = isPuneTrek || isIgatpuriTrek || isPaliTrek || isPanvelKarjatTrek || isLonavalaTrek;
+  if (isGhatOrInlandTrek) {
+    sanitized = sanitized.replace(
+      /Malvani fish curry with rice at a nearby dhaba/gi,
+      "authentic rustic Maharashtrian meal (hot Pithla Bhakri with fiery Thecha & Gavran Chicken Rassa)"
+    );
+    sanitized = sanitized.replace(
+      /Malvani fish curry with rice/gi,
+      "hot Pithla Bhakri with fiery Thecha & Indrayani rice"
+    );
+    sanitized = sanitized.replace(
+      /Malvani fish curry/gi,
+      "hot Pithla Bhakri & fiery Thecha"
+    );
+    sanitized = sanitized.replace(
+      /fish curry with rice/gi,
+      "Pithla Bhakri with Indrayani rice"
+    );
+    sanitized = sanitized.replace(
+      /seafood thali/gi,
+      "Gavran chicken thali or rustic Pithla Bhakri"
+    );
+  }
+
+  // 3. Correct impossible travel times from Velhe/Torna to Mumbai (210 km)
   sanitized = sanitized.replace(
     /02:45 PM\s*[-–]\s*Depart back to Mumbai \(auto-cab or train\)\.?/gi,
     "05:30 PM - Depart Velhe base by private cab or car via NH48 / Mumbai-Pune Expressway."
@@ -496,7 +607,7 @@ export function sanitizeTrekText(text: string, contextQuery: string = ""): strin
     "(private cab or car via Mumbai-Pune Expressway)"
   );
 
-  // 3. Correct base village hallucinations if any
+  // 4. Correct base village hallucinations if any
   sanitized = sanitized.replace(/\bPanchgani\b/gi, "Velhe (वेल्हे, Pune)");
   sanitized = sanitized.replace(/\bKondivade\b/gi, "Velhe (वेल्हे, Pune)");
 
