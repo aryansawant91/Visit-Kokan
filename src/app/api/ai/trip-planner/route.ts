@@ -11,6 +11,7 @@ import {
   formatTransportContext,
   KONKAN_DESTINATION_GATEWAYS,
   validateAndCorrectTransport,
+  sanitizeTrekText,
 } from "@/lib/ai/transportData";
 import { getWebsiteGroundingContext } from "@/lib/ai/kokanWebsiteData";
 
@@ -171,10 +172,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Clean up raw text if it contains JSON artifacts
-    const cleanText = raw
+    let cleanText = raw
       .replace(/```json/g, "")
       .replace(/```/g, "")
       .trim();
+
+    // Sanitize any potential hallucinations in conversational trek text
+    cleanText = sanitizeTrekText(cleanText, lastUserMessage?.content || "");
 
     // If text looks like JSON, show friendly message instead
     if (cleanText.startsWith("{") || cleanText.startsWith("[")) {

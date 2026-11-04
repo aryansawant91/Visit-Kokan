@@ -3,13 +3,335 @@
 import React, { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { MapPin, Compass, Sparkles, MessageCircle, ArrowRight, ExternalLink } from "lucide-react";
 import { getPageContext } from "@/lib/ai/pageContext";
 import ItineraryModal, { ItineraryData } from "./ItineraryModal";
+import { ALL_WEBSITE_TREKS, ALL_WEBSITE_DESTINATIONS, PLATFORM_INFO } from "@/lib/ai/kokanWebsiteData";
 
 interface Message {
     role: "user" | "assistant";
     content: string;
     itinerary?: ItineraryData;
+}
+
+const DESTINATION_IMAGES: Record<string, string> = {
+    "tarkarli": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "tarkarli-beach": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "ganpatipule": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=80",
+    "ganpatipule-beach": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=80",
+    "alibaug": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&q=80",
+    "alibaug-beach": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&q=80",
+    "murud-janjira": "https://images.unsplash.com/photo-1590053303666-4e55e8d3568c?w=800&q=80",
+    "kashid": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "kashid-beach": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "velas": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80",
+    "velas-beach": "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80",
+    "devbag": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "devbag-beach": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "chiplun": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
+    "guhagar": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "guhagar-beach": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+};
+
+interface EntityCardData {
+    type: "trek" | "destination";
+    name: string;
+    image: string;
+    badge: string;
+    priceOrRating: string;
+    location: string;
+    highlights: string[];
+    href?: string;
+    slug?: string;
+}
+
+function getEntityForItinerary(itinerary: ItineraryData): EntityCardData {
+    const query = `${itinerary.title} ${itinerary.subtitle || ""}`.toLowerCase();
+
+    // 1. Check if matches a trek
+    const matchedTrek = ALL_WEBSITE_TREKS.find(t =>
+        query.includes(t.slug) ||
+        query.includes(t.name.toLowerCase()) ||
+        t.slug.split("-").some(part => part.length > 3 && query.includes(part))
+    );
+
+    if (matchedTrek) {
+        return {
+            type: "trek",
+            name: matchedTrek.name,
+            image: `/images/treks/${matchedTrek.slug}/1.jpg`,
+            badge: `🥾 ${matchedTrek.difficulty.toUpperCase()} TREK`,
+            priceOrRating: `₹1,499 / person`,
+            location: `${matchedTrek.baseVillage || matchedTrek.region} • ${matchedTrek.elevation || "Sahyadri"}`,
+            highlights: matchedTrek.highlights
+                ? matchedTrek.highlights.split(";").map(h => h.trim().replace(/^[^a-zA-Z0-9]+/, "")).slice(0, 3)
+                : ["Guided Expedition", "Safety Briefing"],
+            href: `/treks/${matchedTrek.slug}`,
+            slug: matchedTrek.slug,
+        };
+    }
+
+    // 2. Check if matches a destination
+    const matchedDest = ALL_WEBSITE_DESTINATIONS.find(d =>
+        query.includes(d.slug) ||
+        query.includes(d.name.toLowerCase()) ||
+        d.slug.split("-").some(part => part.length > 3 && query.includes(part))
+    );
+
+    if (matchedDest) {
+        const destImg = DESTINATION_IMAGES[matchedDest.slug] || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80";
+        return {
+            type: "destination",
+            name: matchedDest.name,
+            image: destImg,
+            badge: `📍 ${matchedDest.category.toUpperCase()} • ${matchedDest.region}`,
+            priceOrRating: `⭐ 4.8 Rating`,
+            location: `${matchedDest.region}, Konkan`,
+            highlights: matchedDest.highlights
+                ? matchedDest.highlights.split(";").map(h => h.trim()).slice(0, 3)
+                : ["Scenic Views", "Coastal Culture"],
+            href: `/destinations/${matchedDest.slug}`,
+            slug: matchedDest.slug,
+        };
+    }
+
+    return {
+        type: "destination",
+        name: itinerary.title,
+        image: "/images/banners/coastal-getaways.jpg",
+        badge: "✨ CURATED KONKAN PLAN",
+        priceOrRating: itinerary.totalBudget ? `Est. ${itinerary.totalBudget}` : "⭐ Verified Plan",
+        location: itinerary.subtitle || "Konkan Coast & Sahyadris",
+        highlights: ["Detailed Timeline", "Verified Transit", "Local Food"],
+    };
+}
+
+function extractMentionedEntitiesFromText(content: string): EntityCardData[] {
+    if (!content) return [];
+    const results: EntityCardData[] = [];
+    const seen = new Set<string>();
+
+    // Treks: /treks/[slug]
+    const trekMatches = Array.from(content.matchAll(/\/treks\/([a-z0-9-]+)/g));
+    for (const m of trekMatches) {
+        const slug = m[1];
+        if (seen.has(slug)) continue;
+        seen.add(slug);
+        const trek = ALL_WEBSITE_TREKS.find(t => t.slug === slug);
+        if (trek) {
+            results.push({
+                type: "trek",
+                name: trek.name,
+                image: `/images/treks/${trek.slug}/1.jpg`,
+                badge: `🥾 ${trek.difficulty.toUpperCase()} TREK`,
+                priceOrRating: `₹1,499 / person`,
+                location: `${trek.baseVillage || trek.region} • ${trek.elevation || "Sahyadri"}`,
+                highlights: trek.highlights
+                    ? trek.highlights.split(";").map(h => h.trim().replace(/^[^a-zA-Z0-9]+/, "")).slice(0, 3)
+                    : ["Guided Expedition", "Safety Briefing"],
+                href: `/treks/${trek.slug}`,
+                slug: trek.slug,
+            });
+        }
+    }
+
+    // Destinations: /destinations/[slug]
+    const destMatches = Array.from(content.matchAll(/\/destinations\/([a-z0-9-]+)/g));
+    for (const m of destMatches) {
+        const slug = m[1];
+        if (seen.has(slug)) continue;
+        seen.add(slug);
+        const dest = ALL_WEBSITE_DESTINATIONS.find(d => d.slug === slug);
+        if (dest) {
+            const destImg = DESTINATION_IMAGES[dest.slug] || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80";
+            results.push({
+                type: "destination",
+                name: dest.name,
+                image: destImg,
+                badge: `📍 ${dest.category.toUpperCase()} • ${dest.region}`,
+                priceOrRating: `⭐ 4.8 Rating`,
+                location: `${dest.region}, Konkan`,
+                highlights: dest.highlights
+                    ? dest.highlights.split(";").map(h => h.trim()).slice(0, 3)
+                    : ["Scenic Views", "Coastal Culture"],
+                href: `/destinations/${dest.slug}`,
+                slug: dest.slug,
+            });
+        }
+    }
+
+    return results.slice(0, 2);
+}
+
+function getStopCategoryIcon(type: string, place: string = ""): string {
+    const p = place.toLowerCase();
+    if (p.includes("climb") || p.includes("ascent") || p.includes("trek") || p.includes("ridge")) return "🥾";
+    if (p.includes("descent") || p.includes("downhill")) return "🚶‍♂️";
+    if (p.includes("fort") || p.includes("machi") || p.includes("darwaza") || p.includes("bastion") || p.includes("temple")) return "🏰";
+    if (p.includes("food") || p.includes("breakfast") || p.includes("lunch") || p.includes("feast") || p.includes("bhakri") || type === "food") return "🍛";
+    if (p.includes("drive") || p.includes("mumbai") || p.includes("pune") || p.includes("expressway") || p.includes("cab") || type === "transport") return "🚗";
+    if (p.includes("beach") || p.includes("sea") || p.includes("coast")) return "🌊";
+    return "📍";
+}
+
+function VisualCardItem({
+    card,
+    itinerary,
+    onOpenItinerary,
+}: {
+    card: EntityCardData;
+    itinerary?: ItineraryData;
+    onOpenItinerary?: () => void;
+}) {
+    return (
+        <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200/80 bg-[#0d1f13] text-white w-full transition-all">
+            {/* Background Image Container with Gradient */}
+            <div
+                className="relative h-36 sm:h-40 w-full bg-cover bg-center"
+                style={{ backgroundImage: `url(${card.image})` }}
+            >
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0d1f13] via-black/40 to-transparent" />
+
+                {/* Top Badges */}
+                <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1 z-10">
+                    <span className="px-2.5 py-0.5 bg-black/50 backdrop-blur-md text-white text-[10px] font-bold rounded-full border border-white/20 truncate max-w-[65%]">
+                        {card.badge}
+                    </span>
+                    <span className="px-2 py-0.5 bg-[#b8dc26] text-[#122e1b] text-[10px] font-black rounded-full shadow-xs whitespace-nowrap">
+                        {card.priceOrRating}
+                    </span>
+                </div>
+
+                {/* Bottom Info on the Image */}
+                <div className="absolute bottom-2 left-3 right-3 z-10">
+                    <p className="text-[10px] font-semibold text-emerald-300 flex items-center gap-1 mb-0.5 drop-shadow-xs truncate">
+                        <MapPin size={11} className="flex-shrink-0" />
+                        <span>{card.location}</span>
+                    </p>
+                    <h4 className="font-bold text-sm text-white leading-tight drop-shadow-md truncate">
+                        {card.name}
+                    </h4>
+                </div>
+            </div>
+
+            {/* Highlights */}
+            {card.highlights && card.highlights.length > 0 && (
+                <div className="px-3 pt-2 pb-1 flex flex-wrap gap-1">
+                    {card.highlights.slice(0, 3).map((h, i) => (
+                        <span
+                            key={i}
+                            className="text-[9px] bg-white/10 text-emerald-100/90 px-2 py-0.5 rounded-md border border-white/10"
+                        >
+                            {h}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="p-2.5 pt-1.5 flex items-center gap-1.5 flex-wrap">
+                {itinerary && onOpenItinerary && (
+                    <button
+                        onClick={onOpenItinerary}
+                        className="flex-1 min-w-[110px] py-1.5 px-2 bg-[#b8dc26] hover:bg-[#aed422] text-[#122e1b] font-black text-[11px] rounded-xl transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                    >
+                        <span>🗺️ Full Itinerary</span>
+                        <ArrowRight size={12} />
+                    </button>
+                )}
+                {card.href && (
+                    <Link
+                        href={card.href}
+                        className="flex-1 min-w-[90px] py-1.5 px-2 bg-white/15 hover:bg-white/25 text-white font-bold text-[11px] rounded-xl transition-all flex items-center justify-center gap-1 text-center"
+                    >
+                        <span>🧭 Details</span>
+                        <ArrowRight size={12} />
+                    </Link>
+                )}
+                <a
+                    href={`https://wa.me/918432587706?text=${encodeURIComponent(
+                        `Hi Visit Kokan, I want to enquire about ${card.name}!`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-1.5 px-2.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-[11px] rounded-xl transition-all flex items-center justify-center gap-1"
+                    title="Enquire on WhatsApp"
+                >
+                    <MessageCircle size={12} />
+                    <span>WhatsApp</span>
+                </a>
+            </div>
+        </div>
+    );
+}
+
+function VisualStopCards({
+    itinerary,
+    onOpenItinerary,
+}: {
+    itinerary: ItineraryData;
+    onOpenItinerary: () => void;
+}) {
+    const day1 = itinerary.days?.[0];
+    if (!day1 || !day1.stops || day1.stops.length === 0) return null;
+
+    return (
+        <div className="mt-2 space-y-1.5 w-full">
+            <div className="flex items-center justify-between text-[11px] font-bold text-gray-800 px-1 pt-1">
+                <span className="flex items-center gap-1.5 text-teal-900">
+                    <Compass size={13} className="text-teal-600" />
+                    <span>{day1.title || "Day 1 Mountain Itinerary"}</span>
+                </span>
+                <span className="text-[10px] bg-teal-50 text-teal-800 font-semibold px-2 py-0.5 rounded-full border border-teal-100">
+                    {day1.stops.length} Stops
+                </span>
+            </div>
+
+            <div className="space-y-1.5">
+                {day1.stops.slice(0, 4).map((stop, sIdx) => (
+                    <div
+                        key={sIdx}
+                        className="bg-white rounded-xl p-2.5 border border-gray-200/80 shadow-xs hover:border-teal-300 transition-all flex items-start gap-2.5"
+                    >
+                        <div className="flex flex-col items-center flex-shrink-0">
+                            <span className="text-base leading-none">
+                                {getStopCategoryIcon(stop.type, stop.place)}
+                            </span>
+                            <span className="text-[9px] font-black text-teal-800 bg-teal-50 px-1 py-0.5 rounded mt-1 whitespace-nowrap">
+                                {stop.time}
+                            </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1">
+                                <h5 className="font-bold text-xs text-gray-900 truncate">
+                                    {stop.place}
+                                </h5>
+                                {stop.cost && (
+                                    <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded flex-shrink-0">
+                                        {stop.cost}
+                                    </span>
+                                )}
+                            </div>
+                            {stop.description && (
+                                <p className="text-[11px] text-gray-600 line-clamp-2 mt-0.5 leading-snug">
+                                    {stop.description}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {day1.stops.length > 4 && (
+                <button
+                    onClick={onOpenItinerary}
+                    className="w-full text-center py-1.5 text-[11px] text-teal-700 font-bold hover:text-teal-900 bg-teal-50/70 hover:bg-teal-100/70 rounded-xl transition-colors cursor-pointer"
+                >
+                    + View all {day1.stops.length} stops & transit directions →
+                </button>
+            )}
+        </div>
+    );
 }
 
 function parseInlineTokens(rawText: string, lineIdx: number): React.ReactNode[] {
@@ -395,69 +717,57 @@ export default function AIChatWidget() {
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50">
-                        {messages.map((msg, i) => (
-                            <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                                {msg.role === "assistant" && (
-                                    <span className="text-lg mr-2 mt-1 flex-shrink-0">🌊</span>
-                                )}
-                                <div className="flex flex-col gap-2 max-w-[85%]">
-                                    <div
-                                        className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === "user"
-                                                ? "bg-teal-600 text-white rounded-tr-sm"
-                                                : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-sm"
-                                            }`}
-                                    >
-                                        {renderFormattedContent(msg.content, msg.role === "user")}
-                                    </div>
+                    <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3 bg-gray-50">
+                        {messages.map((msg, i) => {
+                            const mentionedEntities = msg.role === "assistant" && !msg.itinerary
+                                ? extractMentionedEntitiesFromText(msg.content)
+                                : [];
 
-                                    {/* Dynamic Luxury Itinerary Preview Card */}
-                                    {msg.itinerary && (
-                                        <div className="rounded-2xl bg-gradient-to-br from-[#102818] via-[#1a4227] to-[#122e1b] text-white p-3.5 shadow-md border border-emerald-900/40 space-y-2">
-                                            <div className="flex items-center justify-between gap-1">
-                                                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#B7895A] flex items-center gap-1">
-                                                    <span>✨</span> Curated Plan
-                                                </span>
-                                                {msg.itinerary.totalBudget && (
-                                                    <span className="text-[10px] font-bold text-amber-300 bg-white/10 px-2 py-0.5 rounded-full">
-                                                        Est. {msg.itinerary.totalBudget}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <h4 className="font-black text-sm text-white leading-tight">
-                                                {msg.itinerary.title}
-                                            </h4>
-
-                                            {msg.itinerary.subtitle && (
-                                                <p className="text-[11px] text-emerald-100/80 line-clamp-1 leading-snug">
-                                                    {msg.itinerary.subtitle}
-                                                </p>
-                                            )}
-
-                                            <div className="flex items-center gap-1.5 flex-wrap pt-1 text-[10px] text-emerald-200">
-                                                <span className="bg-white/10 px-2 py-0.5 rounded-md font-semibold">
-                                                    📅 {msg.itinerary.days.length} {msg.itinerary.days.length === 1 ? "Day" : "Days"}
-                                                </span>
-                                                {msg.itinerary.transportSummary && (
-                                                    <span className="bg-white/10 px-2 py-0.5 rounded-md font-semibold">
-                                                        🚂 {msg.itinerary.transportSummary.name || msg.itinerary.transportSummary.type}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <button
-                                                onClick={() => setActiveItinerary(msg.itinerary!)}
-                                                className="w-full mt-1 py-2 px-3 bg-[#b8dc26] hover:bg-[#aed422] active:scale-[0.98] text-[#142607] font-black text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                                            >
-                                                <span>🗺️ View Full Dynamic Itinerary</span>
-                                                <span>→</span>
-                                            </button>
-                                        </div>
+                            return (
+                                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                                    {msg.role === "assistant" && (
+                                        <span className="text-lg mr-1.5 mt-1 flex-shrink-0">🌊</span>
                                     )}
+                                    <div className={`flex flex-col gap-2 ${msg.role === "user" ? "max-w-[85%]" : "max-w-[92%] w-full"}`}>
+                                        <div
+                                            className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === "user"
+                                                    ? "bg-teal-600 text-white rounded-tr-sm self-end"
+                                                    : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-sm"
+                                                }`}
+                                        >
+                                            {renderFormattedContent(msg.content, msg.role === "user")}
+                                        </div>
+
+                                        {/* Rich Destination/Trek Hero Card & Timeline for Itineraries */}
+                                        {msg.itinerary && (
+                                            <div className="space-y-2 w-full animate-fadeIn">
+                                                <VisualCardItem
+                                                    card={getEntityForItinerary(msg.itinerary)}
+                                                    itinerary={msg.itinerary}
+                                                    onOpenItinerary={() => setActiveItinerary(msg.itinerary!)}
+                                                />
+                                                <VisualStopCards
+                                                    itinerary={msg.itinerary}
+                                                    onOpenItinerary={() => setActiveItinerary(msg.itinerary!)}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* Auto-detected Destination or Trek Cards in Conversational Text */}
+                                        {mentionedEntities.length > 0 && (
+                                            <div className="space-y-2 w-full pt-1 animate-fadeIn">
+                                                {mentionedEntities.map((card, cIdx) => (
+                                                    <VisualCardItem
+                                                        key={cIdx}
+                                                        card={card}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
 
                         {isLoading && (
                             <div className="flex justify-start">

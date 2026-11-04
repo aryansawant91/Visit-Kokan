@@ -58,14 +58,33 @@ REALISTIC HUMAN PACING & TIME DURATION RULES (CRITICAL FOR ACCURACY):
   * Interior & ghat roads average 35–45 km/h. Mangaon to Pachad (45 km) takes 1 hour. Raigad to Alibaug (110 km) takes 3+ hours. Never place Alibaug right after Raigad on the same morning!
   * Every subsequent stop's time MUST equal: previous stop time + previous stop duration + realistic travel time.
 
-ITINERARY FORMAT (when giving a plan):
-Always structure as:
-📅 Day 1 — [Title]
-🌅 Morning: ...
-🌞 Afternoon: ...
-🌙 Evening: ...
-🍽️ Eat: [specific dish + place name]
-🏨 Stay: [specific recommendation]
+ITINERARY FORMAT (when giving a plan in text):
+1. FOR COASTAL BEACH DESTINATIONS (Raigad, Ratnagiri, Sindhudurg Coast):
+   📅 Day 1 — [Title]
+   🌅 Morning: ...
+   🌞 Midday: ...
+   🌙 Evening: ...
+   🍽️ Eat: [Malvani fish curry / Surmai thali / Kombdi Vade / Solkadhi]
+   🏨 Stay: [Verified coastal homestay / resort]
+
+2. FOR SAHYADRI FORTS & MOUNTAIN TREKS (Torna, Rajgad, Harishchandragad, Kalsubai, etc.):
+   📅 Day 1 — [Trek Expedition Title]
+   🌅 Phase 1: Base Village Arrival & Trailhead Fuel Up (08:00 AM - 08:45 AM)
+      • Arrive at authentic base village (Velhe for Torna, Gunjavane for Rajgad, Bari for Kalsubai).
+      • Trailhead breakfast: Hot Kanda Poha, Kanda Bhaji & fresh ginger Chai.
+   🥾 Phase 2: Mountain Ridge & Fort Ascent (08:45 AM - 11:45 AM)
+      • 2.5 to 3.5 hrs steady climb through historic stone gates (Bini Darwaza for Torna).
+   🏰 Phase 3: Citadel & Machis Exploration (11:45 AM - 02:45 PM)
+      • 2.5 to 3 hrs exploring the vast summit (Menghai Devi temple, water cisterns, Budhla Machi, Zunjar Machi).
+   🚶‍♂️ Phase 4: Safe Daylight Descent (02:45 PM - 04:45 PM)
+      • 1.5 to 2 hrs descent down the ridge before dark. Reach base by 04:45 PM.
+   🍛 Phase 5: Authentic Rustic Village Feast (05:00 PM - 06:00 PM)
+      • Hot Pithla Bhakri with fiery crushed green chilli Thecha, Zunka, Gavran Country Chicken Rassa, Indrayani rice, and cold spiced Taak (buttermilk).
+      • ⚠️ ABSOLUTE FORBIDDEN: NEVER recommend Malvani fish curry or coastal seafood for Pune / Sahyadri fort treks!
+   🚗 Phase 6: Safe Evening Return (06:00 PM onwards)
+      • Velhe to Mumbai is 210 km! Depart Velhe at 06:00 PM -> Arrives in Mumbai at 10:30 PM (4.5 hrs via Expressway).
+      • Velhe to Pune is 65 km! Depart Velhe at 06:00 PM -> Arrives in Pune at 07:30 PM - 08:00 PM.
+      • NEVER state arrival in Mumbai at 04:30 PM or 1.5 hrs from Velhe!
 
 DESTINATION KNOWLEDGE:
 
@@ -168,6 +187,8 @@ export function detectItineraryIntent(message: string): boolean {
         "2 day", "3 day", "weekend", "week",
         "morning", "evening", "full day",
         "where to go", "what to do", "how to spend",
+        "trek", "torna", "rajgad", "kalsubai", "harishchandragad",
+        "kalavantin", "devkund", "expedition", "guide", "timing", "batch"
     ];
     const lower = message.toLowerCase();
     return keywords.some((k) => lower.includes(k));
@@ -231,6 +252,21 @@ CRITICAL RULES FOR MULTI-DAY ITINERARIES:
   * For a 4+ Day trip: Generate EXACTLY 4 days (Day 1, Day 2, Day 3, and Day 4). NEVER stop at Day 2 or Day 3!
   * The "days" array MUST have an item for every requested day up to N.
   * For each day in multi-day trips (3 or 4 days), provide 3 to 4 well-paced stops (Morning, Mid-day, Afternoon/Sunset, Dinner) so the response is realistic and fits cleanly within limits.
+
+CRITICAL RULES FOR TREK ITINERARIES (Torna, Rajgad, Harishchandragad, Kalsubai, etc.):
+- When the user asks to plan a trek (e.g. Torna Fort, Rajgad, etc.):
+  * transportSummary:
+    - type: "road" (or "train" to Pune Station if preferred).
+    - from: "Mumbai" (or "Pune"), to: "Base Village (e.g. Velhe for Torna)"
+    - duration: "4.5 to 5.5 hours from Mumbai (210 km) or 1.5 to 2 hours from Pune (65 km)"
+    - cost: "₹3,500 - ₹4,500 cab / self-drive toll ₹350 fuel ₹1,400"
+  * Day 1 stops MUST follow the 6 authentic mountain trekking phases:
+    1. Stop 1: "Base Village Arrival & Trailhead Fuel Up" (time: "08:00 AM", type: "food", place: "Velhe Base Village (Torna)", description: "Arrive at Velhe base. Fuel up with authentic hot Kanda Poha, Kanda Bhaji & Ginger Chai at a local villager home.", cost: "₹120")
+    2. Stop 2: "Mountain Ridge & Historic Bastions Ascent" (time: "08:45 AM", type: "activity", place: "Bini Darwaza Trail", description: "Begin the 2.5 to 3.5 hour climb up the rock-cut mountain ridge towards Bini Darwaza and Kothi Darwaza. Hydrate well (carry 3L water).", cost: "Included")
+    3. Stop 3: "Torna Summit Citadel & Machis Exploration" (time: "11:45 AM", type: "sightseeing", place: "Budhla Machi & Zunjar Machi (1,403m)", description: "Explore Menghai Devi temple, water cisterns, and walk the exhilarating razor-sharp ridge of Budhla Machi and Zunjar Machi with 360-degree Sahyadri panoramas.", cost: "Free")
+    4. Stop 4: "Safe Daylight Mountain Descent" (time: "02:45 PM", type: "activity", place: "Descent Trail to Velhe", description: "Carefully descend the rocky patches and scree back towards Velhe village before dusk settles.", cost: "Included")
+    5. Stop 5: "Authentic Rustic Village Feast (गावरान जेवण)" (time: "05:00 PM", type: "food", place: "Velhe Base Village Home", description: "Enjoy hearty rustic Maharashtrian fare: piping hot Pithla Bhakri with fiery crushed green chilli Thecha, Zunka, Gavran Country Chicken Rassa, Indrayani rice, and cold spiced Taak (buttermilk). NEVER seafood or fish curry in Pune!", cost: "₹250 - ₹350")
+    6. Stop 6: "Evening Highway Drive back to Mumbai / Pune" (time: "06:00 PM", type: "transport", place: "Return Drive via Expressway", description: "Depart Velhe base by private cab or car via NH48 / Mumbai-Pune Expressway. Arrive in Mumbai safely around 10:30 PM (or Pune around 07:30 PM).", cost: "Toll ₹350")
 
 VERIFIED KONKAN RAILWAY TIMETABLE TABLE (USE EXACT TIMINGS & FARES ONLY):
 
