@@ -463,61 +463,6 @@ function ProductCardSkeleton() {
   );
 }
 
-const FALLBACK_HOMESTAYS: Partial<Listing>[] = [
-  {
-    id: "stay-tarkarli-cottage",
-    slug: "kokan-nest-homestay",
-    name: "Tarkarli Beachfront Wooden Cottage",
-    region: "Sindhudurg",
-    category: "homestay",
-    price: 2499,
-    priceUnit: "per night",
-    rating: 4.92,
-    reviewCount: 48,
-    images: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80"],
-    description: "50m from Tarkarli white sand beach with coconut grove hammocks & authentic Malvani food.",
-  },
-  {
-    id: "stay-ratnagiri-wada",
-    slug: "kokan-nest-homestay",
-    name: "Ratnagiri Heritage Ancestral Wada",
-    region: "Ratnagiri",
-    category: "homestay",
-    price: 1899,
-    priceUnit: "per night",
-    rating: 4.95,
-    reviewCount: 36,
-    images: ["https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80"],
-    description: "100-year-old laterite courtyard wada surrounded by lush Alphonso mango orchards in Pawas.",
-  },
-  {
-    id: "stay-alibaug-villa",
-    slug: "kokan-nest-homestay",
-    name: "Alibaug Coconut Grove Private Villa",
-    region: "Raigad",
-    category: "homestay",
-    price: 3499,
-    priceUnit: "per night",
-    rating: 4.88,
-    reviewCount: 29,
-    images: ["https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=80"],
-    description: "Secluded tropical sanctuary with lush private garden, open sit-out & quick access to Kashid.",
-  },
-  {
-    id: "stay-dapoli-farmstay",
-    slug: "ganpatipule-mtdc-resort",
-    name: "Dapoli Hillside Orchard Farm Stay",
-    region: "Ratnagiri",
-    category: "homestay",
-    price: 1999,
-    priceUnit: "per night",
-    rating: 4.9,
-    reviewCount: 42,
-    images: ["https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=80"],
-    description: "High altitude coastal farm stay overlooking misty valley with organic spice plantations.",
-  },
-];
-
 function HomestayCard({ listing }: { listing: Listing | Partial<Listing> }) {
   const image = listing.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80";
   return (
@@ -884,67 +829,91 @@ export default function TravelTab() {
           </div>
         )}
 
-        {/* 4. Homestays Section — Curated Stays & Host Partner Onboarding */}
+        {/* 4. Homestays Section — Verified Stays Discovery & Vendor/Host Onboarding */}
         {showHomestays && (
           <div>
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h2 className="font-semibold text-kokan-earth flex items-center gap-2">
-                  🏡 Curated Konkan Homestays & Wadas
+                  🏡 Konkan Homestays & Coastal Wadas
                 </h2>
                 <p className="text-[11px] text-kokan-earth/60">
-                  Verified coastal cottages, heritage wadas & orchard farmstays
+                  100% verified local hosts · Zero dummy listings
                 </p>
               </div>
               <Link
                 href="/listings?category=homestay"
                 className="text-xs text-kokan-green flex items-center gap-1 font-medium hover:underline shrink-0"
               >
-                See all stays <ChevronRight className="w-3.5 h-3.5" />
+                View all stays <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            <HorizontalScroll>
-              {listingsLoading ? (
-                Array.from({ length: 4 }).map((_, i) => <HomestayCardSkeleton key={i} />)
-              ) : (listings.length > 0 ? listings : FALLBACK_HOMESTAYS).map((listing, idx) => (
-                <HomestayCard key={listing.id || listing.slug || idx} listing={listing} />
-              ))}
-            </HorizontalScroll>
+            {/* If real approved listings exist, show them */}
+            {listings.length > 0 ? (
+              <HorizontalScroll>
+                {listingsLoading ? (
+                  Array.from({ length: 4 }).map((_, i) => <HomestayCardSkeleton key={i} />)
+                ) : (
+                  listings.map((listing) => (
+                    <HomestayCard key={listing.id || listing.slug} listing={listing} />
+                  ))
+                )}
+              </HorizontalScroll>
+            ) : null}
 
-            {/* Airbnb / SaffronStays Host Onboarding Banner */}
-            <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#122b1c] via-[#1c3d28] to-[#0d1e13] text-white shadow-xs border border-emerald-900/40 flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-start gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-2xl shrink-0">
-                  🏡
-                </div>
-                <div>
-                  <div className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-300 mb-0.5">
-                    <span>Host on Visit Kokan</span>
+            {/* Host Onboarding Hub — Directly integrated with Vendor Registration & Login (No fake dummy data & No WhatsApp redirect) */}
+            <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-[#122b1c] via-[#1c3d28] to-[#0d1e13] text-white p-5 sm:p-7 shadow-sm border border-emerald-900/40 space-y-4">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="max-w-xl">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md text-amber-300 font-extrabold text-[10px] sm:text-[11px] rounded-full uppercase tracking-wider mb-2">
+                    <span>🏡</span> Host Onboarding · Verified Stays Network
                   </div>
-                  <h3 className="font-display font-bold text-sm sm:text-base text-white">
-                    Earn with Your Konkan Home or Coastal Wada
+                  <h3 className="text-xl sm:text-2xl font-display font-black leading-tight text-white mb-2">
+                    Own a Homestay, Beach Cottage or Ancestral Wada in Konkan?
                   </h3>
-                  <p className="text-white/80 text-xs mt-0.5 max-w-xl">
-                    List your cottage, ancestral wada, or farm stay with zero listing fees. Reach verified families and travelers visiting Konkan.
+                  <p className="text-white/80 text-xs sm:text-sm leading-relaxed mb-4">
+                    We never show unverified dummy listings to travellers. We are actively enrolling genuine local hosts across Sindhudurg, Ratnagiri & Raigad. List your property with zero listing fees and manage bookings directly through your host dashboard.
                   </p>
-                  <div className="flex flex-wrap items-center gap-2 mt-2 text-[11px] text-white/90 font-medium">
-                    <span className="bg-white/10 px-2 py-0.5 rounded-full">💰 Earn ₹35k+ / mo</span>
-                    <span className="bg-white/10 px-2 py-0.5 rounded-full">🛡️ 100% Verified Guests</span>
-                    <span className="bg-white/10 px-2 py-0.5 rounded-full">🤝 24/7 Local Concierge</span>
+
+                  <div className="flex flex-wrap gap-2 text-[11px] text-white/90 font-medium">
+                    <span className="bg-white/10 px-2.5 py-1 rounded-full">✓ 0% Commission (First 3 Months)</span>
+                    <span className="bg-white/10 px-2.5 py-1 rounded-full">✓ 100% Verified Guests</span>
+                    <span className="bg-white/10 px-2.5 py-1 rounded-full">✓ Dedicated Host Dashboard</span>
                   </div>
+                </div>
+
+                <div className="flex flex-col gap-2.5 w-full md:w-auto shrink-0">
+                  <Link
+                    href="/register?tab=vendor"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs sm:text-sm font-black bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] shadow-sm transition-all whitespace-nowrap active:scale-95 text-center"
+                  >
+                    <span>List Your Homestay (Sign Up as Host)</span>
+                    <ArrowRight size={14} />
+                  </Link>
+
+                  <Link
+                    href="/login?redirect=/vendor/dashboard"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-md transition-all whitespace-nowrap active:scale-95 text-center"
+                  >
+                    <span>Already a Host? Sign In</span>
+                  </Link>
                 </div>
               </div>
-              <a
-                href={`https://wa.me/918432587706?text=${encodeURIComponent(
-                  "Hi Visit Kokan Team! I own a homestay/cottage in Konkan and would like to partner with Visit Kokan to list my property.\n• Property Name:\n• Location:\n• Contact Number:"
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full md:w-auto px-5 py-2.5 rounded-full text-xs font-black bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] shadow-sm transition-all whitespace-nowrap text-center shrink-0 active:scale-95"
-              >
-                Become a Host →
-              </a>
+
+              {/* Traveler Notice Box */}
+              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-white/80">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🌊</span>
+                  <span>Planning a trip? Kokan Mitra AI can curate verified local stays for your dates.</span>
+                </div>
+                <Link
+                  href="/trip-planner"
+                  className="font-bold text-amber-300 hover:text-amber-200 transition-colors shrink-0 flex items-center gap-1"
+                >
+                  Plan with Kokan Mitra AI →
+                </Link>
+              </div>
             </div>
           </div>
         )}

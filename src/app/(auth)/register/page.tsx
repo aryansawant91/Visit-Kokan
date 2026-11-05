@@ -94,6 +94,15 @@ export default function RegisterPage() {
 
   /* ── Form state ── */
   const [tab,             setTab]             = useState<Tab>("user");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get("tab") === "vendor" || sp.get("role") === "vendor") {
+        setTab("vendor");
+      }
+    }
+  }, []);
   const [displayName,     setDisplayName]     = useState("");
   const [email,           setEmail]           = useState("");
   const [phone,           setPhone]           = useState("");
@@ -369,7 +378,7 @@ export default function RegisterPage() {
                 tab === "vendor" ? "bg-white text-kokan-green shadow-sm" : "text-kokan-earth/50 hover:text-kokan-earth"
               }`}
             >
-              🏪 Vendor
+              🏡 Host / Vendor
             </button>
           </div>
 

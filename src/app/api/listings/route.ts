@@ -18,7 +18,14 @@ export async function GET(req: NextRequest) {
 
       if (snap.empty) return NextResponse.json(null, { status: 404 });
       const doc = snap.docs[0];
-      return NextResponse.json({ id: doc.id, ...doc.data() });
+      const data = doc.data();
+
+      // Never show dummy seed listings to public users
+      if (data.addedBy === "seed-script" && req.nextUrl.searchParams.get("includeSeed") !== "true") {
+        return NextResponse.json(null, { status: 404 });
+      }
+
+      return NextResponse.json({ id: doc.id, ...data });
     }
 
     let query: any = db.collection("listings");
@@ -33,6 +40,11 @@ export async function GET(req: NextRequest) {
       .sort((a: any, b: any) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
+
+    // Strictly exclude dummy seed listings so fake data is never shown to public users
+    if (req.nextUrl.searchParams.get("includeSeed") !== "true") {
+      listings = listings.filter((l: any) => l.addedBy !== "seed-script");
+    }
 
     // Filter by region if provided
     if (region) {

@@ -24,6 +24,7 @@ async function getListing(slug: string) {
     if (snap.empty) return null;
     const doc = snap.docs[0];
     const data = doc.data();
+    if (data.addedBy === "seed-script") return null;
     return JSON.parse(
       JSON.stringify({ id: doc.id, ...data }, (_k, v) => {
         if (v && typeof v === "object" && typeof v.toDate === "function") {

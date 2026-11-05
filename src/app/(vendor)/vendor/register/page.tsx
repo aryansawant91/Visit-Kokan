@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
-import { Store, CheckCircle, ArrowRight } from "lucide-react";
+import { Store, CheckCircle, ArrowRight, ShieldCheck, Sparkles, Building2 } from "lucide-react";
 
 export default function VendorRegisterPage() {
   const { user, profile } = useAuth();
@@ -13,73 +13,118 @@ export default function VendorRegisterPage() {
   useEffect(() => {
     if (profile?.role === "vendor") router.replace("/vendor/dashboard");
     if (profile?.role === "admin") router.replace("/admin/dashboard");
-  }, [profile]);
+  }, [profile, router]);
 
   return (
-    <div className="min-h-screen bg-kokan-cream/30 flex items-center justify-center px-4 py-12">
-      <div className="max-w-lg w-full space-y-6">
+    <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center px-4 py-12">
+      <div className="max-w-xl w-full space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="w-16 h-16 bg-kokan-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Store className="w-8 h-8 text-kokan-green" />
+          <div className="w-16 h-16 bg-emerald-100/70 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-xs">
+            🏡
           </div>
-          <h1 className="font-playfair text-3xl font-bold text-kokan-earth mb-2">
-            List Your Business
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-kokan-green/10 text-kokan-green font-bold text-xs rounded-full mb-3 uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5" /> Official Host & Vendor Partner Network
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold text-kokan-earth mb-2">
+            Host Your Homestay & Business on Visit Kokan
           </h1>
-          <p className="text-kokan-earth/60 text-sm">
-            Join 120+ vendors on Visit Kokan and reach thousands of travellers
+          <p className="text-kokan-earth/60 text-sm max-w-md mx-auto">
+            Connect directly with verified families and travellers visiting Sindhudurg, Ratnagiri, and Raigad.
           </p>
         </div>
 
-        {/* Benefits */}
-        <div className="bg-white rounded-2xl p-6 border border-kokan-sand/30 space-y-3">
-          <h2 className="font-semibold text-kokan-earth mb-4">Why list on Visit Kokan?</h2>
-          {[
-            "Reach 5,000+ monthly travellers planning Kokan trips",
-            "List homestays, food, activities, products and more",
-            "Simple vendor dashboard to manage bookings",
-            "Zero commission for the first 3 months",
-            "Dedicated support to set up your profile",
-          ].map((benefit) => (
-            <div key={benefit} className="flex items-start gap-3">
-              <CheckCircle className="w-4 h-4 text-kokan-green flex-shrink-0 mt-0.5" />
-              <span className="text-sm text-kokan-earth/70">{benefit}</span>
-            </div>
-          ))}
+        {/* Benefits Card */}
+        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-kokan-sand/30 shadow-xs space-y-4">
+          <h2 className="font-display font-bold text-base sm:text-lg text-kokan-earth">
+            Why Host or Sell with Visit Kokan?
+          </h2>
+          <div className="space-y-3">
+            {[
+              {
+                title: "0% Commission (First 3 Months)",
+                desc: "Keep 100% of your earnings while you establish your property on Visit Kokan.",
+              },
+              {
+                title: "Reach 5,000+ Travellers Every Month",
+                desc: "High-intent tourists actively searching for authentic stays, cottages, and regional delicacies.",
+              },
+              {
+                title: "Dedicated Host & Vendor Dashboard",
+                desc: "Easily update room availability, photo galleries, nightly rates, and booking requests.",
+              },
+              {
+                title: "100% Verified Guests",
+                desc: "Safe, respectful families and trekking groups verified with OTP and identity confirmation.",
+              },
+              {
+                title: "Local Kokan Concierge Support",
+                desc: "Our team helps you create an attractive profile and assists with traveler communications.",
+              },
+            ].map((benefit) => (
+              <div key={benefit.title} className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-kokan-green flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-bold text-kokan-earth">{benefit.title}</h3>
+                  <p className="text-xs text-kokan-earth/60 leading-relaxed">{benefit.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* CTA */}
+        {/* Action Panel */}
         {user ? (
-          <div className="bg-white rounded-2xl p-6 border border-kokan-sand/30 text-center space-y-3">
-            <p className="text-sm text-kokan-earth/60">
-              You&apos;re logged in as <span className="font-medium text-kokan-earth">{profile?.email}</span>
+          <div className="bg-white rounded-3xl p-6 border border-kokan-sand/30 text-center space-y-3 shadow-xs">
+            <p className="text-sm text-kokan-earth/70">
+              You&apos;re currently signed in as{" "}
+              <span className="font-bold text-kokan-earth">{profile?.email || user.email}</span>
             </p>
-            <p className="text-xs text-kokan-earth/40">
-              To become a vendor, register a new account with the Vendor option selected
-            </p>
-            <Link
-              href="/register"
-              className="flex items-center justify-center gap-2 w-full py-3 bg-kokan-green text-white rounded-xl font-semibold text-sm hover:bg-kokan-green/90 transition-colors"
-            >
-              Register as Vendor <ArrowRight className="w-4 h-4" />
-            </Link>
+            {profile?.role === "vendor" ? (
+              <Link
+                href="/vendor/dashboard"
+                className="flex items-center justify-center gap-2 w-full py-3.5 bg-kokan-green text-white rounded-full font-bold text-sm hover:bg-emerald-800 transition-all shadow-xs"
+              >
+                Go to Vendor Dashboard <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <>
+                <p className="text-xs text-kokan-earth/50">
+                  To list a homestay or business, register a dedicated host account with the Host/Vendor option selected.
+                </p>
+                <Link
+                  href="/register?tab=vendor"
+                  className="flex items-center justify-center gap-2 w-full py-3.5 bg-kokan-green text-white rounded-full font-bold text-sm hover:bg-emerald-800 transition-all shadow-xs"
+                >
+                  Register as Homestay Host / Vendor <ArrowRight className="w-4 h-4" />
+                </Link>
+              </>
+            )}
           </div>
         ) : (
-          <div className="flex gap-3">
+          <div className="space-y-3">
             <Link
-              href="/register"
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-kokan-green text-white rounded-xl font-semibold text-sm hover:bg-kokan-green/90 transition-colors"
+              href="/register?tab=vendor"
+              className="flex items-center justify-center gap-2 w-full py-3.5 bg-kokan-green text-white rounded-full font-bold text-sm hover:bg-emerald-800 transition-all shadow-xs active:scale-95 text-center"
             >
-              Register as Vendor
+              <span>Register as Homestay Host / Vendor</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
+
             <Link
-              href="/login"
-              className="flex-1 flex items-center justify-center py-3 border border-kokan-sand rounded-xl text-sm text-kokan-earth/60 hover:bg-kokan-sand/10 transition-colors"
+              href="/login?redirect=/vendor/dashboard"
+              className="flex items-center justify-center py-3 bg-white border border-kokan-sand/60 rounded-full text-xs sm:text-sm font-bold text-kokan-earth hover:bg-gray-50 transition-all text-center"
             >
-              Already have account
+              Already Registered? Sign in to Host Dashboard
             </Link>
           </div>
         )}
+
+        <div className="text-center">
+          <Link href="/" className="text-xs text-kokan-earth/50 hover:text-kokan-green transition-colors">
+            ← Return to Visit Kokan Home
+          </Link>
+        </div>
       </div>
     </div>
   );

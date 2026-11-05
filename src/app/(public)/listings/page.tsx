@@ -459,20 +459,46 @@ function ListingsContent() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 p-8 shadow-xs">
-            <div className="text-5xl mb-3">🏡</div>
-            <h3 className="text-xl font-display font-bold text-kokan-earth mb-1">
-              No stays found matching your criteria
-            </h3>
-            <p className="text-gray-500 text-xs sm:text-sm mb-5 max-w-md mx-auto">
-              Try adjusting your category, region, or price filters to see more authentic Konkan properties.
-            </p>
-            <button
-              onClick={clearFilters}
-              className="px-5 py-2.5 bg-kokan-green text-white text-xs sm:text-sm rounded-full font-bold hover:bg-emerald-800 transition-all shadow-xs"
-            >
-              Reset All Filters
-            </button>
+          <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 p-8 shadow-xs max-w-3xl mx-auto space-y-5">
+            <div className="w-16 h-16 bg-emerald-50 text-emerald-800 rounded-full flex items-center justify-center mx-auto text-3xl shadow-2xs">
+              🏡
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100/70 text-emerald-900 font-extrabold text-[11px] rounded-full uppercase tracking-wider mb-2">
+                <span>🛡️</span> Zero Dummy Listings · 100% Genuine Local Properties
+              </div>
+              <h3 className="text-xl sm:text-2xl font-display font-bold text-kokan-earth">
+                Authentic Konkan Stays Opening Soon
+              </h3>
+              <p className="text-gray-500 text-xs sm:text-sm mt-2 max-w-xl mx-auto leading-relaxed">
+                Visit Kokan only showcases genuine, offline-verified properties. We are actively enrolling local families, heritage wadas, and beach cottages across Sindhudurg, Ratnagiri & Raigad.
+              </p>
+            </div>
+
+            {/* Direct Host Onboarding Actions (No WhatsApp redirect) */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <Link
+                href="/register?tab=vendor"
+                className="w-full sm:w-auto px-6 py-3 bg-kokan-green hover:bg-emerald-800 text-white text-xs sm:text-sm rounded-full font-bold transition-all shadow-xs flex items-center justify-center gap-2"
+              >
+                <span>Homestay Owners: Register as Host</span>
+                <ChevronRight size={14} />
+              </Link>
+
+              <Link
+                href="/login?redirect=/vendor/dashboard"
+                className="w-full sm:w-auto px-5 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-kokan-earth text-xs sm:text-sm rounded-full font-bold transition-all flex items-center justify-center gap-1.5"
+              >
+                <span>Already a Host? Sign In</span>
+              </Link>
+
+              <Link
+                href="/trip-planner"
+                className="w-full sm:w-auto px-5 py-3 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 text-xs sm:text-sm rounded-full font-bold transition-all flex items-center justify-center gap-1.5"
+              >
+                <span>Plan Stay with AI Concierge</span>
+              </Link>
+            </div>
           </div>
         ) : (
           <>
@@ -534,18 +560,18 @@ function ListingsContent() {
           </>
         )}
 
-        {/* 4. Airbnb / SaffronStays Host Onboarding Partner Card */}
+        {/* 4. Airbnb / SaffronStays Host Onboarding Partner Card — Fully Integrated with Vendor Register & Sign In */}
         <div className="mt-14 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#122b1c] via-[#1c3d28] to-[#0d1e13] text-white shadow-md border border-emerald-900/40">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md text-amber-300 font-extrabold text-[11px] rounded-full uppercase tracking-wider mb-3">
-                <span>🏡</span> Host on Visit Kokan · Verified Partner Network
+                <span>🏡</span> Host on Visit Kokan · Official Vendor Network
               </div>
               <h2 className="text-xl sm:text-3xl font-display font-black leading-tight text-white mb-2">
                 Turn Your Konkan Home or Wada into an Unforgettable Stay
               </h2>
               <p className="text-white/80 text-xs sm:text-sm leading-relaxed mb-4">
-                Do you own a coastal cottage, ancestral wada, or farm stay in Sindhudurg, Ratnagiri, or Raigad? Partner with Visit Kokan. Connect directly with travelers and families without high commissions.
+                Do you own a coastal cottage, ancestral wada, or farm stay in Sindhudurg, Ratnagiri, or Raigad? Partner with Visit Kokan. Connect directly with verified travelers and families without high commissions.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs text-white/90 font-semibold">
                 <div className="bg-white/10 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10 flex items-center gap-2">
@@ -555,34 +581,26 @@ function ListingsContent() {
                   <span>🛡️</span> 100% Verified Guests
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/10 flex items-center gap-2">
-                  <span>🤝</span> 24/7 Concierge Support
+                  <span>📊</span> Host Dashboard & Management
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row lg:flex-col gap-3 w-full lg:w-auto shrink-0">
-              <a
-                href={`https://wa.me/918432587706?text=${encodeURIComponent(
-                  "Hi Visit Kokan Team! I own a homestay/cottage in Konkan and would like to partner with Visit Kokan to list my property.\n• Property Name:\n• Location:\n• Contact Number:"
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/register?tab=vendor"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-xs sm:text-sm font-black bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] shadow-sm transition-all text-center whitespace-nowrap active:scale-95"
               >
-                <span>Partner with Us as Host (WhatsApp)</span>
+                <span>Register as Homestay Host</span>
                 <ChevronRight size={15} />
-              </a>
+              </Link>
 
-              <a
-                href={`https://wa.me/918432587706?text=${encodeURIComponent(
-                  "Hi Visit Kokan Concierge! I need help finding a verified authentic homestay in Konkan for my upcoming trip.\n• Preferred Region:\n• Travel Dates:\n• Number of Guests:"
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/login?redirect=/vendor/dashboard"
                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-md transition-all text-center whitespace-nowrap active:scale-95"
               >
-                <span>Request Custom Stay Itinerary</span>
-              </a>
+                <span>Already Registered? Host Sign In</span>
+              </Link>
             </div>
           </div>
         </div>
