@@ -18,6 +18,7 @@ const PUBLIC_PATHS = [
   '/checkout',
   '/order-confirmation',
   '/trip-planner',
+  '/vendor/register',
 ]
 
 const ADMIN_PREFIX = '/admin'

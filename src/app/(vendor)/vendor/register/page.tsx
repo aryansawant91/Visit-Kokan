@@ -2,18 +2,33 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Store, CheckCircle, ArrowRight, ShieldCheck, Sparkles, Building2 } from "lucide-react";
+import { CheckCircle, ArrowRight, Sparkles } from "lucide-react";
 
 export default function VendorRegisterPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, signInWithGoogle } = useAuth();
   const router = useRouter();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (profile?.role === "vendor") router.replace("/vendor/dashboard");
     if (profile?.role === "admin") router.replace("/admin/dashboard");
   }, [profile, router]);
+
+  const handleGoogleSignIn = async () => {
+    setError("");
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle({ asVendor: true });
+    } catch (err: any) {
+      console.error("Google vendor sign in error:", err);
+      setError("Google sign-in failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center px-4 py-12">
@@ -33,6 +48,12 @@ export default function VendorRegisterPage() {
             Connect directly with verified families and travellers visiting Sindhudurg, Ratnagiri, and Raigad.
           </p>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl px-4 py-3 text-sm flex items-center gap-2">
+            <span>⚠</span> {error}
+          </div>
+        )}
 
         {/* Benefits Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-7 border border-kokan-sand/30 shadow-xs space-y-4">
@@ -90,24 +111,67 @@ export default function VendorRegisterPage() {
             ) : (
               <>
                 <p className="text-xs text-kokan-earth/50">
-                  To list a homestay or business, register a dedicated host account with the Host/Vendor option selected.
+                  You are signed in as a traveler. Click below to upgrade to a Host / Vendor account with Google or register your business details.
                 </p>
-                <Link
-                  href="/register?tab=vendor"
-                  className="flex items-center justify-center gap-2 w-full py-3.5 bg-kokan-green text-white rounded-full font-bold text-sm hover:bg-emerald-800 transition-all shadow-xs"
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={googleLoading}
+                  className="w-full flex items-center justify-center gap-3 py-3.5 bg-white border-2 border-kokan-sand/80 rounded-full font-bold text-sm text-kokan-earth hover:bg-gray-50 hover:border-kokan-earth/40 transition-all shadow-2xs active:scale-95 disabled:opacity-60"
                 >
-                  Register as Homestay Host / Vendor <ArrowRight className="w-4 h-4" />
-                </Link>
+                  {googleLoading ? (
+                    <div className="w-5 h-5 border-2 border-kokan-green border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <svg width="18" height="18" viewBox="0 0 18 18">
+                        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                        <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+                        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"/>
+                      </svg>
+                      <span>Upgrade to Vendor with Google</span>
+                    </>
+                  )}
+                </button>
               </>
             )}
           </div>
         ) : (
           <div className="space-y-3">
+            {/* Direct Google Sign In for Vendors */}
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={googleLoading}
+              className="w-full flex items-center justify-center gap-3 py-3.5 bg-white border-2 border-kokan-sand/80 rounded-full font-bold text-sm text-kokan-earth hover:bg-gray-50 hover:border-kokan-earth/40 transition-all shadow-2xs active:scale-95 disabled:opacity-60"
+            >
+              {googleLoading ? (
+                <div className="w-5 h-5 border-2 border-kokan-green border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <svg width="18" height="18" viewBox="0 0 18 18">
+                    <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                    <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                    <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+                    <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"/>
+                  </svg>
+                  <span>Sign in with Google (Host / Vendor)</span>
+                </>
+              )}
+            </button>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 py-1">
+              <div className="flex-1 h-px bg-kokan-sand/50" />
+              <span className="text-xs text-kokan-earth/40 font-medium">or register with email</span>
+              <div className="flex-1 h-px bg-kokan-sand/50" />
+            </div>
+
             <Link
               href="/register?tab=vendor"
               className="flex items-center justify-center gap-2 w-full py-3.5 bg-kokan-green text-white rounded-full font-bold text-sm hover:bg-emerald-800 transition-all shadow-xs active:scale-95 text-center"
             >
-              <span>Register as Homestay Host / Vendor</span>
+              <span>Register with Email & Phone</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 

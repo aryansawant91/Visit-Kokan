@@ -10,7 +10,7 @@ import {
   signOut, sendPasswordResetEmail, sendEmailVerification,
   updateProfile, User, IdTokenResult,
 } from 'firebase/auth'
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db, googleProvider } from '@/lib/firebase'
 import { useRouter } from 'next/navigation'
 
@@ -61,7 +61,12 @@ interface AuthContextType {
   role: UserRole | null
   loading: boolean
   signInWithEmail: (email: string, password: string) => Promise<void>
-  signInWithGoogle: () => Promise<void>
+  signInWithGoogle: (options?: {
+    asVendor?: boolean
+    businessName?: string
+    businessAddress?: string
+    phone?: string
+  }) => Promise<void>
   signUpWithEmail: (data: SignUpData) => Promise<void>
   signUpVendor: (data: VendorSignUpData) => Promise<void>
   logout: () => Promise<void>
@@ -268,62 +273,102 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   // ── Google sign-in ─────────────────────────────────────────────────────────
-  const signInWithGoogle = async () => {
-    const redirectParam = getRedirectParam() // reads + clears sessionStorage
+  const signInWithGoogle = async (options?: {
+    asVendor?: boolean;
+    businessName?: string;
+    businessAddress?: string;
+    phone?: string;
+  }) => {
+    const redirectParam = getRedirectParam(); // reads + clears sessionStorage
 
-    const { user: fbUser } = await signInWithPopup(auth, googleProvider)
-    skipNextAuthChange.current = true
+    const { user: fbUser } = await signInWithPopup(auth, googleProvider);
+    skipNextAuthChange.current = true;
 
-    const userRef  = doc(db, 'users', fbUser.uid)
-    const userSnap = await getDoc(userRef)
+    const userRef  = doc(db, 'users', fbUser.uid);
+    const userSnap = await getDoc(userRef);
+
+    const isVendorIntent =
+      options?.asVendor === true ||
+      Boolean(redirectParam?.includes('vendor')) ||
+      (typeof window !== 'undefined' &&
+        (window.location.pathname.includes('/vendor') ||
+         window.location.search.includes('tab=vendor') ||
+         window.location.search.includes('role=vendor')));
 
     if (!userSnap.exists()) {
+      const newRole: UserRole = isVendorIntent ? 'vendor' : 'user';
       const newProfile: UserProfile = {
         uid:           fbUser.uid,
         email:         fbUser.email!,
         displayName:   fbUser.displayName ?? '',
         photoURL:      fbUser.photoURL ?? '',
-        role:          'user',
+        role:          newRole,
         emailVerified: fbUser.emailVerified,
         isActive:      true,
+        ...(isVendorIntent
+          ? {
+              vendorStatus: 'pending' as const,
+              businessName:
+                options?.businessName || fbUser.displayName || 'Homestay Host',
+              businessAddress: options?.businessAddress || '',
+              phone: options?.phone || '',
+            }
+          : {}),
         createdAt:     serverTimestamp(),
         updatedAt:     serverTimestamp(),
-      }
-      await setDoc(userRef, newProfile)
-      await setRoleClaim(fbUser.uid, 'user')
-      await setSessionCookie(fbUser.uid, 'user', null)
+      };
+      await setDoc(userRef, newProfile);
+      await setRoleClaim(fbUser.uid, newRole);
+      await setSessionCookie(
+        fbUser.uid,
+        newRole,
+        isVendorIntent ? 'pending' : null
+      );
 
-      setUser(fbUser)
-      setProfile(newProfile)
-      setRole('user')
+      setUser(fbUser);
+      setProfile(newProfile);
+      setRole(newRole);
 
-      router.replace(redirectParam ?? '/')
+      router.replace(resolveRedirect(newProfile, newRole, redirectParam));
     } else {
-      const p = userSnap.data() as UserProfile
+      let p = userSnap.data() as UserProfile;
 
-      let claimedRole: UserRole = p.role ?? 'user'
+      // If user signed in with vendor intent and was regular user, upgrade to vendor
+      let claimedRole: UserRole = p.role ?? 'user';
+      if (isVendorIntent && claimedRole === 'user') {
+        claimedRole = 'vendor';
+        const updatedFields: Partial<UserProfile> = {
+          role: 'vendor',
+          vendorStatus: p.vendorStatus || 'pending',
+          businessName: p.businessName || options?.businessName || fbUser.displayName || 'Homestay Host',
+          businessAddress: p.businessAddress || options?.businessAddress || '',
+          updatedAt: serverTimestamp(),
+        };
+        await updateDoc(userRef, updatedFields as any);
+        p = { ...p, ...updatedFields } as UserProfile;
+      }
+
       try {
-        const tokenResult = await fbUser.getIdTokenResult(true)
-        if (tokenResult.claims.role) {
-          claimedRole = tokenResult.claims.role as UserRole
-        } else if (p?.role) {
-          claimedRole = p.role
-          await setRoleClaim(fbUser.uid, p.role)
-          await fbUser.getIdToken(true)
+        const tokenResult = await fbUser.getIdTokenResult(true);
+        if (tokenResult.claims.role && !isVendorIntent) {
+          claimedRole = tokenResult.claims.role as UserRole;
+        } else if (claimedRole) {
+          await setRoleClaim(fbUser.uid, claimedRole);
+          await fbUser.getIdToken(true);
         }
       } catch {
-        claimedRole = p.role ?? 'user'
+        claimedRole = p.role ?? 'user';
       }
 
-      await setSessionCookie(fbUser.uid, claimedRole, p?.vendorStatus)
+      await setSessionCookie(fbUser.uid, claimedRole, p?.vendorStatus);
 
-      setUser(fbUser)
-      setProfile(p)
-      setRole(claimedRole)
+      setUser(fbUser);
+      setProfile(p);
+      setRole(claimedRole);
 
       router.replace(
         resolveRedirect(p, claimedRole, redirectParam)
-      )
+      );
     }
   }
 
