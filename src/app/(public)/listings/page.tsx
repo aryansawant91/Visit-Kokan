@@ -475,28 +475,29 @@ function ListingsContent() {
               </p>
             </div>
 
-            {/* Direct Host Onboarding Actions (No WhatsApp redirect) */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <Link
-                href="/register?tab=vendor"
-                className="w-full sm:w-auto px-6 py-3 bg-kokan-green hover:bg-emerald-800 text-white text-xs sm:text-sm rounded-full font-bold transition-all shadow-xs flex items-center justify-center gap-2"
+            {/* Direct Traveler Concierge & Host Onboarding Actions */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <a
+                href="https://wa.me/918432587706?text=Hi%20Visit%20Kokan!%20%F0%9F%91%8B%20I%20need%20personalized%20planning%20for%20my%20stay%20and%20trip%20in%20Konkan.%20Can%20you%20help%20plan%20this%20for%20me%3F"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto px-5 py-3 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs sm:text-sm rounded-full font-bold transition-all shadow-xs flex items-center justify-center gap-2"
               >
-                <span>Homestay Owners: Register as Host</span>
-                <ChevronRight size={14} />
-              </Link>
-
-              <Link
-                href="/login?redirect=/vendor/dashboard"
-                className="w-full sm:w-auto px-5 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-kokan-earth text-xs sm:text-sm rounded-full font-bold transition-all flex items-center justify-center gap-1.5"
-              >
-                <span>Already a Host? Sign In</span>
-              </Link>
+                <span>💬 Plan Stay on WhatsApp</span>
+              </a>
 
               <Link
                 href="/trip-planner"
-                className="w-full sm:w-auto px-5 py-3 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 text-xs sm:text-sm rounded-full font-bold transition-all flex items-center justify-center gap-1.5"
+                className="w-full sm:w-auto px-5 py-3 bg-kokan-green hover:bg-emerald-800 text-white text-xs sm:text-sm rounded-full font-bold transition-all shadow-xs flex items-center justify-center gap-1.5"
               >
-                <span>Plan Stay with AI Concierge</span>
+                <span>✨ Plan with AI Concierge</span>
+              </Link>
+
+              <Link
+                href="/register?tab=vendor"
+                className="w-full sm:w-auto px-5 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-kokan-earth text-xs sm:text-sm rounded-full font-bold transition-all flex items-center justify-center gap-1.5"
+              >
+                <span>🏡 List Your Homestay</span>
               </Link>
             </div>
           </div>

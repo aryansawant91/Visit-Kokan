@@ -19,6 +19,7 @@ import { Trek } from "@/types/trek";
 import { Product } from "@/types/product";
 import { Listing } from "@/types/listing";
 import { useCart } from "@/context/CartContext";
+import PersonalizedTripPlanningBox from "./PersonalizedTripPlanningBox";
 
 const TRAVEL_CATEGORIES = [
   { label: "All", emoji: "🗺️", value: "all" },
@@ -838,7 +839,7 @@ export default function TravelTab() {
                   🏡 Konkan Homestays & Coastal Wadas
                 </h2>
                 <p className="text-[11px] text-kokan-earth/60">
-                  100% verified local hosts · Zero dummy listings
+                  Handpicked authentic stays across Sindhudurg, Ratnagiri & Raigad
                 </p>
               </div>
               <Link
@@ -862,59 +863,8 @@ export default function TravelTab() {
               </HorizontalScroll>
             ) : null}
 
-            {/* Host Onboarding Hub — Directly integrated with Vendor Registration & Login (No fake dummy data & No WhatsApp redirect) */}
-            <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-[#122b1c] via-[#1c3d28] to-[#0d1e13] text-white p-5 sm:p-7 shadow-sm border border-emerald-900/40 space-y-4">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="max-w-xl">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md text-amber-300 font-extrabold text-[10px] sm:text-[11px] rounded-full uppercase tracking-wider mb-2">
-                    <span>🏡</span> Host Onboarding · Verified Stays Network
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-display font-black leading-tight text-white mb-2">
-                    Own a Homestay, Beach Cottage or Ancestral Wada in Konkan?
-                  </h3>
-                  <p className="text-white/80 text-xs sm:text-sm leading-relaxed mb-4">
-                    We never show unverified dummy listings to travellers. We are actively enrolling genuine local hosts across Sindhudurg, Ratnagiri & Raigad. List your property with zero listing fees and manage bookings directly through your host dashboard.
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 text-[11px] text-white/90 font-medium">
-                    <span className="bg-white/10 px-2.5 py-1 rounded-full">✓ 0% Commission (First 3 Months)</span>
-                    <span className="bg-white/10 px-2.5 py-1 rounded-full">✓ 100% Verified Guests</span>
-                    <span className="bg-white/10 px-2.5 py-1 rounded-full">✓ Dedicated Host Dashboard</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2.5 w-full md:w-auto shrink-0">
-                  <Link
-                    href="/register?tab=vendor"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs sm:text-sm font-black bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] shadow-sm transition-all whitespace-nowrap active:scale-95 text-center"
-                  >
-                    <span>List Your Homestay (Sign Up as Host)</span>
-                    <ArrowRight size={14} />
-                  </Link>
-
-                  <Link
-                    href="/login?redirect=/vendor/dashboard"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-md transition-all whitespace-nowrap active:scale-95 text-center"
-                  >
-                    <span>Already a Host? Sign In</span>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Traveler Notice Box */}
-              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-white/80">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">🌊</span>
-                  <span>Planning a trip? Kokan Mitra AI can curate verified local stays for your dates.</span>
-                </div>
-                <Link
-                  href="/trip-planner"
-                  className="font-bold text-amber-300 hover:text-amber-200 transition-colors shrink-0 flex items-center gap-1"
-                >
-                  Plan with Kokan Mitra AI →
-                </Link>
-              </div>
-            </div>
+            {/* Personalized Concierge & Homestay Planning Hub (WhatsApp & Web App Direct Messages + Host Partner Ribbon) */}
+            <PersonalizedTripPlanningBox />
           </div>
         )}
 
