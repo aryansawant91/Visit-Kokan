@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Plus, CreditCard, Loader2,
-  Upload, Shield, Check, X, ChevronDown,
+  Upload, Shield, Check, X,
   Users, ChevronRight, Tag, Clock,
 } from "lucide-react";
 
@@ -132,43 +132,44 @@ function Pills<T extends string>({
     <div className="flex gap-1.5 flex-wrap">
       {options.map((o) => (
         <button
-          key={o.value} type="button" onClick={() => onChange(o.value)}
-          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
             value === o.value
-              ? "bg-kokan-green text-white border-kokan-green"
-              : "bg-white text-kokan-earth/50 border-kokan-sand/60 hover:border-kokan-green/40"
+              ? "bg-kokan-green text-white border-kokan-green shadow-xs"
+              : "bg-white text-kokan-earth/60 border-kokan-sand/60 hover:border-kokan-green/40"
           }`}
-        >{o.label}</button>
+        >
+          {o.label}
+        </button>
       ))}
     </div>
   );
 }
 
-// ── Countdown badge ───────────────────────────────────────────────────────────
+// ── Countdown badge for coupons ───────────────────────────────────────────────
 
 function CountdownBadge({ expiresAt }: { expiresAt: string | null }) {
-  const [label, setLabel] = useState(() => formatTimeLeft(expiresAt));
+  const [timeLeft, setTimeLeft] = useState(() => formatTimeLeft(expiresAt));
 
   useEffect(() => {
     if (!expiresAt) return;
-    const id = setInterval(() => setLabel(formatTimeLeft(expiresAt)), 60_000);
-    return () => clearInterval(id);
+    const t = setInterval(() => setTimeLeft(formatTimeLeft(expiresAt)), 60000);
+    return () => clearInterval(t);
   }, [expiresAt]);
 
-  if (!label) return null;
-
-  const isUrgent = (() => {
-    if (!expiresAt) return false;
-    const diff = new Date(expiresAt).getTime() - Date.now();
-    return diff < 24 * 60 * 60 * 1000;
-  })();
+  if (!timeLeft) return null;
+  const isUrgent = timeLeft.includes("m left") || timeLeft.includes("h left");
 
   return (
-    <span className={`flex items-center gap-0.5 text-[9px] font-semibold mt-0.5 ${
-      isUrgent ? "text-red-500" : "text-amber-500"
+    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+      isUrgent
+        ? "bg-rose-100 text-rose-700 animate-pulse"
+        : "bg-amber-100 text-amber-800"
     }`}>
       <Clock className="w-2.5 h-2.5" />
-      {label}
+      {timeLeft}
     </span>
   );
 }
@@ -190,13 +191,14 @@ export default function TrekBookingWidget({
     window.addEventListener("open-trek-booking", handler);
     return () => window.removeEventListener("open-trek-booking", handler);
   }, []);
-  const [activePerson, setActivePerson]     = useState(0);
-  const [disclaimerOpen, setDisclaimerOpen] = useState(false);
-  const [agreed, setAgreed]                 = useState(false);
-  const [loading, setLoading]               = useState(false);
-  const [errors, setErrors]                 = useState<string[]>([]);
 
-  // ── Guest checkout fields (only used when not logged in) ───────────────────
+  const [activePerson, setActivePerson]         = useState(0);
+  const [disclaimerModalOpen, setDisclaimerModalOpen] = useState(false);
+  const [agreed, setAgreed]                     = useState(false);
+  const [errors, setErrors]                     = useState<string[]>([]);
+  const [loading, setLoading]                   = useState(false);
+
+  // ── Guest details state ────────────────────────────────────────────────────
   const [guestId]    = useState(() => makeGuestId());
   const [guestName, setGuestName]   = useState("");
   const [guestEmail, setGuestEmail] = useState("");
@@ -308,7 +310,7 @@ export default function TrekBookingWidget({
       }
       if (p.idProofUploading) errs.push(`${lbl}: ID proof is still uploading, please wait`);
     });
-    if (!agreed) errs.push("Please agree to the terms");
+    if (!agreed) errs.push("Please tick the terms and conditions checkbox to proceed");
     setErrors(errs);
     return errs.length === 0;
   };
@@ -487,15 +489,17 @@ export default function TrekBookingWidget({
             </div>
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => persons.length > 1 && removePerson(persons.length - 1)}
                 disabled={persons.length <= 1}
-                className="w-7 h-7 rounded-lg bg-white border border-kokan-sand/50 flex items-center justify-center text-kokan-earth/60 hover:border-kokan-green/40 disabled:opacity-30 font-bold transition-all"
+                className="w-7 h-7 rounded-lg bg-white border border-kokan-sand/50 flex items-center justify-center text-kokan-earth/60 hover:border-kokan-green/40 disabled:opacity-30 font-bold transition-all cursor-pointer"
               >−</button>
               <span className="w-6 text-center text-sm font-bold text-kokan-earth">{persons.length}</span>
               <button
+                type="button"
                 onClick={addPerson}
                 disabled={persons.length >= maxCapacity}
-                className="w-7 h-7 rounded-lg bg-white border border-kokan-sand/50 flex items-center justify-center text-kokan-earth/60 hover:border-kokan-green/40 disabled:opacity-30 font-bold transition-all"
+                className="w-7 h-7 rounded-lg bg-white border border-kokan-sand/50 flex items-center justify-center text-kokan-earth/60 hover:border-kokan-green/40 disabled:opacity-30 font-bold transition-all cursor-pointer"
               >+</button>
             </div>
           </div>
@@ -540,8 +544,9 @@ export default function TrekBookingWidget({
           )}
 
           <button
+            type="button"
             onClick={() => setOpen(true)}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 bg-kokan-green text-white rounded-xl font-bold text-sm hover:bg-kokan-green/90 transition-colors shadow-lg shadow-kokan-green/20"
+            className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 bg-kokan-green text-white rounded-xl font-bold text-sm hover:bg-kokan-green/90 transition-colors shadow-lg shadow-kokan-green/20 cursor-pointer"
           >
             <CreditCard className="w-4 h-4" /> Book Now
           </button>
@@ -561,8 +566,9 @@ export default function TrekBookingWidget({
             </p>
           </div>
           <button
+            type="button"
             onClick={() => setOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-kokan-green text-white rounded-xl font-bold text-sm shadow-lg shadow-kokan-green/20 hover:bg-kokan-green/90 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-kokan-green text-white rounded-xl font-bold text-sm shadow-lg shadow-kokan-green/20 hover:bg-kokan-green/90 transition-colors cursor-pointer"
           >
             Book Now <ChevronRight className="w-4 h-4" />
           </button>
@@ -573,16 +579,17 @@ export default function TrekBookingWidget({
       {open && (
         <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => !loading && setOpen(false)}
           />
 
-          <div className="relative w-full lg:max-w-lg bg-white lg:rounded-2xl rounded-t-2xl shadow-2xl max-h-[92vh] flex flex-col">
+          <div className="relative w-full lg:max-w-lg bg-white lg:rounded-3xl rounded-t-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
 
-            <div className="flex items-center justify-between px-5 py-4 border-b border-kokan-sand/20 flex-shrink-0">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 flex-shrink-0 bg-gray-50/70">
               <div>
-                <h2 className="font-bold text-kokan-earth text-base">{trekName}</h2>
-                <p className="text-xs text-kokan-earth/40 mt-0.5">
+                <h2 className="font-bold text-kokan-earth text-base line-clamp-1">{trekName}</h2>
+                <p className="text-xs text-kokan-earth/60 mt-0.5">
                   ₹{pricePerPerson.toLocaleString("en-IN")} × {persons.length} person{persons.length > 1 ? "s" : ""} ={" "}
                   <span className="font-bold text-kokan-green">₹{totalAmount.toLocaleString("en-IN")}</span>
                   {showSplitBreakdown && (
@@ -591,90 +598,93 @@ export default function TrekBookingWidget({
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => !loading && setOpen(false)}
-                className="w-8 h-8 rounded-full bg-kokan-cream/60 flex items-center justify-center hover:bg-kokan-cream transition-colors"
+                className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4 text-kokan-earth/60" />
+                <X className="w-4 h-4 text-kokan-earth/70" />
               </button>
             </div>
 
-            <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
+            {/* Scrollable Body */}
+            <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
 
-              {/* ── Guest contact details (only when not logged in) ── */}
+              {/* 1. Guest contact details (only when not logged in) */}
               {!user && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+                <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-bold text-kokan-earth">Your Contact Details</p>
+                    <p className="text-xs font-bold text-kokan-earth uppercase tracking-wider">Your Contact Details</p>
                     <Link
                       href={`/login?redirect=/treks/${trekSlug}`}
-                      className="text-xs font-semibold text-kokan-green hover:underline"
+                      className="text-xs font-bold text-kokan-green hover:underline"
                     >
                       Log in instead
                     </Link>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5">
                     <div className="col-span-2">
-                      <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Full Name *</label>
+                      <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Full Name *</label>
                       <input
                         value={guestName}
                         onChange={(e) => setGuestName(e.target.value)}
-                        placeholder="Your name"
-                        className="w-full border border-kokan-sand bg-white rounded-lg px-3 py-2 text-sm text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30 placeholder:text-kokan-earth/25"
+                        placeholder="Your full name"
+                        className="w-full border border-gray-200 bg-white rounded-xl px-3 py-2 text-xs text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Email *</label>
+                      <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Email *</label>
                       <input
                         type="email"
                         value={guestEmail}
                         onChange={(e) => setGuestEmail(e.target.value)}
                         placeholder="you@example.com"
-                        className="w-full border border-kokan-sand bg-white rounded-lg px-3 py-2 text-sm text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30 placeholder:text-kokan-earth/25"
+                        className="w-full border border-gray-200 bg-white rounded-xl px-3 py-2 text-xs text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Phone *</label>
+                      <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Phone *</label>
                       <input
                         type="tel"
                         value={guestPhone}
                         onChange={(e) => setGuestPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                         placeholder="10-digit number"
-                        className="w-full border border-kokan-sand bg-white rounded-lg px-3 py-2 text-sm text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30 placeholder:text-kokan-earth/25"
+                        className="w-full border border-gray-200 bg-white rounded-xl px-3 py-2 text-xs text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                       />
                     </div>
                   </div>
-                  <p className="text-[10px] text-kokan-earth/40">We&apos;ll use these to send your booking confirmation.</p>
+                  <p className="text-[10px] text-kokan-earth/50">We will send your booking confirmation & trek itinerary to these details.</p>
                 </div>
               )}
 
-              {/* ── Person tabs ── */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex gap-1.5 flex-1 overflow-x-auto scrollbar-hide">
+              {/* 2. Person tabs & inputs */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
                     {persons.map((person, i) => {
                       const done = person.name && person.birthDate;
                       return (
                         <button
                           key={i}
+                          type="button"
                           onClick={() => setActivePerson(i)}
-                          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                             activePerson === i
-                              ? "bg-kokan-green text-white border-kokan-green"
-                              : "bg-white text-kokan-earth/50 border-kokan-sand/50 hover:border-kokan-green/30"
+                              ? "bg-kokan-green text-white border-kokan-green shadow-xs"
+                              : "bg-white text-kokan-earth/60 border-gray-200 hover:border-kokan-green/40"
                           }`}
                         >
                           {done
-                            ? <Check className="w-3 h-3" />
-                            : <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center text-[9px]">{i + 1}</span>
+                            ? <Check className="w-3 h-3 text-white" />
+                            : <span className="w-3.5 h-3.5 rounded-full border border-current flex items-center justify-center text-[9px]">{i + 1}</span>
                           }
-                          {person.name ? person.name.split(" ")[0] : `P${i + 1}`}
+                          <span>{person.name ? person.name.split(" ")[0] : `P${i + 1}`}</span>
                           {persons.length > 1 && activePerson === i && (
                             <span
                               role="button"
                               onClick={(e) => { e.stopPropagation(); removePerson(i); }}
-                              className="ml-0.5 opacity-70 hover:opacity-100"
+                              className="ml-1 opacity-70 hover:opacity-100 hover:text-red-200"
                             >
-                              <X className="w-2.5 h-2.5" />
+                              ✕
                             </span>
                           )}
                         </button>
@@ -683,8 +693,9 @@ export default function TrekBookingWidget({
                   </div>
                   {persons.length < maxCapacity && (
                     <button
+                      type="button"
                       onClick={addPerson}
-                      className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-kokan-green border border-kokan-green/30 hover:bg-kokan-green/5 transition-colors"
+                      className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-kokan-green bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
                     >
                       <Plus className="w-3 h-3" /> Add
                     </button>
@@ -692,34 +703,34 @@ export default function TrekBookingWidget({
                 </div>
 
                 {p && (
-                  <div className="bg-kokan-cream/30 rounded-xl p-4 space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-50/70 border border-gray-200/80 rounded-2xl p-4 space-y-3">
+                    <div className="grid grid-cols-2 gap-2.5">
                       <div>
-                        <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Full Name *</label>
+                        <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Full Name *</label>
                         <input
                           value={p.name}
                           onChange={(e) => update(activePerson, "name", e.target.value)}
-                          placeholder="Rohan Sawant"
-                          className="w-full border border-kokan-sand bg-white rounded-lg px-3 py-2 text-sm text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30 placeholder:text-kokan-earth/25"
+                          placeholder="e.g. Rohan Sawant"
+                          className="w-full border border-gray-200 bg-white rounded-xl px-3 py-2 text-xs text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Date of Birth *</label>
+                        <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Date of Birth *</label>
                         <input
                           type="date"
                           min={minDOB()} max={maxDOB()}
                           value={p.birthDate}
                           onChange={(e) => update(activePerson, "birthDate", e.target.value)}
-                          className="w-full border border-kokan-sand bg-white rounded-lg px-3 py-2 text-sm text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
+                          className="w-full border border-gray-200 bg-white rounded-xl px-3 py-2 text-xs text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                         />
                         {age !== null && p.birthDate && (
-                          <p className="text-[10px] text-kokan-green font-semibold mt-1">Age: {age} yrs</p>
+                          <p className="text-[10px] text-kokan-green font-bold mt-0.5">Age: {age} yrs</p>
                         )}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1.5">Gender</label>
+                      <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Gender</label>
                       <Pills
                         options={[{ value: "male", label: "Male" }, { value: "female", label: "Female" }, { value: "other", label: "Other" }]}
                         value={p.gender}
@@ -728,7 +739,7 @@ export default function TrekBookingWidget({
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1.5">Food</label>
+                      <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Food Preference</label>
                       <Pills
                         options={[{ value: "veg", label: "🥦 Veg" }, { value: "non-veg", label: "🍗 Non-Veg" }, { value: "vegan", label: "🌱 Vegan" }]}
                         value={p.foodPreference}
@@ -736,29 +747,29 @@ export default function TrekBookingWidget({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2.5">
                       <div>
-                        <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">Medical <span className="normal-case font-normal">(optional)</span></label>
+                        <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Medical Conditions <span className="normal-case font-normal">(optional)</span></label>
                         <input
                           value={p.medicalConditions}
                           onChange={(e) => update(activePerson, "medicalConditions", e.target.value)}
-                          placeholder="e.g. Asthma…"
-                          className="w-full border border-kokan-sand bg-white rounded-lg px-3 py-2 text-sm text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30 placeholder:text-kokan-earth/25"
+                          placeholder="e.g. Asthma, allergies"
+                          className="w-full border border-gray-200 bg-white rounded-xl px-3 py-2 text-xs text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1">ID Proof <span className="normal-case font-normal">(optional)</span></label>
+                        <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Govt ID Proof <span className="normal-case font-normal">(optional)</span></label>
                         {p.idProofUrl ? (
-                          <div className="flex items-center gap-1.5 bg-kokan-green/5 border border-kokan-green/20 rounded-lg px-3 py-2 h-[38px]">
+                          <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-xl px-2.5 py-1.5 h-[34px]">
                             <Check className="w-3.5 h-3.5 text-kokan-green flex-shrink-0" />
-                            <span className="text-xs text-kokan-green font-semibold flex-1 truncate">Uploaded</span>
-                            <button onClick={() => update(activePerson, "idProofUrl", "")} className="text-[10px] text-red-400 font-medium flex-shrink-0">✕</button>
+                            <span className="text-[11px] text-kokan-green font-bold flex-1 truncate">ID Uploaded</span>
+                            <button type="button" onClick={() => update(activePerson, "idProofUrl", "")} className="text-[10px] text-red-500 font-bold">✕</button>
                           </div>
                         ) : (
-                          <label className="flex items-center justify-center gap-1.5 border-2 border-dashed border-kokan-sand rounded-lg cursor-pointer hover:border-kokan-green/40 hover:bg-white transition-colors h-[38px] px-2">
+                          <label className="flex items-center justify-center gap-1.5 border border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-kokan-green hover:bg-white transition-colors h-[34px] px-2">
                             {p.idProofUploading
-                              ? <><Loader2 className="w-3.5 h-3.5 animate-spin text-kokan-green" /><span className="text-[11px] text-kokan-earth/40">Uploading…</span></>
-                              : <><Upload className="w-3.5 h-3.5 text-kokan-earth/30" /><span className="text-[11px] text-kokan-earth/40 font-medium">Upload ID</span></>
+                              ? <><Loader2 className="w-3 h-3 animate-spin text-kokan-green" /><span className="text-[11px] text-gray-500">Uploading…</span></>
+                              : <><Upload className="w-3 h-3 text-gray-400" /><span className="text-[11px] text-gray-600 font-medium">Upload ID</span></>
                             }
                             <input
                               type="file" accept="image/jpeg,image/png,application/pdf" className="hidden"
@@ -773,133 +784,146 @@ export default function TrekBookingWidget({
                 )}
               </div>
 
-              {/* ── Terms ── */}
-              <div className="border border-amber-200 rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setDisclaimerOpen(!disclaimerOpen)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-amber-50 hover:bg-amber-100/60 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Shield className="w-3.5 h-3.5 text-amber-600" />
-                    <span className="text-sm font-semibold text-amber-800">Terms &amp; Disclaimer</span>
-                    {agreed && <span className="text-[10px] font-bold bg-kokan-green text-white px-2 py-0.5 rounded-full">Agreed ✓</span>}
-                  </div>
-                  <ChevronDown className={`w-4 h-4 text-amber-500 transition-transform ${disclaimerOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                {disclaimerOpen && (
-                  <div className="bg-white">
-                    <div className="px-4 pt-3 pb-2 space-y-3 max-h-40 overflow-y-auto">
-                      {DISCLAIMER_SECTIONS.map((s, i) => (
-                        <div key={i}>
-                          <p className="text-xs font-bold text-kokan-earth mb-0.5">{i + 1}. {s.title}</p>
-                          <p className="text-xs text-kokan-earth/55 leading-relaxed">{s.body}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="px-4 py-3 border-t border-amber-100 bg-amber-50/40">
-                      <label className="flex items-start gap-2.5 cursor-pointer select-none">
-                        <div
-                          onClick={() => setAgreed((v) => !v)}
-                          className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                            agreed ? "bg-kokan-green border-kokan-green" : "bg-white border-kokan-sand"
-                          }`}
-                        >
-                          {agreed && (
-                            <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-                              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-xs text-kokan-earth/70 leading-relaxed">
-                          I agree to the cancellation policy, fitness requirements, code of conduct, and liability waiver.
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* ── Coupon section ── */}
-              <div className="border border-dashed border-kokan-sand/60 rounded-xl overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-2.5 bg-kokan-cream/30">
-                  <div className="flex items-center gap-1.5 text-sm font-semibold text-kokan-green">
+              {/* 3. COUPON BOX (Prominent, always visible) */}
+              <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-kokan-green flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5" />
-                    {appliedCoupon
-                      ? <span>Applied: <span className="font-bold">{appliedCoupon.code}</span></span>
-                      : "Have a coupon?"}
-                  </div>
+                    <span>Have a Coupon Code?</span>
+                  </span>
                   {appliedCoupon && (
-                    <button onClick={removeCoupon}>
-                      <X className="w-4 h-4 text-gray-400 hover:text-red-500" />
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="text-xs text-red-500 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" /> Remove
                     </button>
                   )}
                 </div>
 
-                <div className="px-4 pb-4 pt-3 space-y-3">
-                  {!appliedCoupon && visibleCoupons.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2">
-                      {visibleCoupons.map((c) => (
-                        <div key={c.code} className="p-2.5 bg-kokan-green/5 border border-kokan-green/15 rounded-xl">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="font-bold text-kokan-earth text-xs">{c.code}</span>
-                            <button
-                              onClick={() => { setCouponInput(c.code); setCouponError(""); }}
-                              className="text-[10px] font-semibold text-kokan-green hover:underline"
-                            >
-                              Apply
-                            </button>
-                          </div>
-                          <p className="text-[10px] text-gray-500 leading-tight">{c.description}</p>
-                          {c.minAmount > 0 && (
-                            <p className="text-[9px] text-gray-400 mt-0.5">Min ₹{c.minAmount}</p>
-                          )}
-                          <CountdownBadge expiresAt={c.expiresAt} />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {!appliedCoupon ? (
+                {appliedCoupon ? (
+                  <div className="flex items-center gap-2 p-2 bg-emerald-100/70 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-950">
+                    <Check className="w-4 h-4 text-kokan-green shrink-0" />
+                    <span>Coupon &ldquo;{appliedCoupon.code}&rdquo; applied! Saving ₹{couponDiscount.toLocaleString("en-IN")}</span>
+                  </div>
+                ) : (
+                  <>
+                    {visibleCoupons.length > 0 && (
+                      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                        {visibleCoupons.map((c) => (
+                          <button
+                            key={c.code}
+                            type="button"
+                            onClick={() => { setCouponInput(c.code); setCouponError(""); }}
+                            className="flex-shrink-0 px-2.5 py-1 bg-white border border-emerald-300 rounded-lg text-[11px] font-bold text-kokan-green hover:bg-emerald-50 transition-colors cursor-pointer"
+                          >
+                            {c.code} {c.discount ? `(₹${c.discount} off)` : ""}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       <input
                         value={couponInput}
                         onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
-                        onKeyDown={(e) => e.key === "Enter" && applyCoupon()}
-                        placeholder="Enter code"
-                        className="flex-1 px-3 py-2 rounded-lg border border-kokan-sand bg-white text-sm text-kokan-earth font-mono uppercase focus:outline-none focus:ring-2 focus:ring-kokan-green/30 placeholder:normal-case placeholder:font-sans"
+                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyCoupon())}
+                        placeholder="Enter coupon code (e.g. TREK100)"
+                        className="flex-1 px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-mono uppercase focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                       />
                       <button
-                        onClick={applyCoupon} disabled={couponLoading}
-                        className="px-4 py-2 bg-kokan-green text-white rounded-lg text-sm font-bold hover:bg-kokan-green/90 disabled:opacity-60 min-w-[70px]"
+                        type="button"
+                        onClick={applyCoupon}
+                        disabled={couponLoading}
+                        className="px-4 py-2 bg-kokan-green text-white rounded-xl text-xs font-bold hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
                       >
-                        {couponLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Apply"}
+                        {couponLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" /> : "Apply"}
                       </button>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-2 p-2.5 bg-kokan-green/10 rounded-xl">
-                      <Check className="w-4 h-4 text-kokan-green flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-kokan-green">
-                          {appliedCoupon.code} — saving ₹{couponDiscount.toLocaleString("en-IN")}
-                        </p>
-                        <p className="text-[10px] text-gray-500">{appliedCoupon.description}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {couponError && <p className="text-xs text-red-500 font-medium">{couponError}</p>}
-                </div>
+                    {couponError && <p className="text-xs text-red-500 font-medium">{couponError}</p>}
+                  </>
+                )}
               </div>
 
-              {/* ── Price breakdown ── */}
-              <div className="bg-gray-50 rounded-xl px-4 py-3 space-y-1.5">
+              {/* 4. Payment Method & Choice (Moved inside scrollable body so footer doesn't bloat) */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-kokan-earth">
+                  Payment Method
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("online")}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      paymentMethod === "online"
+                        ? "bg-kokan-green text-white border-kokan-green shadow-xs"
+                        : "bg-white text-kokan-earth/70 border-gray-200 hover:border-kokan-green/40"
+                    }`}
+                  >
+                    <span>💳 Pay Online</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("offline")}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      paymentMethod === "offline"
+                        ? "bg-kokan-green text-white border-kokan-green shadow-xs"
+                        : "bg-white text-kokan-earth/70 border-gray-200 hover:border-kokan-green/40"
+                    }`}
+                  >
+                    <span>💵 Pay Offline (Cash)</span>
+                  </button>
+                </div>
+                {paymentMethod === "offline" && (
+                  <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 leading-relaxed">
+                    Your slot will be reserved as <strong>pending</strong>. You pay ₹{totalAmount.toLocaleString("en-IN")} in cash to the trek leader on departure.
+                  </p>
+                )}
+              </div>
+
+              {/* Advance vs Full Option (if online) */}
+              {hasAdvanceOption && paymentMethod === "online" && (
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-kokan-earth">
+                    Payment Option
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentChoice("half")}
+                      className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${
+                        paymentChoice === "half"
+                          ? "bg-kokan-green text-white border-kokan-green shadow-xs"
+                          : "bg-white text-kokan-earth/70 border-gray-200 hover:border-kokan-green/40"
+                      }`}
+                    >
+                      <span className="block text-[10px] opacity-80 uppercase tracking-wider">Advance</span>
+                      <span className="block font-black text-sm">₹{advanceAmount.toLocaleString("en-IN")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentChoice("full")}
+                      className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${
+                        paymentChoice === "full"
+                          ? "bg-kokan-green text-white border-kokan-green shadow-xs"
+                          : "bg-white text-kokan-earth/70 border-gray-200 hover:border-kokan-green/40"
+                      }`}
+                    >
+                      <span className="block text-[10px] opacity-80 uppercase tracking-wider">Full Fare</span>
+                      <span className="block font-black text-sm">₹{totalAmount.toLocaleString("en-IN")}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 5. Price Breakdown Summary */}
+              <div className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 space-y-1.5">
                 <div className="flex justify-between text-xs text-gray-500">
                   <span>₹{pricePerPerson.toLocaleString("en-IN")} × {persons.length} person{persons.length > 1 ? "s" : ""}</span>
                   <span>₹{subtotal.toLocaleString("en-IN")}</span>
                 </div>
                 {couponDiscount > 0 && (
-                  <div className="flex justify-between text-xs text-kokan-green font-semibold">
+                  <div className="flex justify-between text-xs text-kokan-green font-bold">
                     <span>Coupon ({appliedCoupon?.code})</span>
                     <span>− ₹{couponDiscount.toLocaleString("en-IN")}</span>
                   </div>
@@ -910,29 +934,43 @@ export default function TrekBookingWidget({
                 </div>
                 {showSplitBreakdown && (
                   <>
-                    <div className="flex justify-between text-sm font-bold text-kokan-green pt-2 border-t border-dashed border-gray-300">
-                      <span>💳 Pay Online Now</span>
+                    <div className="flex justify-between text-xs font-bold text-kokan-green pt-1.5 border-t border-dashed border-gray-300">
+                      <span>💳 Due Online Now</span>
                       <span>₹{amountToPayOnline.toLocaleString("en-IN")}</span>
                     </div>
-                    <div className="flex justify-between text-sm font-medium text-amber-600">
-                      <span>💵 Pay Cash at Trek</span>
+                    <div className="flex justify-between text-xs font-medium text-amber-700">
+                      <span>💵 Cash at Departure</span>
                       <span>₹{remainingCash.toLocaleString("en-IN")}</span>
                     </div>
                   </>
                 )}
               </div>
 
-              {showSplitBreakdown && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
-                  <p className="text-xs text-amber-700 leading-relaxed">
-                    💡 Pay <strong>₹{amountToPayOnline.toLocaleString("en-IN")}</strong> now to confirm your slot. The remaining{" "}
-                    <strong>₹{remainingCash.toLocaleString("en-IN")}</strong> is collected in cash on the day of the trek.
-                  </p>
-                </div>
-              )}
+              {/* 6. TERMS & DISCLAIMER CHECKBOX (ALWAYS VISIBLE) */}
+              <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="trek-agree-terms-checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="w-4 h-4 mt-0.5 rounded border-amber-400 text-kokan-green focus:ring-kokan-green cursor-pointer shrink-0 accent-[#2D6A4F]"
+                />
+                <label htmlFor="trek-agree-terms-checkbox" className="text-xs text-kokan-earth/80 leading-relaxed cursor-pointer select-none">
+                  I agree to the{" "}
+                  <button
+                    type="button"
+                    onClick={() => setDisclaimerModalOpen(true)}
+                    className="font-bold text-kokan-green underline hover:text-emerald-800 cursor-pointer"
+                  >
+                    Trek Terms, Cancellation Policy &amp; Liability Waiver
+                  </button>
+                  .
+                </label>
+              </div>
 
+              {/* Errors list */}
               {errors.length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-1">
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-3 space-y-1">
                   {errors.map((e, i) => (
                     <p key={i} className="text-xs text-red-600 flex items-start gap-1.5">
                       <span className="flex-shrink-0">•</span> {e}
@@ -942,93 +980,83 @@ export default function TrekBookingWidget({
               )}
             </div>
 
-            {/* ── Sheet footer ── */}
-            <div className="px-5 py-4 border-t border-kokan-sand/20 flex-shrink-0 bg-white">
+            {/* Compact Sticky Footer */}
+            <div className="px-5 py-3.5 border-t border-gray-100 flex-shrink-0 bg-white shadow-lg space-y-2">
               {!agreed && (
-                <p className="text-center text-[11px] text-amber-600 mb-3">
-                  Open Terms above and tick the checkbox to continue
+                <p className="text-center text-[11px] text-amber-700 font-medium">
+                  Please tick the terms and conditions checkbox to proceed
                 </p>
-              )}
-              <div className="mb-4">
-                <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1.5">
-                  Payment Method
-                </label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("online")}
-                    className={`flex-1 py-2.5 rounded-xl border text-xs font-bold transition-all ${
-                      paymentMethod === "online"
-                        ? "bg-kokan-green text-white border-kokan-green"
-                        : "bg-white text-kokan-earth/60 border-kokan-sand/60 hover:border-kokan-green/40"
-                    }`}
-                  >
-                    💳 Pay Online
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("offline")}
-                    className={`flex-1 py-2.5 rounded-xl border text-xs font-bold transition-all ${
-                      paymentMethod === "offline"
-                        ? "bg-kokan-green text-white border-kokan-green"
-                        : "bg-white text-kokan-earth/60 border-kokan-sand/60 hover:border-kokan-green/40"
-                    }`}
-                  >
-                    💵 Pay Offline (Cash)
-                  </button>
-                </div>
-                {paymentMethod === "offline" && (
-                  <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 leading-relaxed">
-                    Your slot will be marked <strong>pending</strong> until you pay ₹{totalAmount.toLocaleString("en-IN")} in person and our team verifies it.
-                  </p>
-                )}
-              </div>
-
-              {hasAdvanceOption && paymentMethod === "online" && (
-                <div className="mb-4">
-                  <label className="block text-[10px] font-bold text-kokan-earth/40 uppercase tracking-widest mb-1.5">
-                    Payment Option
-                  </label>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentChoice("half")}
-                      className={`flex-1 py-2.5 rounded-xl border text-xs font-bold transition-all leading-tight ${
-                        paymentChoice === "half"
-                          ? "bg-kokan-green text-white border-kokan-green"
-                          : "bg-white text-kokan-earth/60 border-kokan-sand/60 hover:border-kokan-green/40"
-                      }`}
-                    >
-                      Pay Advance<br />₹{advanceAmount.toLocaleString("en-IN")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentChoice("full")}
-                      className={`flex-1 py-2.5 rounded-xl border text-xs font-bold transition-all leading-tight ${
-                        paymentChoice === "full"
-                          ? "bg-kokan-green text-white border-kokan-green"
-                          : "bg-white text-kokan-earth/60 border-kokan-sand/60 hover:border-kokan-green/40"
-                      }`}
-                    >
-                      Pay Full<br />₹{totalAmount.toLocaleString("en-IN")}
-                    </button>
-                  </div>
-                </div>
               )}
 
               <button
+                type="button"
                 onClick={paymentMethod === "offline" ? handleOfflineBooking : handleBooking}
                 disabled={loading || !agreed}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-kokan-green text-white rounded-xl font-bold text-sm hover:bg-kokan-green/90 active:bg-kokan-green/80 transition-colors disabled:opacity-50 shadow-lg shadow-kokan-green/20"
+                className="w-full flex items-center justify-center gap-2 py-3.5 bg-kokan-green text-white rounded-full font-bold text-sm hover:bg-emerald-800 active:scale-98 transition-all disabled:opacity-50 shadow-md shadow-kokan-green/20 cursor-pointer"
               >
-                {loading
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</>
-                  : paymentMethod === "offline"
-                    ? <>Confirm Booking — Pay ₹{totalAmount.toLocaleString("en-IN")} at Trek</>
-                    : <><CreditCard className="w-4 h-4" /> Pay ₹{amountToPayOnline.toLocaleString("en-IN")}{showSplitBreakdown ? " to Confirm" : ""}</>
-                }
+                {loading ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</>
+                ) : paymentMethod === "offline" ? (
+                  <>Confirm Booking — Pay ₹{totalAmount.toLocaleString("en-IN")} at Trek</>
+                ) : (
+                  <><CreditCard className="w-4 h-4" /> Pay ₹{amountToPayOnline.toLocaleString("en-IN")}{showSplitBreakdown ? " to Confirm" : ""}</>
+                )}
               </button>
-              <p className="text-center text-[11px] text-kokan-earth/30 mt-2">🔒 Secured by Razorpay</p>
+
+              <p className="text-center text-[10px] text-kokan-earth/40">🔒 100% Secure Payments with Razorpay</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Terms & Disclaimer Full Modal ── */}
+      {disclaimerModalOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div
+            className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[85vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-gradient-to-r from-[#122e1b] to-[#1e4a2d] text-white p-4.5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-amber-300" />
+                <h3 className="font-bold text-sm">Terms &amp; Disclaimer</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDisclaimerModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto space-y-3.5 text-xs text-kokan-earth/80 leading-relaxed">
+              {DISCLAIMER_SECTIONS.map((s, i) => (
+                <div key={i} className="space-y-0.5">
+                  <h4 className="font-bold text-kokan-earth text-xs">{i + 1}. {s.title}</h4>
+                  <p className="text-gray-600 text-[11px] leading-relaxed">{s.body}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setAgreed(true);
+                  setDisclaimerModalOpen(false);
+                }}
+                className="flex-1 py-2.5 rounded-full text-xs font-bold bg-kokan-green text-white hover:bg-emerald-800 transition-colors shadow-xs cursor-pointer text-center"
+              >
+                I Understand &amp; Agree
+              </button>
+              <button
+                type="button"
+                onClick={() => setDisclaimerModalOpen(false)}
+                className="px-4 py-2.5 rounded-full text-xs font-bold text-gray-500 hover:text-gray-700 cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

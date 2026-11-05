@@ -17,6 +17,7 @@ import NearbyListings from "@/components/destination/NearbyListings";
 import TrekHeroCarousel from "@/components/trek/TrekHeroCarousel";
 import TrekStickyBar from "@/components/trek/TrekStickyBar";
 import TrekEnquiryWidget from "@/components/trek/TrekEnquiryWidget";
+import TrekBookingWidget from "@/components/trek/TrekBookingWidget";
 import DurgTrekGuide from "@/components/trek/DurgTrekGuide";
 
 interface Props {
@@ -341,6 +342,18 @@ export default function TrekDetailClientView({
 
                 {/* Form */}
                 <div className="p-4 sm:p-5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(new CustomEvent("open-trek-booking"));
+                      }
+                    }}
+                    className="w-full py-3 mb-3 bg-[#1b4332] hover:bg-[#143326] active:scale-98 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#1b4332]/15 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>Book Trek Online (Reserve Slots) 🥾</span>
+                  </button>
+
                   <TrekEnquiryWidget
                     trekId={trek.id}
                     trekName={trek.name}
@@ -467,6 +480,18 @@ export default function TrekDetailClientView({
                 </span>
               </h3>
               
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.dispatchEvent(new CustomEvent("open-trek-booking"));
+                  }
+                }}
+                className="w-full py-3 mb-3 bg-[#1b4332] hover:bg-[#143326] active:scale-98 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#1b4332]/15 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Book Trek Online (Reserve Slots) 🥾</span>
+              </button>
+
               <TrekEnquiryWidget
                 trekId={trek.id}
                 trekName={trek.name}
@@ -505,6 +530,19 @@ export default function TrekDetailClientView({
         scheduledDate={trek.scheduledDate}
         whatsappGroupLink={trek.whatsappGroupLink}
         trekName={trek.name}
+      />
+
+      {/* ── Trek Booking Modal / Drawer ── */}
+      <TrekBookingWidget
+        trekId={trek.id}
+        trekName={trek.name}
+        trekSlug={trek.slug}
+        pricePerPerson={trek.price ?? 1499}
+        maxCapacity={20}
+        advanceAmount={trek.advanceAmount ?? 750}
+        whatsappGroupLink={trek.whatsappGroupLink}
+        scheduledDate={trek.scheduledDate ?? undefined}
+        hideStickyBar={true}
       />
     </div>
   );

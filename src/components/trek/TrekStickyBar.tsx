@@ -36,8 +36,8 @@ export default function TrekStickyBar({
       <div className="max-w-md sm:max-w-lg mx-auto flex items-center justify-between gap-4">
         {/* Left: Price / Season Info */}
         <div className="flex flex-col">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-amber-700 flex items-center gap-1">
-            <span>⏳</span> Coming Soon
+          <span className="text-[10px] uppercase font-bold tracking-wider text-[#2D6A4F] flex items-center gap-1">
+            <span>✨</span> {scheduledDate ? "Upcoming Batch" : "Per Person Fare"}
           </span>
           <span className="text-[16px] sm:text-lg font-black text-[#0f2416] leading-tight flex items-baseline gap-1">
             ₹{price?.toLocaleString("en-IN") ?? "1,499"}
@@ -50,8 +50,7 @@ export default function TrekStickyBar({
           onClick={handleBookClick}
           className="px-6 py-3.5 bg-[#1b4332] hover:bg-[#143326] active:scale-95 text-white font-bold text-sm rounded-full shadow-md shadow-[#1b4332]/20 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
         >
-          <MessageCircle size={16} className="text-emerald-400" />
-          <span>Enquire Now</span>
+          <span>Book Trek 🥾</span>
         </button>
       </div>
     </div>
