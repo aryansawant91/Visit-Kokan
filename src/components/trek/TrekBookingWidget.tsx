@@ -41,6 +41,7 @@ interface TrekBookingWidgetProps {
   whatsappGroupLink?: string;
   scheduledDate?: string;
   hideStickyBar?: boolean;
+  modalOnly?: boolean;
 }
 
 // ── Disclaimer ────────────────────────────────────────────────────────────────
@@ -177,7 +178,7 @@ function CountdownBadge({ expiresAt }: { expiresAt: string | null }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function TrekBookingWidget({
-  trekId, trekName, trekSlug, pricePerPerson, maxCapacity = 20, advanceAmount = 0, whatsappGroupLink, scheduledDate, hideStickyBar = false,
+  trekId, trekName, trekSlug, pricePerPerson, maxCapacity = 20, advanceAmount = 0, whatsappGroupLink, scheduledDate, hideStickyBar = false, modalOnly = false,
 }: TrekBookingWidgetProps) {
   const { user, profile } = useAuth();
   const router = useRouter();
@@ -474,85 +475,87 @@ export default function TrekBookingWidget({
   return (
     <>
       {/* ── Booking card ── */}
-      <div className={`${hideStickyBar ? "block" : "hidden lg:block"} bg-white rounded-3xl border border-[#d6e2d4] shadow-sm overflow-hidden`}>
-        <div className="p-5">
-          <div className="flex items-baseline gap-1 mb-1">
-            <span className="text-2xl font-bold text-kokan-earth">₹{pricePerPerson.toLocaleString("en-IN")}</span>
-            <span className="text-sm text-kokan-earth/40">/ person</span>
-          </div>
-          <p className="text-xs text-kokan-earth/40 mb-4">Includes guide, equipment &amp; meals</p>
+      {!modalOnly && (
+        <div className={`${hideStickyBar ? "block" : "hidden lg:block"} bg-white rounded-3xl border border-[#d6e2d4] shadow-sm overflow-hidden`}>
+          <div className="p-5">
+            <div className="flex items-baseline gap-1 mb-1">
+              <span className="text-2xl font-bold text-kokan-earth">₹{pricePerPerson.toLocaleString("en-IN")}</span>
+              <span className="text-sm text-kokan-earth/40">/ person</span>
+            </div>
+            <p className="text-xs text-kokan-earth/40 mb-4">Includes guide, equipment &amp; meals</p>
 
-          <div className="flex items-center justify-between bg-kokan-cream/50 rounded-xl px-4 py-3 mb-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-kokan-earth">
-              <Users className="w-4 h-4 text-kokan-green" />
-              {persons.length} {persons.length === 1 ? "Person" : "Persons"}
+            <div className="flex items-center justify-between bg-kokan-cream/50 rounded-xl px-4 py-3 mb-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-kokan-earth">
+                <Users className="w-4 h-4 text-kokan-green" />
+                {persons.length} {persons.length === 1 ? "Person" : "Persons"}
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => persons.length > 1 && removePerson(persons.length - 1)}
+                  disabled={persons.length <= 1}
+                  className="w-7 h-7 rounded-lg bg-white border border-kokan-sand/50 flex items-center justify-center text-kokan-earth/60 hover:border-kokan-green/40 disabled:opacity-30 font-bold transition-all cursor-pointer"
+                >−</button>
+                <span className="w-6 text-center text-sm font-bold text-kokan-earth">{persons.length}</span>
+                <button
+                  type="button"
+                  onClick={addPerson}
+                  disabled={persons.length >= maxCapacity}
+                  className="w-7 h-7 rounded-lg bg-white border border-kokan-sand/50 flex items-center justify-center text-kokan-earth/60 hover:border-kokan-green/40 disabled:opacity-30 font-bold transition-all cursor-pointer"
+                >+</button>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => persons.length > 1 && removePerson(persons.length - 1)}
-                disabled={persons.length <= 1}
-                className="w-7 h-7 rounded-lg bg-white border border-kokan-sand/50 flex items-center justify-center text-kokan-earth/60 hover:border-kokan-green/40 disabled:opacity-30 font-bold transition-all cursor-pointer"
-              >−</button>
-              <span className="w-6 text-center text-sm font-bold text-kokan-earth">{persons.length}</span>
-              <button
-                type="button"
-                onClick={addPerson}
-                disabled={persons.length >= maxCapacity}
-                className="w-7 h-7 rounded-lg bg-white border border-kokan-sand/50 flex items-center justify-center text-kokan-earth/60 hover:border-kokan-green/40 disabled:opacity-30 font-bold transition-all cursor-pointer"
-              >+</button>
-            </div>
-          </div>
 
-          {/* Desktop price breakdown */}
-          <div className="space-y-1 mb-4">
-            <div className="flex justify-between text-sm">
-              <span className="text-kokan-earth/50">₹{pricePerPerson.toLocaleString("en-IN")} × {persons.length}</span>
-              <span className="font-bold text-kokan-earth">₹{subtotal.toLocaleString("en-IN")}</span>
+            {/* Desktop price breakdown */}
+            <div className="space-y-1 mb-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-kokan-earth/50">₹{pricePerPerson.toLocaleString("en-IN")} × {persons.length}</span>
+                <span className="font-bold text-kokan-earth">₹{subtotal.toLocaleString("en-IN")}</span>
+              </div>
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-xs text-kokan-green font-semibold">
+                  <span>Discount ({appliedCoupon?.code})</span>
+                  <span>− ₹{couponDiscount.toLocaleString("en-IN")}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm font-bold text-kokan-earth border-t border-kokan-sand/30 pt-1 mt-1">
+                <span>Total Trek Cost</span>
+                <span>₹{totalAmount.toLocaleString("en-IN")}</span>
+              </div>
+              {showSplitBreakdown && (
+                <>
+                  <div className="flex justify-between text-sm font-bold text-kokan-green pt-1 border-t border-dashed border-gray-200 mt-1">
+                    <span>💳 Pay Online Now</span>
+                    <span>₹{amountToPayOnline.toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-medium text-amber-600">
+                    <span>💵 Pay Cash at Trek</span>
+                    <span>₹{remainingCash.toLocaleString("en-IN")}</span>
+                  </div>
+                </>
+              )}
             </div>
-            {couponDiscount > 0 && (
-              <div className="flex justify-between text-xs text-kokan-green font-semibold">
-                <span>Discount ({appliedCoupon?.code})</span>
-                <span>− ₹{couponDiscount.toLocaleString("en-IN")}</span>
+
+            {showSplitBreakdown && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 mb-4">
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  💡 Pay <strong>₹{amountToPayOnline.toLocaleString("en-IN")}</strong> now to confirm your slot. The remaining{" "}
+                  <strong>₹{remainingCash.toLocaleString("en-IN")}</strong> is collected in cash on the day of the trek.
+                </p>
               </div>
             )}
-            <div className="flex justify-between text-sm font-bold text-kokan-earth border-t border-kokan-sand/30 pt-1 mt-1">
-              <span>Total Trek Cost</span>
-              <span>₹{totalAmount.toLocaleString("en-IN")}</span>
-            </div>
-            {showSplitBreakdown && (
-              <>
-                <div className="flex justify-between text-sm font-bold text-kokan-green pt-1 border-t border-dashed border-gray-200 mt-1">
-                  <span>💳 Pay Online Now</span>
-                  <span>₹{amountToPayOnline.toLocaleString("en-IN")}</span>
-                </div>
-                <div className="flex justify-between text-sm font-medium text-amber-600">
-                  <span>💵 Pay Cash at Trek</span>
-                  <span>₹{remainingCash.toLocaleString("en-IN")}</span>
-                </div>
-              </>
-            )}
+
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 bg-kokan-green text-white rounded-xl font-bold text-sm hover:bg-kokan-green/90 transition-colors shadow-lg shadow-kokan-green/20 cursor-pointer"
+            >
+              <CreditCard className="w-4 h-4" /> Book Now
+            </button>
+            <p className="text-center text-[11px] text-kokan-earth/30 mt-2">🔒 Secured by Razorpay</p>
           </div>
-
-          {showSplitBreakdown && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 mb-4">
-              <p className="text-xs text-amber-700 leading-relaxed">
-                💡 Pay <strong>₹{amountToPayOnline.toLocaleString("en-IN")}</strong> now to confirm your slot. The remaining{" "}
-                <strong>₹{remainingCash.toLocaleString("en-IN")}</strong> is collected in cash on the day of the trek.
-              </p>
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 bg-kokan-green text-white rounded-xl font-bold text-sm hover:bg-kokan-green/90 transition-colors shadow-lg shadow-kokan-green/20 cursor-pointer"
-          >
-            <CreditCard className="w-4 h-4" /> Book Now
-          </button>
-          <p className="text-center text-[11px] text-kokan-earth/30 mt-2">🔒 Secured by Razorpay</p>
         </div>
-      </div>
+      )}
 
       {/* ── Mobile sticky bottom bar ── */}
       {!hideStickyBar && (

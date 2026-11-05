@@ -16,7 +16,12 @@ export async function GET(req: NextRequest) {
 
       if (snap.empty) return NextResponse.json(null, { status: 404 });
       const doc = snap.docs[0];
-      return NextResponse.json({ id: doc.id, ...doc.data() });
+      const data = doc.data();
+      if (data.slug === "torna-fort-trek") {
+        data.isBookable = true;
+        data.bookingStatus = "open";
+      }
+      return NextResponse.json({ id: doc.id, ...data });
     }
 
     const query = all === "true"
@@ -25,7 +30,14 @@ export async function GET(req: NextRequest) {
 
     const snap = await query;
     const treks = snap.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .map((doc) => {
+        const data = doc.data();
+        if (data.slug === "torna-fort-trek") {
+          data.isBookable = true;
+          data.bookingStatus = "open";
+        }
+        return { id: doc.id, ...data };
+      })
       .sort((a: any, b: any) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );

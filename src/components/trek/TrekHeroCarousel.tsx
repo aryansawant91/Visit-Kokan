@@ -23,6 +23,7 @@ interface Props {
   difficulty?: string;
   region: string;
   slug: string;
+  isBookable?: boolean;
 }
 
 export default function TrekHeroCarousel({
@@ -34,7 +35,9 @@ export default function TrekHeroCarousel({
   difficulty,
   region,
   slug,
+  isBookable: isBookableProp = false,
 }: Props) {
+  const isBookable = isBookableProp || slug === "torna-fort-trek";
   const router = useRouter();
   const [current, setCurrent] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -238,9 +241,16 @@ export default function TrekHeroCarousel({
         <div className="absolute bottom-11 inset-x-0 px-5 sm:px-6 z-20">
           {/* Top tag / badge */}
           <div className="flex items-center gap-1.5 text-white/90 text-xs font-semibold mb-1 drop-shadow flex-wrap">
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 shadow-xs">
-              ⏳ Coming Soon
-            </span>
+            {isBookable ? (
+              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                Book Now Open
+              </span>
+            ) : (
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 shadow-xs">
+                ⏳ Coming Soon
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <MapPin size={13} className="text-[#a8e6cf]" />
               {region}, Kokan

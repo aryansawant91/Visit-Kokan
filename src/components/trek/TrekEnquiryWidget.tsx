@@ -23,6 +23,7 @@ interface Props {
   pricePerPerson: number;
   advanceAmount?: number;
   whatsappGroupLink?: string;
+  isBookable?: boolean;
 }
 
 const SUPPORT_PHONE = "+918432587706";
@@ -35,7 +36,9 @@ export default function TrekEnquiryWidget({
   pricePerPerson,
   advanceAmount = 750,
   whatsappGroupLink,
+  isBookable: isBookableProp = false,
 }: Props) {
+  const isBookable = isBookableProp || trekSlug === "torna-fort-trek";
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [groupSize, setGroupSize] = useState("2-4");
@@ -92,23 +95,54 @@ export default function TrekEnquiryWidget({
   return (
     <div id="booking-section" className="space-y-4">
       {/* ── Status Capsule ── */}
-      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl p-4 shadow-xs">
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="flex h-2.5 w-2.5 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-          </span>
-          <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1">
-            <Clock size={12} className="text-amber-700" /> Coming Soon • Dates Opening
-          </span>
+      {isBookable ? (
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl p-4 shadow-xs">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-950 flex items-center gap-1">
+              <CheckCircle2 size={12} className="text-emerald-700" /> Bookings Open • Batch Confirmed
+            </span>
+          </div>
+          <p className="text-xs text-emerald-900/90 leading-relaxed">
+            Slots are live for booking! Tap <strong>Book Now</strong> to reserve slots directly online with instant confirmation &amp; coupon support.
+          </p>
         </div>
-        <p className="text-xs text-amber-900/85 leading-relaxed">
-          Weekend expedition batches are being scheduled. Enquire directly to lock in early-bird priority or arrange a custom private departure!
-        </p>
-      </div>
+      ) : (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl p-4 shadow-xs">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+            </span>
+            <span className="text-[11px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1">
+              <Clock size={12} className="text-amber-700" /> Coming Soon • Dates Opening
+            </span>
+          </div>
+          <p className="text-xs text-amber-900/85 leading-relaxed">
+            Weekend expedition batches are being scheduled. Enquire directly to lock in early-bird priority or arrange a custom private departure!
+          </p>
+        </div>
+      )}
 
-      {/* ── Quick WhatsApp & Call Action Buttons ── */}
+      {/* ── Action Buttons ── */}
       <div className="space-y-2">
+        {isBookable && (
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("open-trek-booking"));
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-kokan-green hover:bg-emerald-800 active:scale-[0.98] text-white rounded-2xl font-black text-sm shadow-md shadow-kokan-green/20 transition-all cursor-pointer"
+          >
+            <span>Book Now — Pay ₹{pricePerPerson.toLocaleString("en-IN")} 🥾</span>
+          </button>
+        )}
+
         <a
           href={whatsappUrl}
           target="_blank"

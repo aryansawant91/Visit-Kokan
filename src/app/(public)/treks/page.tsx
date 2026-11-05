@@ -36,6 +36,7 @@ function TrekCard({
   onCardClick?: () => void;
 }) {
   const diff = DIFFICULTY_CONFIG[trek.difficulty] ?? { color: "text-gray-600", bg: "bg-gray-100", emoji: "⚪" };
+  const isBookable = trek.slug === "torna-fort-trek" || Boolean(trek.isBookable) || trek.bookingStatus === "open";
 
   return (
     <Link
@@ -61,9 +62,16 @@ function TrekCard({
 
         {/* Coming Soon & Featured badges */}
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap">
-          <span className="bg-amber-400 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs uppercase tracking-wider">
-            ⏳ Coming Soon
-          </span>
+          {isBookable ? (
+            <span className="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs uppercase tracking-wider flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              Book Now
+            </span>
+          ) : (
+            <span className="bg-amber-400 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs uppercase tracking-wider">
+              ⏳ Coming Soon
+            </span>
+          )}
           {trek.featured && (
             <span className="bg-emerald-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs">
               ⭐ Featured
@@ -94,9 +102,15 @@ function TrekCard({
               ₹{trek.price?.toLocaleString("en-IN")}
               <span className="text-white/60 font-normal text-[11px]">/person</span>
             </span>
-            <span className="flex items-center gap-0.5 bg-emerald-600/95 hover:bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition-colors shadow-xs">
-              Enquire <ChevronRight className="w-3 h-3" />
-            </span>
+            {isBookable ? (
+              <span className="flex items-center gap-1 bg-[#1b4332] hover:bg-[#143326] text-white text-[10px] font-black px-3 py-1 rounded-lg transition-colors shadow-xs">
+                Book Now 🥾
+              </span>
+            ) : (
+              <span className="flex items-center gap-0.5 bg-emerald-600/95 hover:bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition-colors shadow-xs">
+                Enquire <ChevronRight className="w-3 h-3" />
+              </span>
+            )}
           </div>
         </div>
       </div>

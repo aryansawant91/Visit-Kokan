@@ -7,6 +7,7 @@ interface Props {
   scheduledDate?: string | null;
   whatsappGroupLink?: string;
   trekName: string;
+  isBookable?: boolean;
 }
 
 export default function TrekStickyBar({
@@ -14,6 +15,7 @@ export default function TrekStickyBar({
   scheduledDate,
   whatsappGroupLink,
   trekName,
+  isBookable = false,
 }: Props) {
   const enquiryMessage = encodeURIComponent(
     `Hi! I have a group interested in the "${trekName}" trek. Can you help us arrange a date for this?`
@@ -37,7 +39,7 @@ export default function TrekStickyBar({
         {/* Left: Price / Season Info */}
         <div className="flex flex-col">
           <span className="text-[10px] uppercase font-bold tracking-wider text-[#2D6A4F] flex items-center gap-1">
-            <span>✨</span> {scheduledDate ? "Upcoming Batch" : "Per Person Fare"}
+            <span>{isBookable ? "🟢" : "✨"}</span> {isBookable ? "Bookings Open" : scheduledDate ? "Upcoming Batch" : "Per Person Fare"}
           </span>
           <span className="text-[16px] sm:text-lg font-black text-[#0f2416] leading-tight flex items-baseline gap-1">
             ₹{price?.toLocaleString("en-IN") ?? "1,499"}
@@ -48,9 +50,9 @@ export default function TrekStickyBar({
         {/* Right: Primary Action Button */}
         <button
           onClick={handleBookClick}
-          className="px-6 py-3.5 bg-[#1b4332] hover:bg-[#143326] active:scale-95 text-white font-bold text-sm rounded-full shadow-md shadow-[#1b4332]/20 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          className="px-6 py-3.5 bg-kokan-green hover:bg-emerald-800 active:scale-95 text-white font-black text-sm rounded-full shadow-md shadow-kokan-green/20 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
         >
-          <span>Book Trek 🥾</span>
+          <span>Book Now 🥾</span>
         </button>
       </div>
     </div>

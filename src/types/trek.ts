@@ -84,6 +84,8 @@ export interface Trek {
   scheduledDate?: string | null;        // base price per person
   advanceAmount?: number;
   whatsappGroupLink?: string;
+  isBookable?: boolean;
+  bookingStatus?: "open" | "coming_soon" | "full" | string;
   groupSize?: string;      // e.g. "2-15 people"
   addedBy: string;
   approved: boolean;

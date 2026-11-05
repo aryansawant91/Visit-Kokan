@@ -62,6 +62,8 @@ export default function TrekDetailClientView({
   backHref = "/treks",
   fromPage,
 }: Props) {
+  const isBookable = trek.slug === "torna-fort-trek" || Boolean(trek.isBookable) || trek.bookingStatus === "open";
+
   // Listen to open-trek-booking custom event from Sticky Bar
   useEffect(() => {
     const handleOpenBooking = () => {
@@ -102,6 +104,7 @@ export default function TrekDetailClientView({
               difficulty={trek.difficulty}
               region={trek.region}
               slug={trek.slug}
+              isBookable={isBookable}
             />
           </div>
 
@@ -349,9 +352,9 @@ export default function TrekDetailClientView({
                         window.dispatchEvent(new CustomEvent("open-trek-booking"));
                       }
                     }}
-                    className="w-full py-3 mb-3 bg-[#1b4332] hover:bg-[#143326] active:scale-98 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#1b4332]/15 flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-3.5 mb-3 bg-kokan-green hover:bg-emerald-800 active:scale-98 text-white rounded-2xl text-xs font-black transition-all shadow-md shadow-kokan-green/20 flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>Book Trek Online (Reserve Slots) 🥾</span>
+                    <span>{isBookable ? `Book Now — Pay ₹${(trek.price ?? 1499).toLocaleString("en-IN")} 🥾` : "Book Trek Online (Reserve Slots) 🥾"}</span>
                   </button>
 
                   <TrekEnquiryWidget
@@ -361,6 +364,7 @@ export default function TrekDetailClientView({
                     pricePerPerson={trek.price ?? 1499}
                     advanceAmount={trek.advanceAmount ?? 750}
                     whatsappGroupLink={trek.whatsappGroupLink}
+                    isBookable={isBookable}
                   />
                 </div>
               </div>
@@ -474,9 +478,11 @@ export default function TrekDetailClientView({
             {/* Expedition Dates & Priority Enquiry Section */}
             <div className="p-4 sm:p-5">
               <h3 className="text-xs font-black uppercase tracking-wider text-[#102416] mb-3 flex items-center justify-between">
-                <span>Expedition Status &amp; Enquiry</span>
-                <span className="text-[10px] text-amber-800 bg-amber-100 font-bold px-2 py-0.5 rounded-full">
-                  Batch Schedule
+                <span>{isBookable ? "Online Slot Reservation" : "Expedition Status & Enquiry"}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  isBookable ? "text-emerald-800 bg-emerald-100" : "text-amber-800 bg-amber-100"
+                }`}>
+                  {isBookable ? "🟢 Bookings Open" : "Batch Schedule"}
                 </span>
               </h3>
               
@@ -487,9 +493,9 @@ export default function TrekDetailClientView({
                     window.dispatchEvent(new CustomEvent("open-trek-booking"));
                   }
                 }}
-                className="w-full py-3 mb-3 bg-[#1b4332] hover:bg-[#143326] active:scale-98 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#1b4332]/15 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 mb-3 bg-kokan-green hover:bg-emerald-800 active:scale-98 text-white rounded-2xl text-xs font-black transition-all shadow-md shadow-kokan-green/20 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Book Trek Online (Reserve Slots) 🥾</span>
+                <span>{isBookable ? `Book Now — Pay ₹${(trek.price ?? 1499).toLocaleString("en-IN")} 🥾` : "Book Trek Online (Reserve Slots) 🥾"}</span>
               </button>
 
               <TrekEnquiryWidget
@@ -499,6 +505,7 @@ export default function TrekDetailClientView({
                 pricePerPerson={trek.price ?? 1499}
                 advanceAmount={trek.advanceAmount ?? 750}
                 whatsappGroupLink={trek.whatsappGroupLink}
+                isBookable={isBookable}
               />
             </div>
           </div>
@@ -530,6 +537,7 @@ export default function TrekDetailClientView({
         scheduledDate={trek.scheduledDate}
         whatsappGroupLink={trek.whatsappGroupLink}
         trekName={trek.name}
+        isBookable={isBookable}
       />
 
       {/* ── Trek Booking Modal / Drawer ── */}
@@ -543,6 +551,7 @@ export default function TrekDetailClientView({
         whatsappGroupLink={trek.whatsappGroupLink}
         scheduledDate={trek.scheduledDate ?? undefined}
         hideStickyBar={true}
+        modalOnly={true}
       />
     </div>
   );
