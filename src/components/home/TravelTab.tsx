@@ -19,7 +19,7 @@ import { Trek } from "@/types/trek";
 import { Product } from "@/types/product";
 import { Listing } from "@/types/listing";
 import { useCart } from "@/context/CartContext";
-import PersonalizedTripPlanningBox from "./PersonalizedTripPlanningBox";
+import BusinessListingBanner from "./BusinessListingBanner";
 
 const TRAVEL_CATEGORIES = [
   { label: "All", emoji: "🗺️", value: "all" },
@@ -864,7 +864,7 @@ export default function TravelTab() {
             ) : null}
 
             {/* Personalized Concierge & Homestay Planning Hub (WhatsApp & Web App Direct Messages + Host Partner Ribbon) */}
-            <PersonalizedTripPlanningBox />
+            <BusinessListingBanner />
           </div>
         )}
 
