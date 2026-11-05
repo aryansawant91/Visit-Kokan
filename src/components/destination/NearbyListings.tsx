@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Star, ArrowRight } from "lucide-react";
+import DestinationStayEnquiryBox from "./DestinationStayEnquiryBox";
 
 interface Props {
   region: string;
   currentSlug: string;
+  destinationName?: string;
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -20,7 +22,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   other: "📍",
 };
 
-export default function NearbyListings({ region, currentSlug }: Props) {
+export default function NearbyListings({ region, currentSlug, destinationName }: Props) {
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,23 +49,19 @@ export default function NearbyListings({ region, currentSlug }: Props) {
     );
   }
 
+  // When no verified listings exist yet for this destination, show the direct "Arrange or Find Homestay" box!
   if (listings.length === 0) {
     return (
-      <div className="p-4 bg-white rounded-xl text-center border border-[#d6e2d4]">
-        <p className="text-[#647c69] text-xs">No listings found nearby yet</p>
-        <Link
-          href="/listings"
-          className="text-[#2D6A4F] text-xs font-bold hover:underline mt-1 inline-block"
-        >
-          Browse all listings →
-        </Link>
-      </div>
+      <DestinationStayEnquiryBox
+        destinationName={destinationName || region}
+        region={region}
+      />
     );
   }
 
   return (
-    <div className="space-y-2">
-      {/* Flipkart-Style Horizontal Cards Row (Similar to Screenshot 2) */}
+    <div className="space-y-3">
+      {/* Horizontal Cards Row */}
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-1 px-1">
         {listings.map((listing) => (
           <Link
@@ -71,7 +69,7 @@ export default function NearbyListings({ region, currentSlug }: Props) {
             href={`/listings/${listing.slug}`}
             className="w-[142px] bg-white rounded-xl border border-[#d6e2d4] overflow-hidden shrink-0 shadow-2xs hover:shadow-sm hover:border-[#2D6A4F]/50 transition-all flex flex-col group"
           >
-            {/* Image + Rating Tag (Just like Flipkart) */}
+            {/* Image + Rating Tag */}
             <div className="relative w-full h-[105px] bg-[#f0f4ef] overflow-hidden">
               {listing.images?.[0] ? (
                 <Image
@@ -86,7 +84,7 @@ export default function NearbyListings({ region, currentSlug }: Props) {
                 </div>
               )}
 
-              {/* Flipkart-style Rating Badge */}
+              {/* Rating Badge */}
               <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-[#1b4329]/90 backdrop-blur-xs text-white text-[10px] font-bold flex items-center gap-0.5 shadow-sm">
                 <span>{listing.rating ? listing.rating.toFixed(1) : "4.2"}</span>
                 <Star size={9} className="fill-current text-[#facc15]" />
@@ -123,14 +121,12 @@ export default function NearbyListings({ region, currentSlug }: Props) {
         ))}
       </div>
 
-      <div className="flex justify-end pt-0.5">
-        <Link
-          href={`/listings?region=${encodeURIComponent(region)}`}
-          className="text-xs font-bold text-[#2D6A4F] hover:underline flex items-center gap-1"
-        >
-          View all in {region} <ArrowRight size={12} />
-        </Link>
-      </div>
+      {/* Direct Arrange Homestay Option for this Destination */}
+      <DestinationStayEnquiryBox
+        destinationName={destinationName || region}
+        region={region}
+        variant="compact"
+      />
     </div>
   );
-}
+}

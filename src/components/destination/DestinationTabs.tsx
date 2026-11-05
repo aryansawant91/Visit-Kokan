@@ -754,7 +754,7 @@ export default function DestinationTabs({
             </h2>
             <span className="text-[10px] text-[#69846f]">Scroll →</span>
           </div>
-          <NearbyListings region={dest.region} currentSlug={dest.slug} />
+          <NearbyListings region={dest.region} currentSlug={dest.slug} destinationName={dest.name} />
         </div>
       </section>
     </div>
