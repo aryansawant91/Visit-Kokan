@@ -671,7 +671,7 @@ export default function AIChatWidget() {
                     ...prev,
                     {
                         role: "assistant",
-                        content: `⚠️ ${data.error}. Please tap send again to retry.`,
+                        content: "🌊 Kokan Mitra is taking a quick breather due to high demand. Please tap send again in a moment, or connect directly on WhatsApp (+91 84325 87706) for instant assistance!",
                     },
                 ]);
             } else {

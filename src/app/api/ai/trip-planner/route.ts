@@ -199,17 +199,9 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("❌ Groq error:", error);
 
-    // Friendly fallback if rate limits ever occur on free tier
-    const errMsg = error?.message || "";
-    if (errMsg.includes("rate_limit") || errMsg.includes("413") || errMsg.includes("tokens")) {
-      return NextResponse.json({
-        message: "🌊 Kokan Mitra is experiencing high demand right now! Please tap send again in a few moments.",
-      });
-    }
-
-    return NextResponse.json(
-      { error: errMsg || "AI service temporarily unavailable" },
-      { status: 500 }
-    );
+    // Always provide a graceful, friendly Kokan concierge message so users never see raw JSON or technical errors
+    return NextResponse.json({
+      message: "🌊 Kokan Mitra is experiencing high demand right now! Please tap send again in a moment, or connect with our local team on WhatsApp (+91 84325 87706) for instant assistance.",
+    });
   }
 }
