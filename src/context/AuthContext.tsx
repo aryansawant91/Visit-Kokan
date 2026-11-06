@@ -32,6 +32,9 @@ export interface UserProfile {
   businessAddress?: string
   gstNumber?: string
   vendorStatus?: 'pending' | 'approved' | 'rejected'
+  whatsapp?: string
+  district?: string
+  upiId?: string
 }
 
 export interface SignUpData {

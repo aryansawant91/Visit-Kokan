@@ -26,6 +26,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ id: doc.id, ...data });
     }
 
+    const vendorId = req.nextUrl.searchParams.get("vendorId");
+    if (vendorId) {
+      const snap = await db
+        .collection("products")
+        .where("vendorId", "==", vendorId)
+        .get();
+      const products = snap.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .sort((a: any, b: any) =>
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
+      return NextResponse.json(products);
+    }
+
     const snap = await db
       .collection("products")
       .where("approved", "==", true)

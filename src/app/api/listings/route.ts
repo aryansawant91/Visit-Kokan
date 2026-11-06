@@ -28,6 +28,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ id: doc.id, ...data });
     }
 
+    const vendorId = req.nextUrl.searchParams.get("vendorId");
+    if (vendorId) {
+      const snap = await db
+        .collection("listings")
+        .where("vendorId", "==", vendorId)
+        .get();
+      const listings = snap.docs
+        .map((doc: any) => ({ id: doc.id, ...doc.data() }))
+        .sort((a: any, b: any) =>
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
+      return NextResponse.json(listings);
+    }
+
     let query: any = db.collection("listings");
 
     if (all !== "true") {
