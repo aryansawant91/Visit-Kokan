@@ -345,18 +345,6 @@ export default function TrekDetailClientView({
 
                 {/* Form */}
                 <div className="p-4 sm:p-5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        window.dispatchEvent(new CustomEvent("open-trek-booking"));
-                      }
-                    }}
-                    className="w-full py-3.5 mb-3 bg-kokan-green hover:bg-emerald-800 active:scale-98 text-white rounded-2xl text-xs font-black transition-all shadow-md shadow-kokan-green/20 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <span>{isBookable ? `Book Now — Pay ₹${(trek.price ?? 1499).toLocaleString("en-IN")} 🥾` : "Book Trek Online (Reserve Slots) 🥾"}</span>
-                  </button>
-
                   <TrekEnquiryWidget
                     trekId={trek.id}
                     trekName={trek.name}
@@ -485,18 +473,6 @@ export default function TrekDetailClientView({
                   {isBookable ? "🟢 Bookings Open" : "Batch Schedule"}
                 </span>
               </h3>
-              
-              <button
-                type="button"
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    window.dispatchEvent(new CustomEvent("open-trek-booking"));
-                  }
-                }}
-                className="w-full py-3.5 mb-3 bg-kokan-green hover:bg-emerald-800 active:scale-98 text-white rounded-2xl text-xs font-black transition-all shadow-md shadow-kokan-green/20 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>{isBookable ? `Book Now — Pay ₹${(trek.price ?? 1499).toLocaleString("en-IN")} 🥾` : "Book Trek Online (Reserve Slots) 🥾"}</span>
-              </button>
 
               <TrekEnquiryWidget
                 trekId={trek.id}

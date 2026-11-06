@@ -34,7 +34,7 @@ export default function TrekStickyBar({
   };
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 bg-[#edf3eb]/95 backdrop-blur-md border-t border-[#d6e2d4] py-3.5 px-5">
+    <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[#edf3eb]/95 backdrop-blur-md border-t border-[#d6e2d4] py-3.5 px-5">
       <div className="max-w-md sm:max-w-lg mx-auto flex items-center justify-between gap-4">
         {/* Left: Price / Season Info */}
         <div className="flex flex-col">

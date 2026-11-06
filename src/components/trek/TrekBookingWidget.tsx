@@ -44,60 +44,64 @@ interface TrekBookingWidgetProps {
   modalOnly?: boolean;
 }
 
-// ── Trek Guidelines & Policy Cards ───────────────────────────────────────────
+// ── Trek Terms & Conditions (Official Platform Policies) ─────────────────────────
 
-const TREK_POLICY_CARDS = [
+const TREK_TERMS_AND_CONDITIONS = [
   {
+    num: "1",
     icon: "💰",
-    title: "Official Cancellation & Refund Policy",
-    badge: "100% Transparent",
-    badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-    points: [
-      "7+ Days Prior: 100% full refund or free slot reschedule.",
-      "3 to 6 Days Prior: 50% refund.",
-      "Within 48 Hours: Non-refundable (vehicle seats & village meals are pre-reserved).",
-    ],
-  },
-  {
-    icon: "🥾",
-    title: "Fitness & Mountain Pacing",
-    badge: "Easy to Moderate",
-    badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
-    points: [
-      "Basic stamina recommended (comfortable walking 4–5 km or climbing stairs).",
-      "Certified local Konkan trek leaders accompany the group at a steady, enjoyable pace.",
-      "Please disclose any asthma, allergies, or medical conditions in your booking form.",
-    ],
-  },
-  {
-    icon: "🛡️",
-    title: "Safety, First-Aid & Guided Route",
-    badge: "Certified Guides",
+    title: "Cancellation Policy",
+    badge: "Cancellation Policy",
     badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
-    points: [
-      "First-aid certified trek leaders equipped with emergency medical kits.",
-      "Wear sturdy shoes with deep lug grip (no flat sneakers, crocs, or heels).",
-      "Follow lead instructions on rock-cut steps, ridges, and ladder sections.",
-    ],
+    body: "Cancellations more than 30 days before the trek receive a 50% credit. Cancellations within 30 days, no-shows, or voluntary withdrawal are non-refundable.",
   },
   {
-    icon: "🌿",
-    title: "Fort Heritage & Eco-Trekking (Leave No Trace)",
-    badge: "Respect Our Forts",
+    num: "2",
+    icon: "🥾",
+    title: "Fitness & Medical Responsibility",
+    badge: "Fitness & Health",
+    badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
+    body: "You are responsible for ensuring you are physically and medically fit to participate. Any relevant medical condition, injury, or medication must be disclosed before the trek.",
+  },
+  {
+    num: "3",
+    icon: "🛡️",
+    title: "Personal Safety",
+    badge: "Safety",
     badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-    points: [
-      "Strictly zero littering, plastic disposal, alcohol, or smoking on historic forts.",
-      "All snack wrappers and plastic bottles must be carried back down to base village bins.",
-    ],
+    body: "You are responsible for your own safety and conduct. Follow trek leader instructions, stay with the group, and avoid reckless or unsafe behaviour.",
   },
   {
-    icon: "🌦️",
-    title: "Weather & Trail Prudence",
-    badge: "Safety First",
+    num: "4",
+    icon: "⚠️",
+    title: "Risk Acknowledgement",
+    badge: "Risk Waiver",
+    badgeColor: "bg-orange-100 text-orange-800 border-orange-200",
+    body: "Trekking involves serious risks, including falls, injury, illness, extreme weather, permanent disability, and, in rare cases, death. By participating, you knowingly and voluntarily accept these risks.",
+  },
+  {
+    num: "5",
+    icon: "🗺️",
+    title: "Route & Safety Decisions",
+    badge: "Route Decisions",
     badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
-    points: [
-      "In rare cases of heavy Sahyadri flash downpours or forest authority directives, routes may be safely adapted for group security.",
-    ],
+    body: "Routes, schedules, or activities may be changed or cancelled due to weather, safety concerns, government restrictions, or circumstances beyond our control.",
+  },
+  {
+    num: "6",
+    icon: "📋",
+    title: "Liability & Emergency Costs",
+    badge: "Liability",
+    badgeColor: "bg-rose-100 text-rose-800 border-rose-200",
+    body: "To the extent permitted by law, organizers are not liable for losses caused by inherent trekking risks, participant actions, or events beyond reasonable control. Rescue, evacuation, and medical expenses are the participant's responsibility.",
+  },
+  {
+    num: "7",
+    icon: "✍️",
+    title: "Participant Agreement",
+    badge: "Agreement",
+    badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    body: "By booking and participating, you confirm that you understand the risks, accept personal responsibility, agree to follow safety instructions, and accept these terms.",
   },
 ];
 
@@ -1016,7 +1020,7 @@ export default function TrekBookingWidget({
                     className="w-4 h-4 rounded border-emerald-300 text-kokan-green focus:ring-kokan-green cursor-pointer shrink-0 accent-[#2D6A4F]"
                   />
                   <label htmlFor="trek-agree-terms-checkbox" className="text-xs text-kokan-earth font-medium leading-tight cursor-pointer select-none">
-                    I agree to <span className="font-bold text-kokan-green">Trek Safety &amp; Cancellation Policy</span>
+                    I agree to the <span className="font-bold text-kokan-green">Terms &amp; Cancellation Policy</span>
                   </label>
                 </div>
                 <button
@@ -1058,7 +1062,7 @@ export default function TrekBookingWidget({
         </div>
       )}
 
-      {/* ── Trek Guidelines & Policy Modal ── */}
+      {/* ── Trek Terms & Conditions Modal ── */}
       {disclaimerModalOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200"
@@ -1075,8 +1079,8 @@ export default function TrekBookingWidget({
                   <Shield className="w-5 h-5 text-emerald-300" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm sm:text-base text-white">Trek Guidelines &amp; Policies</h3>
-                  <p className="text-[11px] text-white/70">Clear terms, verified guides &amp; transparent refunds</p>
+                  <h3 className="font-bold text-sm sm:text-base text-white">Terms &amp; Disclaimer</h3>
+                  <p className="text-[11px] text-white/70">Official platform terms, cancellation policy &amp; waiver</p>
                 </div>
               </div>
               <button
@@ -1089,53 +1093,27 @@ export default function TrekBookingWidget({
               </button>
             </div>
 
-            {/* Scrollable Policy Cards */}
+            {/* Scrollable Policy Cards (Exact Original Content) */}
             <div className="p-4 sm:p-5 overflow-y-auto space-y-3 bg-[#fbfbfa]">
-              {/* Quick Cancellation Banner */}
-              <div className="p-3.5 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-200/80 rounded-2xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-base">💳</span>
-                  <span className="text-xs font-bold text-kokan-green">Transparent Cancellation Schedule</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-white/90 p-2 rounded-xl border border-emerald-100 shadow-2xs">
-                    <div className="text-[10px] font-bold text-emerald-800">7+ Days Prior</div>
-                    <div className="text-xs font-black text-kokan-green">100% Refund</div>
-                    <div className="text-[9px] text-kokan-earth/60">or free reschedule</div>
-                  </div>
-                  <div className="bg-white/90 p-2 rounded-xl border border-amber-100 shadow-2xs">
-                    <div className="text-[10px] font-bold text-amber-800">3–6 Days Prior</div>
-                    <div className="text-xs font-black text-amber-700">50% Refund</div>
-                    <div className="text-[9px] text-kokan-earth/60">partial refund</div>
-                  </div>
-                  <div className="bg-white/90 p-2 rounded-xl border border-gray-100 shadow-2xs">
-                    <div className="text-[10px] font-bold text-gray-700">&lt; 48 Hours</div>
-                    <div className="text-xs font-black text-gray-600">No Refund</div>
-                    <div className="text-[9px] text-kokan-earth/60">reserved seats</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Policy Cards */}
-              {TREK_POLICY_CARDS.map((card, i) => (
+              {TREK_TERMS_AND_CONDITIONS.map((card, i) => (
                 <div
                   key={i}
-                  className="bg-white p-3.5 rounded-2xl border border-gray-200/70 shadow-2xs space-y-2 hover:border-emerald-200 transition-colors"
+                  className="bg-white p-3.5 sm:p-4 rounded-2xl border border-gray-200/70 shadow-2xs space-y-2 hover:border-emerald-200 transition-colors"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-base">{card.icon}</span>
-                      <h4 className="font-bold text-kokan-earth text-xs sm:text-[13px]">{card.title}</h4>
+                      <h4 className="font-bold text-kokan-earth text-xs sm:text-[13px]">
+                        {card.num}. {card.title}
+                      </h4>
                     </div>
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${card.badgeColor}`}>
                       {card.badge}
                     </span>
                   </div>
-                  <ul className="space-y-1.5 pl-6 text-[11px] sm:text-xs text-kokan-earth/75 leading-relaxed list-disc marker:text-emerald-600">
-                    {card.points.map((pt, pIdx) => (
-                      <li key={pIdx}>{pt}</li>
-                    ))}
-                  </ul>
+                  <p className="text-[11px] sm:text-xs text-kokan-earth/80 leading-relaxed pl-6">
+                    {card.body}
+                  </p>
                 </div>
               ))}
             </div>
@@ -1156,7 +1134,7 @@ export default function TrekBookingWidget({
               <div className="flex items-center justify-center gap-3 text-[10px] text-kokan-earth/50">
                 <span>🛡️ Verified Local Guides</span>
                 <span>•</span>
-                <span>🌿 Leave No Trace</span>
+                <span>📋 Official Platform Terms</span>
                 <span>•</span>
                 <span>🔒 100% Secure</span>
               </div>
