@@ -25,6 +25,20 @@ export interface Listing {
   phone?: string;
   website?: string;
   amenities?: string[];
+  // Extended MMT/Agoda-style host fields
+  stayType?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  maxGuests?: number;
+  weekendPrice?: number;
+  extraGuestPrice?: number;
+  mealsAvailable?: string[];
+  distanceToBeach?: string;
+  landmark?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  cancellationPolicy?: string;
+  houseRules?: string[];
   vendorId?: string;
   vendorName?: string;
   addedByAdmin?: boolean;

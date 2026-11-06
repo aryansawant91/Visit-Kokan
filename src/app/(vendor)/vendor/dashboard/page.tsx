@@ -304,11 +304,10 @@ export default function VendorDashboardPage() {
                     )}
                     <div className="absolute top-2.5 right-2.5">
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-xs ${
-                          isLive
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-xs ${isLive
                             ? "bg-emerald-950/90 text-emerald-300 border-emerald-500/30"
                             : "bg-amber-950/90 text-amber-300 border-amber-500/30"
-                        }`}
+                          }`}
                       >
                         {isLive ? "🟢 Live" : "🟡 In Review"}
                       </span>
