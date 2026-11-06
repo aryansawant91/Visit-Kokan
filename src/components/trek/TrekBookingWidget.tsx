@@ -318,8 +318,8 @@ export default function TrekBookingWidget({
 
   // ── Coupon handlers ───────────────────────────────────────────────────────
 
-  const applyCoupon = async () => {
-    const code = couponInput.trim().toUpperCase();
+  const applyCoupon = async (codeOverride?: string) => {
+    const code = (codeOverride ?? couponInput).trim().toUpperCase();
     if (!code) { setCouponError("Enter a coupon code"); return; }
     setCouponLoading(true);
     setCouponError("");
@@ -806,24 +806,42 @@ export default function TrekBookingWidget({
                 </div>
 
                 {appliedCoupon ? (
-                  <div className="flex items-center gap-2 p-2 bg-emerald-100/70 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-950">
-                    <Check className="w-4 h-4 text-kokan-green shrink-0" />
-                    <span>Coupon &ldquo;{appliedCoupon.code}&rdquo; applied! Saving ₹{couponDiscount.toLocaleString("en-IN")}</span>
+                  <div className="flex items-center justify-between p-2.5 bg-emerald-100/80 border border-emerald-300 rounded-xl text-xs font-bold text-emerald-950">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-kokan-green shrink-0" />
+                      <span>Coupon &ldquo;{appliedCoupon.code}&rdquo; applied! Saving ₹{couponDiscount.toLocaleString("en-IN")}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="text-xs text-red-600 font-bold hover:underline ml-2 cursor-pointer"
+                    >
+                      Remove
+                    </button>
                   </div>
                 ) : (
                   <>
                     {visibleCoupons.length > 0 && (
-                      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-                        {visibleCoupons.map((c) => (
-                          <button
-                            key={c.code}
-                            type="button"
-                            onClick={() => { setCouponInput(c.code); setCouponError(""); }}
-                            className="flex-shrink-0 px-2.5 py-1 bg-white border border-emerald-300 rounded-lg text-[11px] font-bold text-kokan-green hover:bg-emerald-50 transition-colors cursor-pointer"
-                          >
-                            {c.code} {c.discount ? `(₹${c.discount} off)` : ""}
-                          </button>
-                        ))}
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] font-bold text-kokan-earth/60 uppercase tracking-wider block">
+                          Available Coupons (Tap to Apply):
+                        </span>
+                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                          {visibleCoupons.map((c) => (
+                            <button
+                              key={c.code}
+                              type="button"
+                              onClick={() => applyCoupon(c.code)}
+                              className="flex-shrink-0 px-3 py-1.5 bg-white border border-emerald-400 rounded-xl text-xs font-bold text-kokan-green hover:bg-emerald-50 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 active:scale-95"
+                            >
+                              <span>🏷️</span>
+                              <span>{c.code}</span>
+                              <span className="text-[10px] text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded-full font-semibold">
+                                ₹{c.discount} off
+                              </span>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
                     <div className="flex gap-2">
@@ -836,7 +854,7 @@ export default function TrekBookingWidget({
                       />
                       <button
                         type="button"
-                        onClick={applyCoupon}
+                        onClick={() => applyCoupon()}
                         disabled={couponLoading}
                         className="px-4 py-2 bg-kokan-green text-white rounded-xl text-xs font-bold hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
                       >
@@ -949,28 +967,6 @@ export default function TrekBookingWidget({
                 )}
               </div>
 
-              {/* 6. TERMS & DISCLAIMER CHECKBOX (ALWAYS VISIBLE) */}
-              <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  id="trek-agree-terms-checkbox"
-                  checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                  className="w-4 h-4 mt-0.5 rounded border-amber-400 text-kokan-green focus:ring-kokan-green cursor-pointer shrink-0 accent-[#2D6A4F]"
-                />
-                <label htmlFor="trek-agree-terms-checkbox" className="text-xs text-kokan-earth/80 leading-relaxed cursor-pointer select-none">
-                  I agree to the{" "}
-                  <button
-                    type="button"
-                    onClick={() => setDisclaimerModalOpen(true)}
-                    className="font-bold text-kokan-green underline hover:text-emerald-800 cursor-pointer"
-                  >
-                    Trek Terms, Cancellation Policy &amp; Liability Waiver
-                  </button>
-                  .
-                </label>
-              </div>
-
               {/* Errors list */}
               {errors.length > 0 && (
                 <div className="bg-red-50 border border-red-200 rounded-2xl p-3 space-y-1">
@@ -983,19 +979,35 @@ export default function TrekBookingWidget({
               )}
             </div>
 
-            {/* Compact Sticky Footer */}
-            <div className="px-5 py-3.5 border-t border-gray-100 flex-shrink-0 bg-white shadow-lg space-y-2">
-              {!agreed && (
-                <p className="text-center text-[11px] text-amber-700 font-medium">
-                  Please tick the terms and conditions checkbox to proceed
-                </p>
-              )}
+            {/* Pinned Sticky Footer */}
+            <div className="px-5 py-3 border-t border-gray-100 flex-shrink-0 bg-white/98 backdrop-blur-md shadow-lg space-y-2.5">
+              {/* Pinned Terms & Disclaimer Checkbox */}
+              <div className="p-2.5 bg-amber-50/90 border border-amber-200/90 rounded-xl flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  id="trek-agree-terms-checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="w-4 h-4 mt-0.5 rounded border-amber-400 text-kokan-green focus:ring-kokan-green cursor-pointer shrink-0 accent-[#2D6A4F]"
+                />
+                <label htmlFor="trek-agree-terms-checkbox" className="text-[11px] text-kokan-earth/85 leading-tight cursor-pointer select-none">
+                  I agree to the{" "}
+                  <button
+                    type="button"
+                    onClick={() => setDisclaimerModalOpen(true)}
+                    className="font-bold text-kokan-green underline hover:text-emerald-800 cursor-pointer"
+                  >
+                    Trek Terms, Cancellation Policy &amp; Liability Waiver
+                  </button>
+                  .
+                </label>
+              </div>
 
               <button
                 type="button"
                 onClick={paymentMethod === "offline" ? handleOfflineBooking : handleBooking}
                 disabled={loading || !agreed}
-                className="w-full flex items-center justify-center gap-2 py-3.5 bg-kokan-green text-white rounded-full font-bold text-sm hover:bg-emerald-800 active:scale-98 transition-all disabled:opacity-50 shadow-md shadow-kokan-green/20 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-3.5 bg-kokan-green text-white rounded-full font-bold text-sm hover:bg-emerald-800 active:scale-98 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-kokan-green/20 cursor-pointer"
               >
                 {loading ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</>
@@ -1006,7 +1018,11 @@ export default function TrekBookingWidget({
                 )}
               </button>
 
-              <p className="text-center text-[10px] text-kokan-earth/40">🔒 100% Secure Payments with Razorpay</p>
+              <div className="flex items-center justify-center gap-2 text-[10px] text-kokan-earth/50">
+                <span>🔒 100% Secure Razorpay</span>
+                <span>•</span>
+                <span>⚡ Instant Batch Confirmation</span>
+              </div>
             </div>
           </div>
         </div>
