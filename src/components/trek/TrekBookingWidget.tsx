@@ -608,7 +608,7 @@ export default function TrekBookingWidget({
 
       {/* ── Booking drawer / modal ── */}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
+        <div className="fixed inset-0 z-[60] flex items-end lg:items-center justify-center">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => !loading && setOpen(false)}

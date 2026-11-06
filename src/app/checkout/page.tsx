@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   ShoppingBag, MapPin, CreditCard,
   Loader2, ArrowLeft, Gift, Wallet,
+  Tag, Check, X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -45,6 +46,67 @@ export default function CheckoutPage() {
   const [address, setAddress]   = useState<Address>(blank());
   const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
   const [giftSummaries, setGiftSummaries] = useState<Record<string, GiftSummary>>({});
+
+  // ── Coupons ───────────────────────────────────────────────────────────────
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount: number;
+    discountType: "flat" | "percent";
+    description?: string;
+  } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/coupons/product")
+      .then((r) => r.json())
+      .then((d) => setAvailableCoupons(d?.visible ?? []))
+      .catch(() => {});
+  }, []);
+
+  const handleApplyCoupon = async (codeToApply?: string) => {
+    const code = (codeToApply ?? couponCode).trim().toUpperCase();
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError("");
+    try {
+      const res = await fetch("/api/coupons/product/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, amount: totalPrice }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setAppliedCoupon({
+          code: data.code,
+          discount: data.discount,
+          discountType: data.discountType,
+          description: data.description,
+        });
+        setCouponCode(data.code);
+      } else {
+        setCouponError(data.error || "Invalid coupon code");
+      }
+    } catch {
+      setCouponError("Failed to validate coupon");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+  };
+
+  const couponDiscount = appliedCoupon
+    ? appliedCoupon.discountType === "percent"
+      ? Math.round((totalPrice * appliedCoupon.discount) / 100)
+      : Math.min(appliedCoupon.discount, totalPrice)
+    : 0;
 
   // ── All cart items must have COD available for COD option to show ─────────
   const codAvailable = items.length > 0 && items.every(
@@ -88,7 +150,7 @@ export default function CheckoutPage() {
   const giftTotal  = Object.values(giftSummaries).reduce(
     (sum, g) => sum + (g.isGift ? g.giftBoxPrice : 0), 0
   );
-  const grandTotal = totalPrice + giftTotal;
+  const grandTotal = Math.max(0, totalPrice - couponDiscount) + giftTotal;
 
   // ── Online payment ─────────────────────────────────────────────────────────
   const handleOnlinePayment = async () => {
@@ -99,6 +161,8 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount:    grandTotal,
+          couponCode: appliedCoupon?.code ?? null,
+          couponDiscount: couponDiscount,
           orderType: "product",
           userId:    user!.uid,
           userEmail: user!.email,
@@ -187,6 +251,8 @@ export default function CheckoutPage() {
           })),
           deliveryAddress: address,
           amount: grandTotal,
+          couponCode: appliedCoupon?.code ?? null,
+          couponDiscount: couponDiscount,
           giftTotal,
         }),
       });
@@ -365,11 +431,90 @@ export default function CheckoutPage() {
                 })}
               </div>
 
+              {/* Coupon Code Section */}
+              <div className="mt-4 pt-4 border-t border-kokan-sand/40">
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
+                    <div className="flex items-center gap-2">
+                      <Tag className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <div>
+                        <span className="font-bold tracking-wide">{appliedCoupon.code}</span> applied:
+                        <span className="font-semibold text-emerald-700 ml-1">
+                          {appliedCoupon.discountType === "percent"
+                            ? `${appliedCoupon.discount}% OFF`
+                            : `₹${appliedCoupon.discount} OFF`}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-red-600 hover:text-red-700 font-semibold text-xs ml-2 cursor-pointer flex items-center gap-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" /> Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          setCouponError("");
+                        }}
+                        placeholder="Coupon code (e.g. KOKAN10)"
+                        className="flex-1 px-3 py-1.5 text-xs rounded-xl border border-kokan-sand/50 bg-kokan-sand/10 focus:outline-none focus:border-kokan-green uppercase font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleApplyCoupon()}
+                        disabled={couponLoading || !couponCode.trim()}
+                        className="px-3 py-1.5 bg-kokan-green text-white text-xs font-semibold rounded-xl hover:bg-kokan-green/90 transition-colors disabled:opacity-50 cursor-pointer"
+                      >
+                        {couponLoading ? "Applying…" : "Apply"}
+                      </button>
+                    </div>
+
+                    {couponError && (
+                      <p className="text-[11px] text-red-600 font-medium">{couponError}</p>
+                    )}
+
+                    {availableCoupons.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        <span className="text-[11px] text-kokan-earth/50 self-center">Available:</span>
+                        {availableCoupons.map((c) => (
+                          <button
+                            key={c.code}
+                            type="button"
+                            onClick={() => handleApplyCoupon(c.code)}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-mono hover:bg-emerald-100 transition-colors cursor-pointer"
+                          >
+                            <Tag className="w-2.5 h-2.5" />
+                            {c.code}
+                            <span className="text-[10px] text-emerald-600">
+                              ({c.discountType === "percent" ? `${c.discount}%` : `₹${c.discount}`})
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="border-t border-kokan-sand/40 mt-4 pt-4 space-y-2">
                 <div className="flex justify-between text-sm text-kokan-earth/60">
                   <span>Subtotal</span>
                   <span>₹{totalPrice.toLocaleString("en-IN")}</span>
                 </div>
+                {appliedCoupon && couponDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-emerald-700 font-medium">
+                    <span>Coupon ({appliedCoupon.code})</span>
+                    <span>-₹{couponDiscount.toLocaleString("en-IN")}</span>
+                  </div>
+                )}
                 {giftTotal > 0 && (
                   <div className="flex justify-between text-sm text-pink-600">
                     <span>🎁 Gift packaging</span>
