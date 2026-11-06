@@ -39,6 +39,7 @@ import TideStatusCard from "@/components/travel/TideStatusCard";
 import { isSeaFort } from "@/lib/tides/konkanTides";
 import LanguageToggle from "@/components/ui/LanguageToggle";
 import { useMarathiReader } from "@/hooks/useMarathiReader";
+import ReviewList from "@/components/reviews/ReviewList";
 
 interface DestinationTabsProps {
   dest: any;
@@ -117,6 +118,7 @@ export default function DestinationTabs({
       ? [{ id: "section-advisory", label: "Advisory" }]
       : []),
     { id: "section-stays", label: "Stays & Nearby" },
+    { id: "section-reviews", label: "Reviews" },
   ];
 
   // Auto-scroll active tab into horizontal view so it never gets cut off
@@ -756,6 +758,15 @@ export default function DestinationTabs({
           </div>
           <NearbyListings region={dest.region} currentSlug={dest.slug} destinationName={dest.name} />
         </div>
+      </section>
+
+      {/* ── 7. REVIEWS & RATINGS SECTION ── */}
+      <section id="section-reviews" className="scroll-mt-20 space-y-3.5 pt-2">
+        <ReviewList
+          targetType="destination"
+          targetId={dest.slug}
+          targetName={dest.name}
+        />
       </section>
     </div>
   );

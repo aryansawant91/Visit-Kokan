@@ -19,6 +19,7 @@ import TrekStickyBar from "@/components/trek/TrekStickyBar";
 import TrekEnquiryWidget from "@/components/trek/TrekEnquiryWidget";
 import TrekBookingWidget from "@/components/trek/TrekBookingWidget";
 import DurgTrekGuide from "@/components/trek/DurgTrekGuide";
+import ReviewList from "@/components/reviews/ReviewList";
 
 interface Props {
   trek: Trek;
@@ -252,6 +253,15 @@ export default function TrekDetailClientView({
                 Nearby Stays &amp; Homestays in {trek.region}
               </h3>
               <NearbyListings region={trek.region} currentSlug={trek.slug} />
+            </div>
+
+            {/* Traveler Reviews & Ratings */}
+            <div className="pt-3">
+              <ReviewList
+                targetType="trek"
+                targetId={trek.slug}
+                targetName={`${trek.name} Expedition`}
+              />
             </div>
 
             {/* Mobile Dedicated Booking Section right after guide */}
