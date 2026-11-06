@@ -44,36 +44,60 @@ interface TrekBookingWidgetProps {
   modalOnly?: boolean;
 }
 
-// ── Disclaimer ────────────────────────────────────────────────────────────────
+// ── Trek Guidelines & Policy Cards ───────────────────────────────────────────
 
-const DISCLAIMER_SECTIONS = [
+const TREK_POLICY_CARDS = [
   {
-    title: "Cancellation Policy",
-    body: "Cancellations more than 30 days before the trek receive a 50% credit. Cancellations within 30 days, no-shows, or voluntary withdrawal are non-refundable.",
+    icon: "💰",
+    title: "Official Cancellation & Refund Policy",
+    badge: "100% Transparent",
+    badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    points: [
+      "7+ Days Prior: 100% full refund or free slot reschedule.",
+      "3 to 6 Days Prior: 50% refund.",
+      "Within 48 Hours: Non-refundable (vehicle seats & village meals are pre-reserved).",
+    ],
   },
   {
-    title: "Fitness & Medical Responsibility",
-    body: "You are responsible for ensuring you are physically and medically fit to participate. Any relevant medical condition, injury, or medication must be disclosed before the trek.",
+    icon: "🥾",
+    title: "Fitness & Mountain Pacing",
+    badge: "Easy to Moderate",
+    badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
+    points: [
+      "Basic stamina recommended (comfortable walking 4–5 km or climbing stairs).",
+      "Certified local Konkan trek leaders accompany the group at a steady, enjoyable pace.",
+      "Please disclose any asthma, allergies, or medical conditions in your booking form.",
+    ],
   },
   {
-    title: "Personal Safety",
-    body: "You are responsible for your own safety and conduct. Follow trek leader instructions, stay with the group, and avoid reckless or unsafe behaviour.",
+    icon: "🛡️",
+    title: "Safety, First-Aid & Guided Route",
+    badge: "Certified Guides",
+    badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
+    points: [
+      "First-aid certified trek leaders equipped with emergency medical kits.",
+      "Wear sturdy shoes with deep lug grip (no flat sneakers, crocs, or heels).",
+      "Follow lead instructions on rock-cut steps, ridges, and ladder sections.",
+    ],
   },
   {
-    title: "Risk Acknowledgement",
-    body: "Trekking involves serious risks, including falls, injury, illness, extreme weather, permanent disability, and, in rare cases, death. By participating, you knowingly and voluntarily accept these risks.",
+    icon: "🌿",
+    title: "Fort Heritage & Eco-Trekking (Leave No Trace)",
+    badge: "Respect Our Forts",
+    badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    points: [
+      "Strictly zero littering, plastic disposal, alcohol, or smoking on historic forts.",
+      "All snack wrappers and plastic bottles must be carried back down to base village bins.",
+    ],
   },
   {
-    title: "Route & Safety Decisions",
-    body: "Routes, schedules, or activities may be changed or cancelled due to weather, safety concerns, government restrictions, or circumstances beyond our control.",
-  },
-  {
-    title: "Liability & Emergency Costs",
-    body: "To the extent permitted by law, organizers are not liable for losses caused by inherent trekking risks, participant actions, or events beyond reasonable control. Rescue, evacuation, and medical expenses are the participant's responsibility.",
-  },
-  {
-    title: "Participant Agreement",
-    body: "By booking and participating, you confirm that you understand the risks, accept personal responsibility, agree to follow safety instructions, and accept these terms.",
+    icon: "🌦️",
+    title: "Weather & Trail Prudence",
+    badge: "Safety First",
+    badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
+    points: [
+      "In rare cases of heavy Sahyadri flash downpours or forest authority directives, routes may be safely adapted for group security.",
+    ],
   },
 ];
 
@@ -981,32 +1005,32 @@ export default function TrekBookingWidget({
 
             {/* Pinned Sticky Footer */}
             <div className="px-5 py-3 border-t border-gray-100 flex-shrink-0 bg-white/98 backdrop-blur-md shadow-lg space-y-2.5">
-              {/* Pinned Terms & Disclaimer Checkbox */}
-              <div className="p-2.5 bg-amber-50/90 border border-amber-200/90 rounded-xl flex items-start gap-2.5">
-                <input
-                  type="checkbox"
-                  id="trek-agree-terms-checkbox"
-                  checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                  className="w-4 h-4 mt-0.5 rounded border-amber-400 text-kokan-green focus:ring-kokan-green cursor-pointer shrink-0 accent-[#2D6A4F]"
-                />
-                <div className="text-[11px] text-kokan-earth/85 leading-tight select-none">
-                  <label htmlFor="trek-agree-terms-checkbox" className="cursor-pointer">
-                    I agree to the{" "}
+              {/* Pinned Terms & Guidelines Checkbox Card */}
+              <div className="p-3 bg-emerald-50/50 hover:bg-emerald-50/80 border border-emerald-200/80 rounded-2xl flex items-center justify-between gap-3 transition-colors shadow-2xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <input
+                    type="checkbox"
+                    id="trek-agree-terms-checkbox"
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    className="w-4 h-4 rounded border-emerald-300 text-kokan-green focus:ring-kokan-green cursor-pointer shrink-0 accent-[#2D6A4F]"
+                  />
+                  <label htmlFor="trek-agree-terms-checkbox" className="text-xs text-kokan-earth font-medium leading-tight cursor-pointer select-none">
+                    I agree to <span className="font-bold text-kokan-green">Trek Safety &amp; Cancellation Policy</span>
                   </label>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setDisclaimerModalOpen(true);
-                    }}
-                    className="font-bold text-kokan-green underline hover:text-emerald-800 cursor-pointer inline"
-                  >
-                    Trek Terms, Cancellation Policy &amp; Liability Waiver
-                  </button>
-                  .
                 </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDisclaimerModalOpen(true);
+                  }}
+                  className="text-[11px] font-bold text-kokan-green bg-white hover:bg-emerald-100/60 border border-emerald-300/80 px-2.5 py-1 rounded-full cursor-pointer shrink-0 transition-colors shadow-2xs flex items-center gap-1"
+                >
+                  <span>Read</span>
+                  <ChevronRight size={12} />
+                </button>
               </div>
 
               <button
@@ -1034,54 +1058,108 @@ export default function TrekBookingWidget({
         </div>
       )}
 
-      {/* ── Terms & Disclaimer Full Modal ── */}
+      {/* ── Trek Guidelines & Policy Modal ── */}
       {disclaimerModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setDisclaimerModalOpen(false)}
+        >
           <div
-            className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[85vh]"
+            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[88vh] animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-gradient-to-r from-[#122e1b] to-[#1e4a2d] text-white p-4.5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-amber-300" />
-                <h3 className="font-bold text-sm">Terms &amp; Disclaimer</h3>
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-emerald-950 via-[#184e38] to-[#123624] text-white p-4 sm:p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/15">
+                  <Shield className="w-5 h-5 text-emerald-300" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base text-white">Trek Guidelines &amp; Policies</h3>
+                  <p className="text-[11px] text-white/70">Clear terms, verified guides &amp; transparent refunds</p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setDisclaimerModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
+                aria-label="Close dialog"
               >
-                <X size={15} />
+                <X size={16} />
               </button>
             </div>
 
-            <div className="p-5 overflow-y-auto space-y-3.5 text-xs text-kokan-earth/80 leading-relaxed">
-              {DISCLAIMER_SECTIONS.map((s, i) => (
-                <div key={i} className="space-y-0.5">
-                  <h4 className="font-bold text-kokan-earth text-xs">{i + 1}. {s.title}</h4>
-                  <p className="text-gray-600 text-[11px] leading-relaxed">{s.body}</p>
+            {/* Scrollable Policy Cards */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-3 bg-[#fbfbfa]">
+              {/* Quick Cancellation Banner */}
+              <div className="p-3.5 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-200/80 rounded-2xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-base">💳</span>
+                  <span className="text-xs font-bold text-kokan-green">Transparent Cancellation Schedule</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-white/90 p-2 rounded-xl border border-emerald-100 shadow-2xs">
+                    <div className="text-[10px] font-bold text-emerald-800">7+ Days Prior</div>
+                    <div className="text-xs font-black text-kokan-green">100% Refund</div>
+                    <div className="text-[9px] text-kokan-earth/60">or free reschedule</div>
+                  </div>
+                  <div className="bg-white/90 p-2 rounded-xl border border-amber-100 shadow-2xs">
+                    <div className="text-[10px] font-bold text-amber-800">3–6 Days Prior</div>
+                    <div className="text-xs font-black text-amber-700">50% Refund</div>
+                    <div className="text-[9px] text-kokan-earth/60">partial refund</div>
+                  </div>
+                  <div className="bg-white/90 p-2 rounded-xl border border-gray-100 shadow-2xs">
+                    <div className="text-[10px] font-bold text-gray-700">&lt; 48 Hours</div>
+                    <div className="text-xs font-black text-gray-600">No Refund</div>
+                    <div className="text-[9px] text-kokan-earth/60">reserved seats</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Policy Cards */}
+              {TREK_POLICY_CARDS.map((card, i) => (
+                <div
+                  key={i}
+                  className="bg-white p-3.5 rounded-2xl border border-gray-200/70 shadow-2xs space-y-2 hover:border-emerald-200 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{card.icon}</span>
+                      <h4 className="font-bold text-kokan-earth text-xs sm:text-[13px]">{card.title}</h4>
+                    </div>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${card.badgeColor}`}>
+                      {card.badge}
+                    </span>
+                  </div>
+                  <ul className="space-y-1.5 pl-6 text-[11px] sm:text-xs text-kokan-earth/75 leading-relaxed list-disc marker:text-emerald-600">
+                    {card.points.map((pt, pIdx) => (
+                      <li key={pIdx}>{pt}</li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>
 
-            <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center gap-2">
+            {/* Modal Footer */}
+            <div className="p-3.5 sm:p-4 border-t border-gray-100 bg-white flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setAgreed(true);
                   setDisclaimerModalOpen(false);
                 }}
-                className="flex-1 py-2.5 rounded-full text-xs font-bold bg-kokan-green text-white hover:bg-emerald-800 transition-colors shadow-xs cursor-pointer text-center"
+                className="w-full py-3 rounded-full text-xs sm:text-sm font-bold bg-kokan-green text-white hover:bg-emerald-800 transition-all shadow-md shadow-kokan-green/20 cursor-pointer flex items-center justify-center gap-2 active:scale-98"
               >
-                I Understand &amp; Agree
+                <Check className="w-4 h-4" />
+                I Understand &amp; Agree — Continue Booking
               </button>
-              <button
-                type="button"
-                onClick={() => setDisclaimerModalOpen(false)}
-                className="px-4 py-2.5 rounded-full text-xs font-bold text-gray-500 hover:text-gray-700 cursor-pointer"
-              >
-                Close
-              </button>
+              <div className="flex items-center justify-center gap-3 text-[10px] text-kokan-earth/50">
+                <span>🛡️ Verified Local Guides</span>
+                <span>•</span>
+                <span>🌿 Leave No Trace</span>
+                <span>•</span>
+                <span>🔒 100% Secure</span>
+              </div>
             </div>
           </div>
         </div>
