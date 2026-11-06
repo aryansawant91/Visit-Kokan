@@ -373,9 +373,39 @@ export default function LoginPage() {
           <h1 className="font-playfair text-3xl font-bold text-kokan-earth mb-1">
             Welcome back
           </h1>
-          <p className="text-kokan-earth/50 text-sm mb-6">
+          <p className="text-kokan-earth/50 text-sm mb-5">
             Sign in to continue your journey
           </p>
+
+          {/* ── 1-CLICK GOOGLE SIGN IN (Fast & Recommended) ── */}
+          <button
+            onClick={handleGoogle}
+            disabled={googleLoading}
+            className="w-full flex items-center justify-center gap-3 border-2 border-kokan-sand/80
+              bg-white text-kokan-earth py-3 rounded-xl font-bold text-sm
+              hover:bg-kokan-sand/10 hover:border-kokan-green/40 transition-all disabled:opacity-60 shadow-xs mb-5"
+          >
+            {googleLoading ? (
+              <div className="w-4 h-4 border-2 border-kokan-earth/30 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <svg width="18" height="18" viewBox="0 0 18 18">
+                  <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                  <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                  <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+                  <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"/>
+                </svg>
+                Continue with Google
+              </>
+            )}
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex-1 h-px bg-kokan-sand/50" />
+            <span className="text-xs text-kokan-earth/40 font-medium">or sign in with email</span>
+            <div className="flex-1 h-px bg-kokan-sand/50" />
+          </div>
 
           {/* Tab switcher */}
           <div className="flex bg-kokan-sand/20 rounded-xl p-1 mb-6 gap-1">
@@ -402,7 +432,7 @@ export default function LoginPage() {
                   : "text-kokan-earth/50 hover:text-kokan-earth"
               }`}
             >
-              <Mail size={14} /> OTP
+              <Mail size={14} /> Email Code
             </button>
           </div>
 
@@ -505,7 +535,7 @@ export default function LoginPage() {
                   >
                     {loading
                       ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      : <><Mail size={15} /> Send OTP</>}
+                      : <><Mail size={15} /> Send Code</>}
                   </button>
                 </form>
               )}
@@ -555,7 +585,7 @@ export default function LoginPage() {
                         onClick={() => { setOtp(""); handleSendOTP() }}
                         className="text-kokan-green font-semibold hover:underline inline-flex items-center gap-1"
                       >
-                        <RefreshCw size={12} /> Resend OTP
+                        <RefreshCw size={12} /> Resend code
                       </button>
                     )}
                   </div>
@@ -564,41 +594,11 @@ export default function LoginPage() {
             </>
           )}
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-kokan-sand/50" />
-            <span className="text-xs text-kokan-earth/30 font-medium">or continue with</span>
-            <div className="flex-1 h-px bg-kokan-sand/50" />
-          </div>
-
-          {/* Google */}
-          <button
-            onClick={handleGoogle}
-            disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 border-2 border-kokan-sand
-              bg-white text-kokan-earth py-3 rounded-xl font-semibold text-sm
-              hover:bg-kokan-sand/10 hover:border-kokan-earth/30 transition-all disabled:opacity-60"
-          >
-            {googleLoading ? (
-              <div className="w-4 h-4 border-2 border-kokan-earth/30 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <svg width="18" height="18" viewBox="0 0 18 18">
-                  <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
-                  <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-                  <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
-                  <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"/>
-                </svg>
-                Continue with Google
-              </>
-            )}
-          </button>
-
           {/* Guest */}
           <Link
             href="/"
             className="flex items-center justify-center gap-2 w-full border border-kokan-sand/60
-              rounded-xl py-3 text-sm text-kokan-earth/50 hover:bg-kokan-sand/10 transition-colors mt-3"
+              rounded-xl py-3 text-sm text-kokan-earth/50 hover:bg-kokan-sand/10 transition-colors mt-6"
           >
             <Waves className="w-4 h-4" /> Continue as guest
           </Link>

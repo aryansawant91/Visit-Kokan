@@ -7,14 +7,26 @@ export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    // Simulate submission
-    await new Promise((r) => setTimeout(r, 1000));
-    setSubmitted(true);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send inquiry.");
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || "Failed to send message. Please try again or WhatsApp us.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,8 +46,8 @@ export default function ContactPage() {
             <h2 className="font-semibold text-kokan-earth">Get in Touch</h2>
             {[
               { icon: <Mail className="w-4 h-4 text-kokan-green" />, label: "Email", value: "hello@visitkokan.in" },
-              { icon: <Phone className="w-4 h-4 text-kokan-green" />, label: "Phone", value: "+91 98765 43210" },
-              { icon: <MapPin className="w-4 h-4 text-kokan-green" />, label: "Location", value: "Ratnagiri, Maharashtra" },
+              { icon: <Phone className="w-4 h-4 text-kokan-green" />, label: "Phone / WhatsApp", value: "+91 84325 87706" },
+              { icon: <MapPin className="w-4 h-4 text-kokan-green" />, label: "Location", value: "Ratnagiri & Sindhudurg, Maharashtra" },
             ].map((item) => (
               <div key={item.label} className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-kokan-green/10 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -47,6 +59,16 @@ export default function ContactPage() {
                 </div>
               </div>
             ))}
+
+            <a
+              href="https://wa.me/918432587706"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+            >
+              <MessageCircle size={16} />
+              <span>Chat with Concierge on WhatsApp</span>
+            </a>
           </div>
 
           {/* Social */}
@@ -96,6 +118,11 @@ export default function ContactPage() {
               <h2 className="font-semibold text-kokan-earth mb-5 flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-kokan-green" /> Send us a Message
               </h2>
+              {error && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-xs flex items-center gap-2">
+                  <span>⚠</span> {error}
+                </div>
+              )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
