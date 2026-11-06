@@ -71,9 +71,12 @@ export async function POST(req: NextRequest) {
       pathname
     );
 
+    const languageRule = "MANDATORY LANGUAGE DIRECTIVE: Always respond in the exact language of the user's prompt (English prompt → English reply, Marathi prompt → Marathi reply). If the user writes in English, reply strictly in English. If the user writes in Marathi, reply in Marathi.";
+
     let systemPrompt = "";
     if (isItinerary) {
       systemPrompt = [
+        languageRule,
         ITINERARY_JSON_PROMPT,
         durationRule,
         transportContext,
@@ -84,6 +87,7 @@ export async function POST(req: NextRequest) {
         .join("\n\n");
     } else {
       systemPrompt = [
+        languageRule,
         KOKAN_SYSTEM_PROMPT,
         websiteGrounding,
         transportContext,
