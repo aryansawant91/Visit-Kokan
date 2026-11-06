@@ -13,7 +13,13 @@ export default function VendorRegisterPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (profile?.role === "vendor") router.replace("/vendor/dashboard");
+    if (profile?.role === "vendor") {
+      if (profile.vendorStatus === "approved") {
+        router.replace("/vendor/dashboard");
+      } else {
+        router.replace("/vendor/pending");
+      }
+    }
     if (profile?.role === "admin") router.replace("/admin/dashboard");
   }, [profile, router]);
 
@@ -76,7 +82,7 @@ export default function VendorRegisterPage() {
               },
               {
                 title: "100% Verified Guests",
-                desc: "Safe, respectful families and trekking groups verified with OTP and identity confirmation.",
+                desc: "Safe, respectful families and trekking groups verified with Google and confirmed email verification.",
               },
               {
                 title: "Local Kokan Concierge Support",
@@ -103,10 +109,14 @@ export default function VendorRegisterPage() {
             </p>
             {profile?.role === "vendor" ? (
               <Link
-                href="/vendor/dashboard"
+                href={profile.vendorStatus === "approved" ? "/vendor/dashboard" : "/vendor/pending"}
                 className="flex items-center justify-center gap-2 w-full py-3.5 bg-kokan-green text-white rounded-full font-bold text-sm hover:bg-emerald-800 transition-all shadow-xs"
               >
-                Go to Vendor Dashboard <ArrowRight className="w-4 h-4" />
+                {profile.vendorStatus === "approved" ? (
+                  <>Go to Host Dashboard <ArrowRight className="w-4 h-4" /></>
+                ) : (
+                  <>View Application Status <ArrowRight className="w-4 h-4" /></>
+                )}
               </Link>
             ) : (
               <>
@@ -171,7 +181,7 @@ export default function VendorRegisterPage() {
               href="/register?tab=vendor"
               className="flex items-center justify-center gap-2 w-full py-3.5 bg-kokan-green text-white rounded-full font-bold text-sm hover:bg-emerald-800 transition-all shadow-xs active:scale-95 text-center"
             >
-              <span>Register with Email & Phone</span>
+              <span>Register as Host with Email</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
@@ -179,7 +189,7 @@ export default function VendorRegisterPage() {
               href="/login?redirect=/vendor/dashboard"
               className="flex items-center justify-center py-3 bg-white border border-kokan-sand/60 rounded-full text-xs sm:text-sm font-bold text-kokan-earth hover:bg-gray-50 transition-all text-center"
             >
-              Already Registered? Sign in to Host Dashboard
+              Already a Host? Sign in to Dashboard
             </Link>
           </div>
         )}

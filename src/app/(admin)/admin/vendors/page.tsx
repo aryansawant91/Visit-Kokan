@@ -1,17 +1,6 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  updateDoc,
-  serverTimestamp,
-  orderBy,
-} from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import { useAuth } from '@/context/AuthContext'
 import {
   CheckCircle,
@@ -86,13 +75,11 @@ export default function AdminVendorsPage() {
   const fetchVendors = useCallback(async () => {
     setLoadingData(true)
     try {
-      const q = query(
-        collection(db, 'users'),
-        where('role', '==', 'vendor'),
-        orderBy('createdAt', 'desc')
-      )
-      const snap = await getDocs(q)
-      setVendors(snap.docs.map((d) => ({ uid: d.id, ...d.data() } as VendorRecord)))
+      const res = await fetch('/api/vendors')
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        setVendors(data as VendorRecord[])
+      }
     } catch (err) {
       console.error('Failed to fetch vendors:', err)
     } finally {
@@ -105,19 +92,12 @@ export default function AdminVendorsPage() {
   const updateVendorStatus = async (uid: string, newStatus: VendorStatus) => {
     setActionUid(uid)
     try {
-      await updateDoc(doc(db, 'users', uid), {
-        vendorStatus: newStatus,
-        updatedAt: serverTimestamp(),
+      const res = await fetch('/api/vendors', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, status: newStatus }),
       })
-
-      // If approving, also update Firebase custom claim via existing API
-      if (newStatus === 'approved') {
-        await fetch('/api/users/set-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uid, role: 'vendor' }),
-        })
-      }
+      if (!res.ok) throw new Error('Failed to update status')
 
       setVendors((prev) =>
         prev.map((v) => (v.uid === uid ? { ...v, vendorStatus: newStatus } : v))
