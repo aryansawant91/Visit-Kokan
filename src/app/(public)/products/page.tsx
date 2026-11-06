@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Building2,
 } from "lucide-react";
 
 export default function ProductsPage() {
@@ -218,6 +219,16 @@ export default function ProductsPage() {
               </span>
             )}
           </button>
+
+          {/* Seller / Host CTA */}
+          <Link
+            href="/vendor/register"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold backdrop-blur-xs transition-all border border-white/20 shrink-0"
+            title="Sell your regional Kokan products on Visit Kokan"
+          >
+            <Building2 className="w-3.5 h-3.5 text-kokan-sand" />
+            <span>Sell Products</span>
+          </Link>
 
           {/* Cart Icon */}
           <div className="flex items-center gap-2 flex-shrink-0 [&_svg]:text-white [&_span]:bg-white [&_span]:text-kokan-green">

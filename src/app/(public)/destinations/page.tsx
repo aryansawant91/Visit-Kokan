@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Destination } from "@/types/destination";
 import { DESTINATION_CATEGORIES, DESTINATION_REGIONS } from "@/constants/destinationConstants";
-import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Star, ChevronRight, ChevronLeft } from "lucide-react";
+import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Star, ChevronRight, ChevronLeft, Building2 } from "lucide-react";
 
 function DestinationCard({
   destination,
@@ -250,6 +250,16 @@ export default function DestinationsPage() {
               </span>
             )}
           </button>
+
+          {/* Host CTA */}
+          <Link
+            href="/vendor/register"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold backdrop-blur-xs transition-all border border-white/20 shrink-0"
+            title="List your homestay or tours on Visit Kokan"
+          >
+            <Building2 className="w-3.5 h-3.5 text-kokan-sand" />
+            <span>List Your Stay</span>
+          </Link>
 
           {/* Cart Icon */}
           <div className="flex items-center gap-2 flex-shrink-0 [&_svg]:text-white [&_span]:bg-white [&_span]:text-kokan-green">

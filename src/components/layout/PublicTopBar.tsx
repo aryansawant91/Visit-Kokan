@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, User, ChevronDown, LogOut, LayoutDashboard, Search } from "lucide-react";
+import { ArrowLeft, User, ChevronDown, LogOut, LayoutDashboard, Search, Building2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import CartIcon from "@/components/cart/CartIcon";
 import { useState } from "react";
@@ -86,6 +86,26 @@ export default function PublicTopBar() {
           <div className="flex-1" />
         )}
 
+        {/* Host CTA */}
+        {role === "vendor" ? (
+          <Link
+            href="/vendor/dashboard"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold backdrop-blur-xs transition-all border border-white/20 shrink-0"
+          >
+            <LayoutDashboard className="w-3.5 h-3.5 text-kokan-sand" />
+            <span>Host Portal</span>
+          </Link>
+        ) : (
+          <Link
+            href="/vendor/register"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold backdrop-blur-xs transition-all border border-white/20 shrink-0"
+            title="List your homestay or business on Visit Kokan"
+          >
+            <Building2 className="w-3.5 h-3.5 text-kokan-sand" />
+            <span>List Your Stay</span>
+          </Link>
+        )}
+
         {/* Right: Cart + Profile */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <div className="[&_svg]:text-white [&_span]:bg-white [&_span]:text-kokan-green flex items-center">
@@ -122,6 +142,15 @@ export default function PublicTopBar() {
                   >
                     <LayoutDashboard className="w-4 h-4" /> Dashboard
                   </Link>
+                  {role !== "vendor" && (
+                    <Link
+                      href="/vendor/register"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-emerald-800 bg-emerald-50/80 hover:bg-emerald-100/80 transition-colors border-y border-emerald-100"
+                    >
+                      <Building2 className="w-3.5 h-3.5 text-emerald-600" /> List Your Stay / Host
+                    </Link>
+                  )}
                   <button
                     onClick={() => { logout(); setProfileOpen(false); }}
                     className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors"

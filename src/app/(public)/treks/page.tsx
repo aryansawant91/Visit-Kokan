@@ -8,7 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Trek } from "@/types/trek";
 import { TREK_CATEGORIES, TREK_DIFFICULTIES, TREK_REGIONS } from "@/constants/trekConstants";
-import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Clock, ChevronRight, ChevronLeft } from "lucide-react";
+import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Clock, ChevronRight, ChevronLeft, Building2 } from "lucide-react";
 
 const VALID_COUPONS = [
   { code: "TREK50",   discount: 50,  description: "₹50 off on any trek" },
@@ -289,6 +289,16 @@ function TreksPageInner() {
               </span>
             )}
           </button>
+
+          {/* Host CTA */}
+          <Link
+            href="/vendor/register"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold backdrop-blur-xs transition-all border border-white/20 shrink-0"
+            title="List your trek or tours on Visit Kokan"
+          >
+            <Building2 className="w-3.5 h-3.5 text-kokan-sand" />
+            <span>List Your Tours</span>
+          </Link>
 
           {/* Cart Icon */}
           <div className="flex items-center gap-2 flex-shrink-0 [&_svg]:text-white [&_span]:bg-white [&_span]:text-kokan-green">
