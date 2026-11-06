@@ -990,17 +990,23 @@ export default function TrekBookingWidget({
                   onChange={(e) => setAgreed(e.target.checked)}
                   className="w-4 h-4 mt-0.5 rounded border-amber-400 text-kokan-green focus:ring-kokan-green cursor-pointer shrink-0 accent-[#2D6A4F]"
                 />
-                <label htmlFor="trek-agree-terms-checkbox" className="text-[11px] text-kokan-earth/85 leading-tight cursor-pointer select-none">
-                  I agree to the{" "}
+                <div className="text-[11px] text-kokan-earth/85 leading-tight select-none">
+                  <label htmlFor="trek-agree-terms-checkbox" className="cursor-pointer">
+                    I agree to the{" "}
+                  </label>
                   <button
                     type="button"
-                    onClick={() => setDisclaimerModalOpen(true)}
-                    className="font-bold text-kokan-green underline hover:text-emerald-800 cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDisclaimerModalOpen(true);
+                    }}
+                    className="font-bold text-kokan-green underline hover:text-emerald-800 cursor-pointer inline"
                   >
                     Trek Terms, Cancellation Policy &amp; Liability Waiver
                   </button>
                   .
-                </label>
+                </div>
               </div>
 
               <button
@@ -1030,7 +1036,7 @@ export default function TrekBookingWidget({
 
       {/* ── Terms & Disclaimer Full Modal ── */}
       {disclaimerModalOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
           <div
             className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[85vh]"
             onClick={(e) => e.stopPropagation()}
