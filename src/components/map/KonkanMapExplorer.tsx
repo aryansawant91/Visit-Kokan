@@ -24,6 +24,44 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { KONKAN_MAP_SPOTS, KonkanMapSpot, MapSpotCategory, MapDistrict } from "@/data/konkanMapLocations";
 
+// Free, No-API-Key Tile Providers (Clean, zero watermarks, high availability)
+type MapStyleKey = "streets" | "terrain" | "satellite";
+
+interface MapStyleConfig {
+  label: string;
+  icon: string;
+  url: string;
+  attribution: string;
+  maxZoom: number;
+}
+
+const MAP_STYLES: Record<MapStyleKey, MapStyleConfig> = {
+  streets: {
+    label: "Map",
+    icon: "🗺️",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  },
+  terrain: {
+    label: "Terrain",
+    icon: "🌿",
+    url: "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, style by <a href="https://www.hotosm.org/" target="_blank" rel="noopener noreferrer">HOT</a>',
+    maxZoom: 19,
+  },
+  satellite: {
+    label: "Satellite",
+    icon: "🛰️",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution:
+      "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP",
+    maxZoom: 18,
+  },
+};
+
 // Helper component to programmatically pan/fly the map
 function MapController({
   center,
@@ -113,6 +151,7 @@ function createCustomIcon(category: MapSpotCategory, isSelected: boolean) {
 export default function KonkanMapExplorer() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
+  const [activeMapStyle, setActiveMapStyle] = useState<MapStyleKey>("streets");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedSpot, setSelectedSpot] = useState<KonkanMapSpot | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number] | null>([17.3, 73.4]);
@@ -241,6 +280,26 @@ export default function KonkanMapExplorer() {
         </div>
       </div>
 
+      {/* Map Layer Switcher (Streets / Terrain / Satellite) - 100% Free & No API Key */}
+      <div className="absolute top-24 sm:top-20 right-3 sm:right-6 z-[1000] flex items-center bg-white/95 backdrop-blur-md p-1 rounded-2xl shadow-xl border border-gray-200 text-xs">
+        {(["streets", "terrain", "satellite"] as const).map((style) => (
+          <button
+            key={style}
+            type="button"
+            onClick={() => setActiveMapStyle(style)}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+              activeMapStyle === style
+                ? "bg-emerald-700 text-white shadow-xs"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+            title={`Switch to ${MAP_STYLES[style].label} view`}
+          >
+            <span>{MAP_STYLES[style].icon}</span>
+            <span className="hidden sm:inline">{MAP_STYLES[style].label}</span>
+          </button>
+        ))}
+      </div>
+
       {/* ══════════════════════════════════════════════════════════════
           2. LEAFLET MAP CONTAINER
          ══════════════════════════════════════════════════════════════ */}
@@ -253,11 +312,12 @@ export default function KonkanMapExplorer() {
         >
           <MapController center={mapCenter} zoom={mapZoom} />
 
-          {/* CartoDB Voyager Tile Layer (Modern, crisp, luxury travel aesthetic) */}
+          {/* Clean Open-Source Tile Layer (Zero API Key, Zero Watermarks) */}
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            maxZoom={19}
+            key={activeMapStyle}
+            attribution={MAP_STYLES[activeMapStyle].attribution}
+            url={MAP_STYLES[activeMapStyle].url}
+            maxZoom={MAP_STYLES[activeMapStyle].maxZoom}
           />
 
           {/* Markers */}
@@ -434,3 +494,4 @@ export default function KonkanMapExplorer() {
     </div>
   );
 }
+
