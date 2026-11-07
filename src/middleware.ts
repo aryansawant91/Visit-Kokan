@@ -19,6 +19,7 @@ const PUBLIC_PATHS = [
   '/checkout',
   '/order-confirmation',
   '/trip-planner',
+  '/ferry',
   '/vendor/register',
 ]
 

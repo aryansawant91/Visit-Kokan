@@ -18,9 +18,12 @@ import {
   Pause,
   Play,
   Share2,
+  Printer,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import BookingPassModal from "@/components/booking/BookingPassModal";
 
 const CONCIERGE_PHONE = "+918432587706";
 const CONCIERGE_PHONE_DISPLAY = "+91 84325 87706";
@@ -33,6 +36,7 @@ export default function OrderConfirmationPage() {
   const [copiedId, setCopiedId] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(30);
   const [autoRedirectPaused, setAutoRedirectPaused] = useState(false);
+  const [passOpen, setPassOpen] = useState(false);
 
   useEffect(() => {
     fetch(`/api/orders?id=${id}`)
@@ -148,6 +152,40 @@ export default function OrderConfirmationPage() {
               )}
             </button>
           </div>
+        </div>
+
+        {/* ── Official Boarding Pass & PDF E-Ticket CTA ── */}
+        <div className="bg-gradient-to-r from-emerald-900 to-[#1b4332] text-white rounded-3xl p-5 shadow-lg border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 flex items-center justify-center shrink-0 shadow-inner">
+              <Download className="w-6 h-6 text-emerald-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-300">
+                  {order.orderType === "trek" ? "Official Trek E-Pass" : "Official Order Invoice"}
+                </span>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-200 px-2 py-0.5 rounded-full border border-emerald-400/20 font-bold">
+                  PDF &amp; Print
+                </span>
+              </div>
+              <p className="text-sm font-bold text-white mt-0.5">
+                {order.orderType === "trek" ? "Download Offline Boarding Ticket" : "Download Official Invoice"}
+              </p>
+              <p className="text-[11px] text-emerald-100/70">
+                Includes QR boarding code, pickups schedule &amp; guide contacts
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setPassOpen(true)}
+            className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-[#b8dc26] to-[#a3c61d] hover:brightness-105 active:scale-95 text-emerald-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          >
+            <Printer size={14} />
+            <span>View &amp; Save PDF Pass</span>
+          </button>
         </div>
 
         {/* ── WhatsApp Concierge & Instant Notification Card ── */}
@@ -354,6 +392,13 @@ export default function OrderConfirmationPage() {
             <Package className="w-4 h-4" /> View All Orders <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
+
+        {/* ── E-Ticket / PDF Boarding Pass Modal ── */}
+        <BookingPassModal
+          order={order}
+          isOpen={passOpen}
+          onClose={() => setPassOpen(false)}
+        />
       </div>
     </div>
   );
