@@ -27,3 +27,4 @@ export const metadata: Metadata = {
 export default function FerryPage() {
   return <FerryClientView />;
 }
+

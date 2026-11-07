@@ -5,6 +5,7 @@ const links = {
   Explore: [
     { label: 'Destinations', href: '/destinations' },
     { label: 'Treks', href: '/treks' },
+    { label: 'Interactive Map', href: '/map' },
     { label: 'Ferry & Ro-Ro', href: '/ferry' },
     { label: 'Listings', href: '/listings' },
     { label: 'Blogs', href: '/blogs' },
@@ -12,6 +13,7 @@ const links = {
   ],
   Plan: [
     { label: 'Trip Planner', href: '/trip-planner' },
+    { label: 'Explore on Map', href: '/map' },
     { label: 'Ferry Timetable', href: '/ferry' },
     { label: 'Search', href: '/search' },
     { label: 'Contact Us', href: '/contact' },

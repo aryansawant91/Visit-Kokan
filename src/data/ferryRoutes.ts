@@ -311,3 +311,4 @@ export const KONKAN_FERRY_ROUTES: FerryRoute[] = [
     operationalNotice: "Smooth continuous service throughout the year.",
   },
 ];
+

@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Destination } from "@/types/destination";
 import { DESTINATION_CATEGORIES, DESTINATION_REGIONS } from "@/constants/destinationConstants";
-import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Star, ChevronRight, ChevronLeft, Building2 } from "lucide-react";
+import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Star, ChevronRight, ChevronLeft, Building2, Map } from "lucide-react";
 
 function DestinationCard({
   destination,
@@ -251,7 +251,7 @@ export default function DestinationsPage() {
           {/* Filter button */}
           <button
             onClick={() => setShowFilterSheet(true)}
-            className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold bg-[#B7895A] hover:bg-[#a37546] text-white transition-all shadow-xs relative"
+            className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold bg-[#B7895A] hover:bg-[#a37546] text-white transition-all shadow-xs relative cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Filters</span>
@@ -261,6 +261,16 @@ export default function DestinationsPage() {
               </span>
             )}
           </button>
+
+          {/* Map View Toggle Button */}
+          <Link
+            href="/map"
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-full text-xs font-bold bg-white/20 hover:bg-white/30 text-white transition-all border border-white/25 cursor-pointer"
+            title="Explore Konkan on Interactive Map"
+          >
+            <Map className="w-3.5 h-3.5 text-[#b8dc26]" />
+            <span className="hidden sm:inline">Map</span>
+          </Link>
 
           {/* Host CTA */}
           <Link

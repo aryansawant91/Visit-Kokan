@@ -354,3 +354,4 @@ export default function BookingPassModal({ order, isOpen, onClose }: Props) {
     </div>
   );
 }
+
