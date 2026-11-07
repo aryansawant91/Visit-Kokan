@@ -35,6 +35,9 @@ import {
   AlertCircle,
   Eye,
   Loader2,
+  Star,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { app } from "@/lib/firebase";
@@ -157,6 +160,39 @@ export default function VendorNewListingPage() {
   const removeImage = (i: number) => {
     setImageFiles((prev) => prev.filter((_, idx) => idx !== i));
     setImagePreviews((prev) => prev.filter((_, idx) => idx !== i));
+  };
+
+  const makeCoverImage = (index: number) => {
+    if (index === 0) return;
+    setImageFiles((prev) => {
+      const copy = [...prev];
+      const [item] = copy.splice(index, 1);
+      return [item, ...copy];
+    });
+    setImagePreviews((prev) => {
+      const copy = [...prev];
+      const [item] = copy.splice(index, 1);
+      return [item, ...copy];
+    });
+  };
+
+  const moveImage = (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= imagePreviews.length) return;
+    setImageFiles((prev) => {
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[targetIndex];
+      copy[targetIndex] = temp;
+      return copy;
+    });
+    setImagePreviews((prev) => {
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[targetIndex];
+      copy[targetIndex] = temp;
+      return copy;
+    });
   };
 
   const validateStep = (step: number) => {
@@ -983,24 +1019,70 @@ export default function VendorNewListingPage() {
               {imagePreviews.map((src, i) => (
                 <div
                   key={i}
-                  className="relative h-28 rounded-2xl overflow-hidden border border-white/10 bg-black/40 group"
+                  className={`relative h-32 rounded-2xl overflow-hidden border bg-black/40 group transition-all ${
+                    i === 0 ? "border-[#2ecc71] ring-2 ring-[#2ecc71]/30 shadow-md" : "border-white/10"
+                  }`}
                 >
-                  <Image src={src} alt="Property preview" fill className="object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button
-                      type="button"
-                      onClick={() => removeImage(i)}
-                      className="p-1.5 rounded-full bg-red-600 text-white cursor-pointer hover:bg-red-700"
-                      title="Remove Photo"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                  {i === 0 && (
-                    <span className="absolute bottom-1.5 left-1.5 bg-[#2ecc71] text-black text-[9px] font-black px-1.5 py-0.5 rounded shadow-xs">
-                      Cover
+                  <Image src={src} alt={`Property preview ${i + 1}`} fill className="object-cover" />
+
+                  {/* Corner Badge */}
+                  {i === 0 ? (
+                    <span className="absolute top-2 left-2 z-10 bg-[#2ecc71] text-black text-[9px] font-black px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
+                      <Star size={10} className="fill-black" /> Primary Cover
+                    </span>
+                  ) : (
+                    <span className="absolute top-2 left-2 z-10 bg-black/60 text-white/80 text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs">
+                      #{i + 1}
                     </span>
                   )}
+
+                  {/* Hover Controls */}
+                  <div className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2 z-20">
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={() => removeImage(i)}
+                        className="p-1 rounded-full bg-red-600/90 text-white cursor-pointer hover:bg-red-700 transition-colors shadow-xs"
+                        title="Remove Photo"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+
+                    <div className="space-y-1">
+                      {i !== 0 && (
+                        <button
+                          type="button"
+                          onClick={() => makeCoverImage(i)}
+                          className="w-full py-1 px-1 bg-[#2ecc71] text-black text-[9px] font-black rounded hover:bg-[#27ae60] transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-xs"
+                        >
+                          <Star size={10} className="fill-black" />
+                          <span>Make Cover</span>
+                        </button>
+                      )}
+
+                      <div className="flex items-center justify-between gap-1">
+                        <button
+                          type="button"
+                          onClick={() => moveImage(i, -1)}
+                          disabled={i === 0}
+                          className="flex-1 py-1 bg-white/20 hover:bg-white/30 text-white text-[9px] font-bold rounded disabled:opacity-20 disabled:pointer-events-none flex items-center justify-center cursor-pointer"
+                          title="Move left"
+                        >
+                          <ArrowLeft size={10} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveImage(i, 1)}
+                          disabled={i === imagePreviews.length - 1}
+                          className="flex-1 py-1 bg-white/20 hover:bg-white/30 text-white text-[9px] font-bold rounded disabled:opacity-20 disabled:pointer-events-none flex items-center justify-center cursor-pointer"
+                          title="Move right"
+                        >
+                          <ArrowRight size={10} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
 

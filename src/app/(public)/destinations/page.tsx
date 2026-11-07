@@ -155,6 +155,17 @@ export default function DestinationsPage() {
     return matchSearch && matchCat && matchRegion;
   });
 
+  // Calculate live dynamic counts for categories and districts
+  const categoryCounts = destinations.reduce((acc, d) => {
+    if (d.category) acc[d.category] = (acc[d.category] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const regionCounts = destinations.reduce((acc, d) => {
+    if (d.region) acc[d.region] = (acc[d.region] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   const featured   = filtered.filter((d) => d.featured);
   const rest       = filtered.filter((d) => !d.featured);
   const hasFilters = selectedCategory !== "all" || selectedRegion !== "all" || !!search;
@@ -275,30 +286,79 @@ export default function DestinationsPage() {
                 setSelectedCategory("all");
                 setCurrentPage(1);
               }}
-              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                 selectedCategory === "all"
                   ? "bg-white text-kokan-green font-bold shadow-xs"
                   : "bg-white/15 text-white/90 hover:bg-white/25 border border-white/10"
               }`}
             >
-              All
+              <span>All</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${selectedCategory === "all" ? "bg-kokan-green/10 text-kokan-green" : "bg-white/20 text-white"}`}>
+                {destinations.length}
+              </span>
             </button>
-            {DESTINATION_CATEGORIES.map((c) => (
-              <button
-                key={c.value}
-                onClick={() => {
-                  setSelectedCategory(selectedCategory === c.value ? "all" : c.value);
-                  setCurrentPage(1);
-                }}
-                className={`flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                  selectedCategory === c.value
-                    ? "bg-white text-kokan-green font-bold shadow-xs"
-                    : "bg-white/15 text-white/90 hover:bg-white/25 border border-white/10"
-                }`}
-              >
-                {c.emoji} {c.label}
-              </button>
-            ))}
+            {DESTINATION_CATEGORIES.map((c) => {
+              const count = categoryCounts[c.value] || 0;
+              return (
+                <button
+                  key={c.value}
+                  onClick={() => {
+                    setSelectedCategory(selectedCategory === c.value ? "all" : c.value);
+                    setCurrentPage(1);
+                  }}
+                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    selectedCategory === c.value
+                      ? "bg-white text-kokan-green font-bold shadow-xs"
+                      : "bg-white/15 text-white/90 hover:bg-white/25 border border-white/10"
+                  }`}
+                >
+                  <span>{c.emoji} {c.label}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${selectedCategory === c.value ? "bg-kokan-green/10 text-kokan-green" : "bg-white/20 text-white"}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Quick District Selector Strip */}
+        <div className="border-t border-white/10 bg-black/25 backdrop-blur-xs">
+          <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center gap-2 overflow-x-auto scrollbar-hide text-xs">
+            <span className="text-[11px] font-bold text-white/60 shrink-0">District:</span>
+            <button
+              onClick={() => {
+                setSelectedRegion("all");
+                setCurrentPage(1);
+              }}
+              className={`px-2.5 py-0.5 rounded-lg text-[11px] font-semibold transition-all shrink-0 ${
+                selectedRegion === "all"
+                  ? "bg-amber-300 text-kokan-earth font-bold shadow-xs"
+                  : "text-white/80 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              All Regions ({destinations.length})
+            </button>
+            {DESTINATION_REGIONS.map((r) => {
+              const count = regionCounts[r] || 0;
+              return (
+                <button
+                  key={r}
+                  onClick={() => {
+                    setSelectedRegion(selectedRegion === r ? "all" : r);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-2.5 py-0.5 rounded-lg text-[11px] font-semibold transition-all shrink-0 flex items-center gap-1 ${
+                    selectedRegion === r
+                      ? "bg-amber-300 text-kokan-earth font-bold shadow-xs"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  <span>{r}</span>
+                  <span className="text-[10px] opacity-75">({count})</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -492,7 +552,7 @@ export default function DestinationsPage() {
                     }}
                     className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${selectedRegion === "all" ? "bg-kokan-earth text-white" : "bg-gray-100 text-gray-600"}`}
                   >
-                    All Regions
+                    All Regions ({destinations.length})
                   </button>
                   {DESTINATION_REGIONS.map((r) => (
                     <button
@@ -503,7 +563,7 @@ export default function DestinationsPage() {
                       }}
                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${selectedRegion === r ? "bg-kokan-earth text-white" : "bg-gray-100 text-gray-600"}`}
                     >
-                      {r}
+                      {r} ({regionCounts[r] || 0})
                     </button>
                   ))}
                 </div>

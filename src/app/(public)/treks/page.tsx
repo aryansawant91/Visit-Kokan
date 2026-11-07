@@ -208,6 +208,11 @@ function TreksPageInner() {
   const hasFilters  = selectedCategory !== "all" || selectedDifficulty !== "all" || selectedRegion !== "all" || !!search;
   const activeCount = [selectedCategory !== "all", selectedDifficulty !== "all", selectedRegion !== "all"].filter(Boolean).length;
 
+  const categoryCounts = treks.reduce((acc, t) => {
+    if (t.category) acc[t.category] = (acc[t.category] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   // When featured treks are displayed in the top carousel, show only remaining treks in the grid below to prevent double entries
   const itemsToPaginate = (!hasFilters && featured.length > 0) ? rest : filtered;
   const totalPages = Math.max(1, Math.ceil(itemsToPaginate.length / ITEMS_PER_PAGE));
@@ -314,30 +319,39 @@ function TreksPageInner() {
                 setSelectedCategory("all");
                 setCurrentPage(1);
               }}
-              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                 selectedCategory === "all"
                   ? "bg-white text-kokan-green font-bold shadow-xs"
                   : "bg-white/15 text-white/90 hover:bg-white/25 border border-white/10"
               }`}
             >
-              All
+              <span>All</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${selectedCategory === "all" ? "bg-kokan-green/10 text-kokan-green" : "bg-white/20 text-white"}`}>
+                {treks.length}
+              </span>
             </button>
-            {TREK_CATEGORIES.map((c) => (
-              <button
-                key={c.value}
-                onClick={() => {
-                  setSelectedCategory(selectedCategory === c.value ? "all" : c.value);
-                  setCurrentPage(1);
-                }}
-                className={`flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                  selectedCategory === c.value
-                    ? "bg-white text-kokan-green font-bold shadow-xs"
-                    : "bg-white/15 text-white/90 hover:bg-white/25 border border-white/10"
-                }`}
-              >
-                {c.emoji} {c.label}
-              </button>
-            ))}
+            {TREK_CATEGORIES.map((c) => {
+              const count = categoryCounts[c.value] || 0;
+              return (
+                <button
+                  key={c.value}
+                  onClick={() => {
+                    setSelectedCategory(selectedCategory === c.value ? "all" : c.value);
+                    setCurrentPage(1);
+                  }}
+                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    selectedCategory === c.value
+                      ? "bg-white text-kokan-green font-bold shadow-xs"
+                      : "bg-white/15 text-white/90 hover:bg-white/25 border border-white/10"
+                  }`}
+                >
+                  <span>{c.emoji} {c.label}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${selectedCategory === c.value ? "bg-kokan-green/10 text-kokan-green" : "bg-white/20 text-white"}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
