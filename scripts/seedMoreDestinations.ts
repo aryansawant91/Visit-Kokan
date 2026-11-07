@@ -244,7 +244,12 @@ const places: Seed[] = [
             "Korlai and Revdanda, on the coast between Alibaug and Murud, preserve the Portuguese chapter of the Konkan. Korlai Fort sits on a rocky headland with a lighthouse and wide sea views, and the village of Korlai is known for its unique Indo-Portuguese Creole language. Nearby Revdanda has its own Portuguese fort ruins and a quiet beach.",
         category: "fort",
         region: "Raigad",
-        images: IMG.fortA,
+        images: [
+            "https://upload.wikimedia.org/wikipedia/commons/5/50/Korlai4.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/6/69/Korlai_Fort.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/5/51/Revdanda_Fort_outer_walls_01.JPG",
+            "https://upload.wikimedia.org/wikipedia/commons/4/43/Revdanda_Fort_03.jpg",
+        ],
         highlights: ["Korlai Fort", "Korlai Lighthouse", "Portuguese Heritage", "Revdanda Fort Ruins", "Coastal Views"],
         bestSeason: "October to March",
         howToReach:
@@ -302,7 +307,12 @@ const places: Seed[] = [
             "Velas is a tiny coastal village in Mandangad taluka that has become well known for protecting nesting Olive Ridley sea turtles. Local villagers run an annual turtle festival, and visitors who time their trip right can watch hatchlings being released into the sea. Stays are mostly in simple village homestays.",
         category: "beach",
         region: "Ratnagiri",
-        images: IMG.beachA,
+        images: [
+            "https://upload.wikimedia.org/wikipedia/commons/4/4c/Olive_Ridley_Sea_Turtle_Hatchlings.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/e/e1/Hatchlings_of_Olive_Ridley.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/7/79/Kelshi_Village_-_panoramio.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/7/7d/Bankot_Fort.jpg",
+        ],
         highlights: ["Olive Ridley Turtle Festival", "Hatchling Releases (seasonal)", "Quiet Beach", "Village Homestays", "Konkani Home Food"],
         bestSeason: "November to March",
         howToReach:
@@ -438,7 +448,12 @@ const places: Seed[] = [
             "Vijaydurg Fort in Devgad taluka was one of the most important bases of the Maratha navy, strategically placed on the Waghotan creek and protected by sturdy sea walls. It was once nicknamed the Gibraltar of the East. The creek and surrounding villages are also known for dolphin-spotting boat trips.",
         category: "fort",
         region: "Sindhudurg",
-        images: IMG.fortA,
+        images: [
+            "https://upload.wikimedia.org/wikipedia/commons/d/d2/Vijaydurg_Fort.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/4/41/Vijaydurg_fort_walls.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/1/1f/Vijaydurg_Fort_Entrance.JPG",
+            "https://upload.wikimedia.org/wikipedia/commons/a/af/Vijaydurg_Fort_Bastion.jpg",
+        ],
         highlights: ["Vijaydurg Fort", "Waghotan Creek", "Maratha Naval Heritage", "Dolphin Spotting", "Creek Views"],
         bestSeason: "October to March",
         howToReach:
@@ -452,7 +467,12 @@ const places: Seed[] = [
             "Devgad is a coastal town in Sindhudurg famous across India for its Alphonso mangoes, which ripen on hillside orchards in the summer. The town also has an old sea fort and a clean beach, making it a rewarding stop for food lovers and history fans, particularly in mango season.",
         category: "fort",
         region: "Sindhudurg",
-        images: IMG.green,
+        images: [
+            "https://upload.wikimedia.org/wikipedia/commons/c/c9/Devgad_fort.JPG",
+            "https://upload.wikimedia.org/wikipedia/commons/9/9a/Deogad_Beach_in_Sindhudurg_district_%2CKonkan_region_Maharashtra%2C_India.JPG",
+            "https://upload.wikimedia.org/wikipedia/commons/5/55/Devgad_Beach_from_a_Hill.jpg",
+            "https://upload.wikimedia.org/wikipedia/commons/b/b8/Kunakeshwar.JPG",
+        ],
         highlights: ["Devgad Alphonso Mangoes", "Devgad Fort", "Devgad Beach", "Mango Orchards", "Seaside Views"],
         bestSeason: "October to May",
         howToReach:
