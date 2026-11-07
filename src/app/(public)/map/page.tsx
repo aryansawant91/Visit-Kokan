@@ -41,3 +41,4 @@ const KonkanMapExplorer = dynamic(
 export default function MapPage() {
   return <KonkanMapExplorer />;
 }
+

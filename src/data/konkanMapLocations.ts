@@ -875,3 +875,4 @@ export const KONKAN_MAP_SPOTS: KonkanMapSpot[] = [
     externalLink: "/ferry#jaigad-tavsal",
   },
 ];
+
