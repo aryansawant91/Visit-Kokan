@@ -13,6 +13,7 @@ const PUBLIC_PATHS = [
   '/blogs',
   '/treks',
   '/search',
+  '/cart',
   '/privacy',
   '/terms',
   '/checkout',

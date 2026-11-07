@@ -87,3 +87,4 @@ export default function RatingSummary({ stats, onWriteReview, title = "Traveler 
     </div>
   );
 }
+

@@ -33,3 +33,4 @@ export function useReviews(targetType: string, targetId: string) {
 
   return { reviews, stats, loading, error, refetch: fetchReviews };
 }
+

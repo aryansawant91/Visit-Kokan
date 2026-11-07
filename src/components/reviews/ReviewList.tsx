@@ -174,3 +174,4 @@ export default function ReviewList({ targetType, targetId, targetName }: Props) 
     </div>
   );
 }
+
