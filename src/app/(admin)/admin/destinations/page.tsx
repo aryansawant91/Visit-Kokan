@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Destination } from "@/types/destination";
 import { DESTINATION_CATEGORIES } from "@/constants/destinationConstants";
-import { Star, Trash2, MapPin, Clock } from "lucide-react";
+import { Star, Trash2, MapPin, Clock, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
 export default function AdminDestinationsPage() {
@@ -27,6 +27,17 @@ export default function AdminDestinationsPage() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, featured: !featured }),
+    });
+    await fetchDestinations();
+    setActionLoading(null);
+  };
+
+  const toggleApproved = async (id: string, approved: boolean) => {
+    setActionLoading(id + "-approved");
+    await fetch("/api/destinations", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, approved: !approved }),
     });
     await fetchDestinations();
     setActionLoading(null);
@@ -112,6 +123,11 @@ export default function AdminDestinationsPage() {
                           ⭐ Featured
                         </span>
                       )}
+                      {!dest.approved && (
+                        <span className="text-xs bg-red-50 text-red-500 border border-red-200 px-2 py-0.5 rounded-full flex-shrink-0 font-medium">
+                          🔒 Hidden
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-kokan-earth/50 mt-0.5 truncate">
                       {dest.description}
@@ -128,6 +144,18 @@ export default function AdminDestinationsPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => toggleApproved(dest.id, dest.approved)}
+                      disabled={actionLoading === dest.id + "-approved"}
+                      title={dest.approved ? "Hide from public" : "Make visible to public"}
+                      className={`p-2 rounded-xl border transition-colors disabled:opacity-50 ${
+                        dest.approved
+                          ? "border-green-200 bg-green-50 text-green-500"
+                          : "border-gray-200 hover:bg-green-50 hover:border-green-200 text-gray-400"
+                      }`}
+                    >
+                      {dest.approved ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </button>
                     <button
                       onClick={() => toggleFeatured(dest.id, dest.featured)}
                       disabled={actionLoading === dest.id}

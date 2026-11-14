@@ -42,9 +42,20 @@ export interface DestinationItem {
   slug: string;
   rating: number;
   category?: string;
+  featured?: boolean;
 }
 
 const FALLBACK_DESTINATIONS: DestinationItem[] = [
+  {
+    name: "Raigad Fort",
+    region: "Raigad",
+    tag: "Historic Fort",
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Maha_Darwaja_Raigad_fort.jpg",
+    slug: "raigad-fort",
+    rating: 4.9,
+    category: "fort",
+    featured: true,
+  },
   {
     name: "Tarkarli",
     region: "Sindhudurg",
@@ -228,6 +239,11 @@ function DestinationCard({ dest }: { dest: DestinationItem }) {
               <MapPin className="w-2.5 h-2.5 flex-shrink-0" /> {dest.region}
             </p>
           </div>
+          {dest.featured && (
+            <div className="absolute top-2 left-2 bg-amber-400 text-amber-950 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-xs">
+              ⭐ Featured
+            </div>
+          )}
           <div className="absolute top-2 right-2 bg-white/90 text-xs font-bold text-yellow-600 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
             <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
             {dest.rating}
@@ -257,6 +273,7 @@ function DestinationCardSkeleton() {
 function TrekCard({ trek }: { trek: Trek }) {
   const [imgErr, setImgErr] = useState(false);
   const hasImg = !imgErr && Boolean(trek.images?.[0]);
+  const isBookingOpen = trek.isBookable && trek.bookingStatus === "open";
   return (
     <Link href={`/treks/${trek.slug}`} className="flex-shrink-0 snap-start">
       <div className="w-48 sm:w-56 bg-white rounded-2xl overflow-hidden border border-kokan-sand/20 hover:shadow-md transition-all flex flex-col justify-between h-full">
@@ -277,9 +294,20 @@ function TrekCard({ trek }: { trek: Trek }) {
             </div>
           )}
           <div className="absolute top-2 left-2 flex items-center gap-1">
-            <span className="text-[10px] bg-amber-400 text-amber-950 font-black px-1.5 py-0.5 rounded-full shadow-xs">
-              ⏳ Soon
-            </span>
+            {trek.featured && (
+              <span className="text-[10px] bg-amber-400 text-amber-950 font-black px-1.5 py-0.5 rounded-full shadow-xs">
+                ⭐ Featured
+              </span>
+            )}
+            {isBookingOpen ? (
+              <span className="text-[10px] bg-emerald-500 text-white font-bold px-1.5 py-0.5 rounded-full shadow-xs">
+                🎟 Open
+              </span>
+            ) : (
+              <span className="text-[10px] bg-amber-400 text-amber-950 font-black px-1.5 py-0.5 rounded-full shadow-xs">
+                ⏳ Soon
+              </span>
+            )}
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                 difficultyColor[trek.difficulty] ?? "bg-gray-100 text-gray-600"
@@ -309,7 +337,7 @@ function TrekCard({ trek }: { trek: Trek }) {
               <span className="text-[11px] text-kokan-earth/40 font-normal"> / person</span>
             </span>
             <span className="text-xs font-bold text-kokan-green bg-kokan-green/10 px-2.5 py-1 rounded-md">
-              Enquire
+              {isBookingOpen ? "Book Now" : "Enquire"}
             </span>
           </div>
         </div>
@@ -569,7 +597,7 @@ export default function TravelTab() {
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           const mapped: DestinationItem[] = data.map((d: any) => ({
-            name: d.name?.replace(/\s+(Beach|Fort|Museum)$/i, "") || d.name,
+            name: d.category === "fort" ? d.name : (d.name?.replace(/\s+(Beach|Museum)$/i, "") || d.name),
             region: d.region || "Konkan",
             tag:
               d.category === "beach"
@@ -586,7 +614,13 @@ export default function TravelTab() {
             slug: d.slug,
             rating: d.rating ? Number(d.rating) : 4.8,
             category: d.category || "all",
+            featured: Boolean(d.featured),
           }));
+          mapped.sort((a, b) => {
+            if (a.featured && !b.featured) return -1;
+            if (!a.featured && b.featured) return 1;
+            return 0;
+          });
           setDestinations(mapped);
         }
         setDestinationsLoading(false);
@@ -606,6 +640,11 @@ export default function TravelTab() {
           if (!key || seen.has(key)) return false;
           seen.add(key);
           return true;
+        });
+        unique.sort((a: any, b: any) => {
+          if (a.featured && !b.featured) return -1;
+          if (!a.featured && b.featured) return 1;
+          return 0;
         });
         setTreks(unique.slice(0, 8));
         setTreksLoading(false);

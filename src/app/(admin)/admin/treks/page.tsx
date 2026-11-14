@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import {
   Plus, Pencil, Trash2, Star, StarOff,
-  X, Loader2, ChevronDown, ChevronUp, Check,Upload,
+  X, Loader2, ChevronDown, ChevronUp, Check, Upload,
+  Eye, EyeOff, BookOpen, BookX,
 } from "lucide-react";
 
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -39,6 +40,8 @@ interface Trek {
   images: string[];
   featured: boolean;
   approved: boolean;
+  isBookable?: boolean;
+  bookingStatus?: "open" | "coming_soon" | "full" | string;
   createdAt: string;
   whatsappGroupLink?: string;
   scheduledDate?: string | null;
@@ -110,6 +113,7 @@ export default function AdminTreksPage() {
   const [treks, setTreks]         = useState<Trek[]>([]);
   const [loading, setLoading]     = useState(true);
   const [saving, setSaving]       = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const [showForm, setShowForm]   = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -302,6 +306,35 @@ export default function AdminTreksPage() {
       body: JSON.stringify({ id: trek.id, featured: !trek.featured }),
     });
     fetchTreks();
+  };
+
+  // ── Toggle approved (publish/unpublish) ────────────────────────────────────
+  const toggleApproved = async (trek: Trek) => {
+    setActionLoading(trek.id + "-approved");
+    await fetch("/api/treks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: trek.id, approved: !trek.approved }),
+    });
+    await fetchTreks();
+    setActionLoading(null);
+  };
+
+  // ── Toggle booking open/closed ─────────────────────────────────────────────
+  const toggleBooking = async (trek: Trek) => {
+    const isOpen = trek.isBookable && trek.bookingStatus === "open";
+    setActionLoading(trek.id + "-booking");
+    await fetch("/api/treks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: trek.id,
+        isBookable: !isOpen,
+        bookingStatus: isOpen ? "coming_soon" : "open",
+      }),
+    });
+    await fetchTreks();
+    setActionLoading(null);
   };
 
   // ── Delete ─────────────────────────────────────────────────────────────────
@@ -746,7 +779,15 @@ export default function AdminTreksPage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-kokan-earth text-sm truncate">{trek.name}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="font-semibold text-kokan-earth text-sm truncate">{trek.name}</p>
+                    {!trek.approved && (
+                      <span className="text-[10px] bg-red-50 text-red-500 border border-red-200 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">🔒 Hidden</span>
+                    )}
+                    {trek.isBookable && trek.bookingStatus === "open" && (
+                      <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">🎟 Booking Open</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold capitalize ${diffColor[trek.difficulty] ?? "bg-gray-100 text-gray-600"}`}>
                       {trek.difficulty}
@@ -771,6 +812,34 @@ export default function AdminTreksPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
+                  {/* Publish toggle */}
+                  <button
+                    onClick={() => toggleApproved(trek)}
+                    disabled={actionLoading === trek.id + "-approved"}
+                    title={trek.approved ? "Hide from public" : "Publish to public"}
+                    className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
+                      trek.approved
+                        ? "text-green-500 bg-green-50 hover:bg-green-100"
+                        : "text-gray-300 hover:text-green-500 hover:bg-green-50"
+                    }`}
+                  >
+                    {trek.approved ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </button>
+                  {/* Booking toggle */}
+                  <button
+                    onClick={() => toggleBooking(trek)}
+                    disabled={actionLoading === trek.id + "-booking"}
+                    title={trek.isBookable && trek.bookingStatus === "open" ? "Close booking" : "Open for booking"}
+                    className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
+                      trek.isBookable && trek.bookingStatus === "open"
+                        ? "text-blue-500 bg-blue-50 hover:bg-blue-100"
+                        : "text-gray-300 hover:text-blue-500 hover:bg-blue-50"
+                    }`}
+                  >
+                    {trek.isBookable && trek.bookingStatus === "open"
+                      ? <BookOpen size={16} />
+                      : <BookX size={16} />}
+                  </button>
                   <button
                     onClick={() => toggleFeatured(trek)}
                     title={trek.featured ? "Remove from featured" : "Mark as featured"}

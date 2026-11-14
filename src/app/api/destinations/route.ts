@@ -27,9 +27,11 @@ export async function GET(req: NextRequest) {
     const snap = await query;
     const destinations = snap.docs
       .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .sort((a: any, b: any) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      .sort((a: any, b: any) => {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
 
     return NextResponse.json(destinations);
   } catch (err: any) {
@@ -61,12 +63,16 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { id, featured } = await req.json();
+    const body = await req.json();
+    const { id, featured, approved } = body;
 
-    await db.collection("destinations").doc(id).update({
-      featured,
+    const updateData: Record<string, unknown> = {
       updatedAt: new Date().toISOString(),
-    });
+    };
+    if (typeof featured !== "undefined") updateData.featured = featured;
+    if (typeof approved !== "undefined") updateData.approved = approved;
+
+    await db.collection("destinations").doc(id).update(updateData);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
