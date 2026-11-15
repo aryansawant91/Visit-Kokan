@@ -107,7 +107,7 @@ export default function TrekEnquiryWidget({
             </span>
           </div>
           <p className="text-xs text-emerald-900/90 leading-relaxed">
-            Slots are live for booking! Tap <strong>Book Now</strong> to reserve slots directly online with instant confirmation &amp; coupon support.
+            Slots are live for booking! Tap <strong>Book Now</strong> to reserve slots directly online with instant confirmation &amp; verified booking pass.
           </p>
         </div>
       ) : (

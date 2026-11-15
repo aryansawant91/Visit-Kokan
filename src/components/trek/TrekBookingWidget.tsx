@@ -246,20 +246,12 @@ export default function TrekBookingWidget({
   const [paymentMethod, setPaymentMethod] = useState<"online" | "offline">("online");
 
   // ── Coupon state ──────────────────────────────────────────────────────────
-  const [visibleCoupons, setVisibleCoupons] = useState<VisibleCoupon[]>([]);
   const [couponInput, setCouponInput]       = useState("");
   const [appliedCoupon, setAppliedCoupon]   = useState<{
     code: string; discount: number; description: string;
   } | null>(null);
   const [couponError, setCouponError]       = useState("");
   const [couponLoading, setCouponLoading]   = useState(false);
-
-  useEffect(() => {
-    fetch("/api/coupons/trek")
-      .then((r) => r.json())
-      .then((data) => setVisibleCoupons(data.visible ?? []))
-      .catch(() => {});
-  }, []);
 
   // ── Derived amounts ───────────────────────────────────────────────────────
   const subtotal       = persons.length * pricePerPerson;
@@ -849,35 +841,12 @@ export default function TrekBookingWidget({
                   </div>
                 ) : (
                   <>
-                    {visibleCoupons.length > 0 && (
-                      <div className="space-y-1.5">
-                        <span className="text-[10px] font-bold text-kokan-earth/60 uppercase tracking-wider block">
-                          Available Coupons (Tap to Apply):
-                        </span>
-                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                          {visibleCoupons.map((c) => (
-                            <button
-                              key={c.code}
-                              type="button"
-                              onClick={() => applyCoupon(c.code)}
-                              className="flex-shrink-0 px-3 py-1.5 bg-white border border-emerald-400 rounded-xl text-xs font-bold text-kokan-green hover:bg-emerald-50 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 active:scale-95"
-                            >
-                              <span>🏷️</span>
-                              <span>{c.code}</span>
-                              <span className="text-[10px] text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded-full font-semibold">
-                                ₹{c.discount} off
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                     <div className="flex gap-2">
                       <input
                         value={couponInput}
                         onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyCoupon())}
-                        placeholder="Enter coupon code (e.g. TREK100)"
+                        placeholder="Enter coupon code"
                         className="flex-1 px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-mono uppercase focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                       />
                       <button
