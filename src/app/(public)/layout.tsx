@@ -4,7 +4,7 @@ import PublicTopBar from "@/components/layout/PublicTopBar";
 import MobileNav from "@/components/layout/MobileNav";
 import Footer from "@/components/layout/Footer";
 import { usePathname } from "next/navigation";
-
+import { Analytics } from "@vercel/analytics/next";
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -29,6 +29,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <main className={!isFullBleedDetailPage ? "pb-16 md:pb-0" : ""}>{children}</main>
       {!isFullBleedDetailPage && <Footer />}
       {!isFullBleedDetailPage && <MobileNav />}
+         {/* Vercel Analytics */}
+    <Analytics />
     </>
   );
 }

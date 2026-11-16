@@ -21,6 +21,7 @@
     "@tiptap/react": "^3.26.0",
     "@tiptap/starter-kit": "^3.26.0",
     "@types/qrcode": "^1.5.6",
+    "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "firebase": "^10.12.2",
     "firebase-admin": "^12.7.0",
