@@ -243,7 +243,7 @@ export default function TrekBookingWidget({
     advanceAmount > 0 ? "half" : "full"
   );
 
-  const [paymentMethod, setPaymentMethod] = useState<"online" | "offline">("online");
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "offline">("offline");
 
   // ── Coupon state ──────────────────────────────────────────────────────────
   const [couponInput, setCouponInput]       = useState("");
@@ -572,7 +572,7 @@ export default function TrekBookingWidget({
             >
               <CreditCard className="w-4 h-4" /> Book Now
             </button>
-            <p className="text-center text-[11px] text-kokan-earth/30 mt-2">🔒 Secured by Razorpay</p>
+            <p className="text-center text-[11px] text-kokan-earth/50 mt-2">⚡ Instant Booking · Pay Cash at Trek</p>
           </div>
         </div>
       )}
@@ -868,7 +868,8 @@ export default function TrekBookingWidget({
                 <label className="block text-xs font-bold text-kokan-earth">
                   Payment Method
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div>
+                  {/* Online payment button commented out as requested (logic preserved in code):
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("online")}
@@ -880,21 +881,18 @@ export default function TrekBookingWidget({
                   >
                     <span>💳 Pay Online</span>
                   </button>
+                  */}
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("offline")}
-                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                      paymentMethod === "offline"
-                        ? "bg-kokan-green text-white border-kokan-green shadow-xs"
-                        : "bg-white text-kokan-earth/70 border-gray-200 hover:border-kokan-green/40"
-                    }`}
+                    className="w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-kokan-green text-white border-kokan-green shadow-xs"
                   >
-                    <span>💵 Pay Offline (Cash)</span>
+                    <span>💵 Pay Offline (Cash at Trek)</span>
                   </button>
                 </div>
                 {paymentMethod === "offline" && (
                   <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 leading-relaxed">
-                    Your slot will be reserved as <strong>pending</strong>. You pay ₹{totalAmount.toLocaleString("en-IN")} in cash to the trek leader on departure.
+                    Your slot will be reserved as <strong>confirmed</strong>. You pay ₹{totalAmount.toLocaleString("en-IN")} in cash to the trek leader on departure.
                   </p>
                 )}
               </div>
@@ -1017,14 +1015,17 @@ export default function TrekBookingWidget({
                 ) : paymentMethod === "offline" ? (
                   <>Confirm Booking — Pay ₹{totalAmount.toLocaleString("en-IN")} at Trek</>
                 ) : (
+                  /* Online payment button commented out as requested:
                   <><CreditCard className="w-4 h-4" /> Pay ₹{amountToPayOnline.toLocaleString("en-IN")}{showSplitBreakdown ? " to Confirm" : ""}</>
+                  */
+                  <>Confirm Booking — Pay ₹{totalAmount.toLocaleString("en-IN")} at Trek</>
                 )}
               </button>
 
               <div className="flex items-center justify-center gap-2 text-[10px] text-kokan-earth/50">
-                <span>🔒 100% Secure Razorpay</span>
-                <span>•</span>
                 <span>⚡ Instant Batch Confirmation</span>
+                <span>•</span>
+                <span>💵 Pay Cash on Departure</span>
               </div>
             </div>
           </div>
