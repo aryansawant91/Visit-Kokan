@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb as db } from "@/lib/firebaseAdmin";
+import { isAuthorizedAdmin } from "@/lib/apiAuth";
 
 export async function GET(req: NextRequest) {
   const slug   = req.nextUrl.searchParams.get("slug");
@@ -83,8 +84,8 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const now  = new Date().toISOString();
-    const isAdmin = body.isAdmin === true;
-    const { isAdmin: _, ...rest } = body;
+    const isAdmin = isAuthorizedAdmin(req);
+    const { isAdmin: _, approved: __, status: ___, ...rest } = body;
 
     const listing = {
       ...rest,
@@ -107,8 +108,14 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const { id, featured } = await req.json();
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
     await db.collection("listings").doc(id).update({
       featured,
       updatedAt: new Date().toISOString(),
@@ -120,8 +127,14 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const { id } = await req.json();
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
     await db.collection("listings").doc(id).delete();
     return NextResponse.json({ success: true });
   } catch (err: any) {

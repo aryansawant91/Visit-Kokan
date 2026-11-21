@@ -5,13 +5,14 @@ export async function POST(req: NextRequest) {
   try {
     const { mobile } = await req.json();
 
-    if (!mobile) {
-      return NextResponse.json({ error: "Mobile required" }, { status: 400 });
+    const cleanMobile = typeof mobile === "string" ? mobile.trim().replace(/[^0-9+]/g, "") : "";
+    if (!cleanMobile || cleanMobile.length < 10) {
+      return NextResponse.json({ error: "Valid 10-digit mobile number required" }, { status: 400 });
     }
 
     const snap = await adminDb
       .collection("users")
-      .where("phone", "==", mobile)
+      .where("phone", "==", cleanMobile)
       .limit(1)
       .get();
 
@@ -23,6 +24,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ email: user.email });
   } catch (err: any) {
     console.error("mobile-lookup error:", err.message);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: "Lookup failed" }, { status: 500 });
   }
 }

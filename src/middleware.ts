@@ -29,6 +29,9 @@ const VENDOR_PREFIX = '/vendor'
 const USER_PROTECTED = ['/dashboard', '/bookings', '/wishlist', '/profile', '/orders']
 
 function isPublic(pathname: string): boolean {
+  if (pathname.startsWith('/api/admin/')) return false
+  if (pathname.startsWith('/api/expenses')) return false
+  if (pathname.startsWith('/api/vendors')) return false
   if (pathname.startsWith('/api/')) return true
   if (pathname.startsWith('/_next/')) return true
   if (pathname.startsWith('/icons/') || pathname.startsWith('/images/')) return true
@@ -47,11 +50,17 @@ function getSession(req: NextRequest): SessionPayload | null {
   const raw = req.cookies.get('vk_session')?.value
   if (!raw) return null
 
-  // Try raw JSON first (new cookies set without encodeURIComponent)
   try {
+    if (raw.includes('.')) {
+      const [b64] = raw.split('.')
+      if (b64) {
+        const json = atob(b64.replace(/-/g, '+').replace(/_/g, '/'))
+        return JSON.parse(json) as SessionPayload
+      }
+    }
+
     return JSON.parse(raw) as SessionPayload
   } catch {
-    // Fall back to decodeURIComponent for old cookies set with encodeURIComponent
     try {
       return JSON.parse(decodeURIComponent(raw)) as SessionPayload
     } catch {
@@ -68,6 +77,13 @@ export function middleware(req: NextRequest) {
   const session = getSession(req)
   const loginUrl = new URL('/login', req.url)
   loginUrl.searchParams.set('redirect', pathname)
+
+  if (pathname.startsWith('/api/admin/') || pathname.startsWith('/api/expenses') || pathname.startsWith('/api/vendors')) {
+    if (session?.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized: Admin privileges required' }, { status: 403 })
+    }
+    return NextResponse.next()
+  }
 
   if (!session) return NextResponse.redirect(loginUrl)
 

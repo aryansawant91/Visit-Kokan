@@ -1,9 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
 
+function getSession(req: NextRequest): { uid?: string; role?: string } | null {
+  try {
+    const cookie = req.cookies.get("vk_session")?.value;
+    if (cookie) {
+      return JSON.parse(cookie);
+    }
+  } catch {}
+  return null;
+}
+
+function isValidUid(uid: unknown): uid is string {
+  return typeof uid === "string" && /^[a-zA-Z0-9_\-\.]{1,128}$/.test(uid);
+}
+
 export async function GET(req: NextRequest) {
   const uid = req.nextUrl.searchParams.get("uid");
-  if (!uid) return NextResponse.json([], { status: 400 });
+  if (!isValidUid(uid)) return NextResponse.json([], { status: 400 });
+
+  const session = getSession(req);
+  if (session?.uid && session.role !== "admin" && session.uid !== uid) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const snap = await adminDb
     .collection("users").doc(uid)
     .collection("addresses")
@@ -15,7 +35,12 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { uid, address } = await req.json();
-    if (!uid || !address) return NextResponse.json({ error: "Missing data" }, { status: 400 });
+    if (!isValidUid(uid) || !address) return NextResponse.json({ error: "Missing data" }, { status: 400 });
+
+    const session = getSession(req);
+    if (session?.uid && session.role !== "admin" && session.uid !== uid) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const ref  = adminDb.collection("users").doc(uid).collection("addresses");
     const snap = await ref.get();
@@ -36,7 +61,12 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const { uid, addressId, updates } = await req.json();
-    if (!uid || !addressId) return NextResponse.json({ error: "Missing data" }, { status: 400 });
+    if (!isValidUid(uid) || !addressId) return NextResponse.json({ error: "Missing data" }, { status: 400 });
+
+    const session = getSession(req);
+    if (session?.uid && session.role !== "admin" && session.uid !== uid) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const ref = adminDb.collection("users").doc(uid).collection("addresses");
 
@@ -58,6 +88,13 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const { uid, addressId } = await req.json();
+    if (!isValidUid(uid) || !addressId) return NextResponse.json({ error: "Missing data" }, { status: 400 });
+
+    const session = getSession(req);
+    if (session?.uid && session.role !== "admin" && session.uid !== uid) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     await adminDb.collection("users").doc(uid).collection("addresses").doc(addressId).delete();
     return NextResponse.json({ success: true });
   } catch (err: any) {

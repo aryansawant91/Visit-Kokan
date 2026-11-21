@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { adminDb as db } from "@/lib/firebaseAdmin";
+import { isAuthorizedAdmin } from "@/lib/apiAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -387,7 +388,11 @@ Sindhudurg cashews are renowned across India for their natural buttery sweetness
 **Taste the fertile soil and tropical sunshine of Sindhudurg in every crunchy bite.** 🌰🌴✨`
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const snap = await db.collection("products").get();
     let updatedCount = 0;

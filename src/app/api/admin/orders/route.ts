@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb as db } from "@/lib/firebaseAdmin";
+import { isAuthorizedAdmin } from "@/lib/apiAuth";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const snap = await db
       .collection("orders")
@@ -17,8 +22,16 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const { id, status } = await req.json();
+    if (!id || !status) {
+      return NextResponse.json({ error: "Missing id or status" }, { status: 400 });
+    }
+
     await db.collection("orders").doc(id).update({
       status,
       updatedAt: new Date().toISOString(),
@@ -32,6 +45,10 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const { id } = await req.json();
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });

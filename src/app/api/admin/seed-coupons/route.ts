@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
+import { isAuthorizedAdmin } from "@/lib/apiAuth";
 
 const trekCoupons = [
   {
@@ -75,7 +76,11 @@ const productCoupons = [
   },
 ];
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const results: string[] = [];
 

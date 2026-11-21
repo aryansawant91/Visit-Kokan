@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb as db } from "@/lib/firebaseAdmin";
+import { isAuthorizedAdmin } from "@/lib/apiAuth";
 
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("slug");
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(blogs);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("🔴 BLOGS GET ERROR:", err); // ← added here
+    console.error("🔴 BLOGS GET ERROR:", err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -52,23 +53,27 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const now = new Date().toISOString();
+    const isAdmin = isAuthorizedAdmin(req);
 
     const wordCount = body.content?.split(" ").length ?? 0;
     const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
     const slug =
-      body.title
+      (body.title || "blog")
         .toLowerCase()
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "") +
       "-" +
       Date.now();
 
+    const { authorRole: _, approved: __, status: ___, ...rest } = body;
+
     const blog = {
-      ...body,
+      ...rest,
       slug,
-      approved: body.authorRole === "admin",
-      status: body.authorRole === "admin" ? "approved" : "pending",
+      authorRole: isAdmin ? "admin" : (body.authorRole || "user"),
+      approved: isAdmin,
+      status: isAdmin ? "approved" : "pending",
       readTime,
       views: 0,
       createdAt: now,

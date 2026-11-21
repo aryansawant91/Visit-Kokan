@@ -10,6 +10,24 @@ export async function POST(req: NextRequest) {
       couponCode, couponDiscount, totalAmount, persons,
     } = body;
 
+    const numAmount = Number(totalAmount);
+    if (!numAmount || isNaN(numAmount) || numAmount < 1) {
+      return NextResponse.json({ error: "Invalid order amount" }, { status: 400 });
+    }
+
+    if (orderType === "trek" && trekId) {
+      const trekDoc = await db.collection("treks").doc(trekId).get();
+      if (trekDoc.exists) {
+        const trekData = trekDoc.data();
+        const basePrice = Number(trekData?.price || 0);
+        const personCount = Array.isArray(persons) ? persons.length : 1;
+        const minAllowable = Math.max(50, Math.floor(basePrice * personCount * 0.4));
+        if (numAmount < minAllowable) {
+          return NextResponse.json({ error: "Amount tampering detected" }, { status: 400 });
+        }
+      }
+    }
+
     const cleanData = (obj: any) =>
       Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined && v !== null));
 
@@ -17,13 +35,15 @@ export async function POST(req: NextRequest) {
 
     const orderData: any = {
       orderType,
-      userId, userEmail, userName,
-      totalAmount,
+      userId: userId || null,
+      userEmail: userEmail || null,
+      userName: userName || null,
+      totalAmount: numAmount,
       status: "pending_verification",
       paymentVerified: false,
       paymentType: "offline",
       advancePaid: 0,
-      remainingCash: totalAmount,
+      remainingCash: numAmount,
       cashCollected: false,
       offlineVerified: false,
       createdAt: now,
@@ -34,7 +54,9 @@ export async function POST(req: NextRequest) {
       orderData.trekId = trekId;
       orderData.trekName = trekName;
       orderData.trekSlug = trekSlug;
-      orderData.whatsappGroupLink = whatsappGroupLink ?? null;
+      if (whatsappGroupLink && typeof whatsappGroupLink === "string" && whatsappGroupLink.startsWith("https://chat.whatsapp.com/")) {
+        orderData.whatsappGroupLink = whatsappGroupLink;
+      }
       orderData.persons = persons;
       orderData.couponCode = couponCode ?? null;
       orderData.couponDiscount = couponDiscount ?? 0;

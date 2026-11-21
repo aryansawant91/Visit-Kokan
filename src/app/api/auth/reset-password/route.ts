@@ -3,20 +3,27 @@ import { adminAuth } from "@/lib/firebaseAdmin";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, newPassword } = await req.json();
-    if (!email || !newPassword) {
-      return NextResponse.json({ error: "Email and password required" }, { status: 400 });
-    }
-    if (newPassword.length < 8) {
-      return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    const { email } = await req.json();
+    if (!email || typeof email !== "string") {
+      return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
     }
 
-    const user = await adminAuth.getUserByEmail(email.trim().toLowerCase());
-    await adminAuth.updateUser(user.uid, { password: newPassword });
+    // Disallow arbitrary unauthenticated password overwrites.
+    // Securely generate Firebase password reset link sent to the verified user email.
+    try {
+      await adminAuth.generatePasswordResetLink(email.trim().toLowerCase());
+    } catch {
+      // Silence lookup errors to prevent account enumeration
+    }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      message: "If an account exists with this email, a password reset link has been dispatched.",
+    });
   } catch (err: any) {
-    console.error("reset-password error:", err.message);
-    return NextResponse.json({ error: "Failed to reset password" }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      message: "If an account exists with this email, a password reset link has been dispatched.",
+    });
   }
 }

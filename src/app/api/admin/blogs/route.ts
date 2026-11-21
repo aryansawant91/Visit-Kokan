@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb as db } from "@/lib/firebaseAdmin";
+import { isAuthorizedAdmin } from "@/lib/apiAuth";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const snap = await db
       .collection("blogs")
@@ -16,8 +21,16 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const { id, action } = await req.json();
+    if (!id || !action) {
+      return NextResponse.json({ error: "Missing id or action" }, { status: 400 });
+    }
+
     const approved = action === "approve";
     const status = approved ? "approved" : "rejected";
     await db.collection("blogs").doc(id).update({
@@ -33,8 +46,14 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const { id } = await req.json();
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
     await db.collection("blogs").doc(id).delete();
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

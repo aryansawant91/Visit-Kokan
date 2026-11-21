@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb as db } from "@/lib/firebaseAdmin";
 
+function isAuthorizedAdmin(req: NextRequest): boolean {
+  try {
+    const cookie = req.cookies.get("vk_session")?.value;
+    if (cookie) {
+      const session = JSON.parse(cookie);
+      if (session?.role === "admin") return true;
+    }
+  } catch {}
+  return false;
+}
+
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("slug");
   const all  = req.nextUrl.searchParams.get("all");
@@ -41,6 +52,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const body = await req.json();
     const now  = new Date().toISOString();
@@ -48,7 +63,7 @@ export async function POST(req: NextRequest) {
     const trek = {
       ...body,
       approved: true,
-      featured: false,
+      featured: Boolean(body.featured),
       createdAt: now,
       updatedAt: now,
     };
@@ -61,8 +76,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-
 export async function PATCH(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const body = await req.json();
     const { id, ...updates } = body;
@@ -89,8 +107,15 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const { id } = await req.json();
+    if (!id) {
+      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    }
     await db.collection("treks").doc(id).delete();
     return NextResponse.json({ success: true });
   } catch (err: any) {

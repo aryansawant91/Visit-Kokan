@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb, adminAuth } from "@/lib/firebaseAdmin";
+import { isAuthorizedAdmin } from "@/lib/apiAuth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const snap = await adminDb.collection("users").where("role", "==", "vendor").get();
     const vendors = snap.docs.map((doc) => {
@@ -26,6 +31,10 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
+  }
+
   try {
     const { uid, status } = await req.json();
     if (!uid || !status) {
