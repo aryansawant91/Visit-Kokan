@@ -128,8 +128,12 @@ async function getDestination(slug: string) {
 
   // Fallback to internal API
   try {
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://visitkokan.in");
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/api/destinations?slug=${slug}`,
+      `${baseUrl}/api/destinations?slug=${slug}`,
       { cache: "no-store" }
     );
     if (!res.ok) return null;
@@ -139,8 +143,10 @@ async function getDestination(slug: string) {
   }
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const dest = await getDestination(params.slug);
+export async function generateMetadata({ params }: { params: any }): Promise<Metadata> {
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug;
+  const dest = await getDestination(slug);
   if (!dest) return { title: "Destination Not Found — Visit Kokan" };
   return {
     title: `${dest.name} — Visit Kokan`,
@@ -167,14 +173,17 @@ export default async function DestinationPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams?: { from?: string; fromPage?: string; page?: string };
+  params: any;
+  searchParams?: any;
 }) {
-  const dest = await getDestination(params.slug);
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug;
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const dest = await getDestination(slug);
   if (!dest) notFound();
 
-  const fromSlug = searchParams?.from;
-  const fromPage = searchParams?.fromPage || searchParams?.page;
+  const fromSlug = resolvedSearchParams?.from;
+  const fromPage = resolvedSearchParams?.fromPage || resolvedSearchParams?.page;
   const backHref = fromSlug
     ? `/destinations/${fromSlug}`
     : fromPage

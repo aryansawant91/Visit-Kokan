@@ -42,8 +42,10 @@ async function getListing(slug: string) {
   }
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const listing = await getListing(params.slug);
+export async function generateMetadata({ params }: { params: any }): Promise<Metadata> {
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug;
+  const listing = await getListing(slug);
   if (!listing) return { title: "Listing Not Found" };
   return {
     title: `${listing.name} — Visit Kokan`,
@@ -52,8 +54,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function ListingPage({ params }: { params: { slug: string } }) {
-  const listing = await getListing(params.slug);
+export default async function ListingPage({ params }: { params: any }) {
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug;
+  const listing = await getListing(slug);
   if (!listing) notFound();
 
   const category = LISTING_CATEGORIES.find((c) => c.value === listing.category);

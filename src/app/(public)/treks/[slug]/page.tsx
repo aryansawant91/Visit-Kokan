@@ -39,8 +39,12 @@ async function getTrek(slug: string): Promise<Trek | null> {
 
   // Fallback to internal API
   try {
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://visitkokan.in");
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/api/treks?slug=${slug}`,
+      `${baseUrl}/api/treks?slug=${slug}`,
       { cache: "no-store" }
     );
     if (!res.ok) return null;
@@ -50,8 +54,10 @@ async function getTrek(slug: string): Promise<Trek | null> {
   }
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const trek = await getTrek(params.slug);
+export async function generateMetadata({ params }: { params: any }): Promise<Metadata> {
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug;
+  const trek = await getTrek(slug);
   if (!trek) return { title: "Trek Not Found — Visit Kokan" };
   return {
     title: `${trek.name} Trek Expedition — Visit Kokan`,
@@ -66,13 +72,16 @@ export default async function TrekPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams?: { from?: string; fromPage?: string; page?: string };
+  params: any;
+  searchParams?: any;
 }) {
-  const trek = await getTrek(params.slug);
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug;
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const trek = await getTrek(slug);
   if (!trek) notFound();
 
-  const fromPage = searchParams?.fromPage || searchParams?.page;
+  const fromPage = resolvedSearchParams?.fromPage || resolvedSearchParams?.page;
   const backHref = fromPage ? `/treks?page=${fromPage}` : "/treks";
 
   const category = TREK_CATEGORIES.find((c) => c.value === trek.category);
