@@ -49,11 +49,15 @@ export interface Order {
   trekId?: string;
   trekName?: string;
   trekDate?: string;
+  batchId?: string;
+  batchName?: string;
+  pickupLocation?: string;
+  userPhone?: string;
   persons?: TrekPerson[];
   trekSlug?: string;
   whatsappGroupLink?: string | null;
 
-  paymentType?: "full" | "advance";
+  paymentType?: "full" | "advance" | "offline";
   advancePaid?: number;
   remainingCash?: number;
   cashCollected?: boolean;

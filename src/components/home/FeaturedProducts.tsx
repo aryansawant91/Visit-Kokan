@@ -61,6 +61,7 @@ function ProductCard({ product }: { product: Product }) {
               </span>
               <span className="text-xs text-kokan-earth/50 ml-1">{product.unit}</span>
             </div>
+            {/* Add to cart option turned off as requested (logic preserved in code):
             <button
               onClick={handleAddToCart}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
@@ -74,6 +75,10 @@ function ProductCard({ product }: { product: Product }) {
                 : <><ShoppingCart className="w-4 h-4" /> Add</>
               }
             </button>
+            */}
+            <span className="text-xs font-bold text-kokan-green group-hover:underline flex items-center gap-0.5">
+              View &rarr;
+            </span>
           </div>
         </div>
       </div>

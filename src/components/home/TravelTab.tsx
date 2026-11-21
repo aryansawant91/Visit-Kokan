@@ -448,29 +448,10 @@ function ProductCard({ product }: { product: Product }) {
                 Soon
               </span>
             ) : (
-              <button
-                type="button"
-                onClick={handleAdd}
-                className={`text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1 transition-all ${
-                  justAdded || inCart
-                    ? "bg-kokan-green text-white shadow-xs"
-                    : "text-kokan-green bg-kokan-green/10 hover:bg-kokan-green hover:text-white"
-                }`}
-              >
-                {justAdded ? (
-                  <>
-                    <Check className="w-3 h-3" /> Added
-                  </>
-                ) : inCart ? (
-                  <>
-                    <ShoppingCart className="w-3 h-3" /> In Cart
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-3 h-3" /> Add
-                  </>
-                )}
-              </button>
+              /* Add to cart option turned off as requested (logic preserved in code) */
+              <span className="text-xs font-bold text-kokan-green group-hover:underline flex items-center gap-0.5">
+                View &rarr;
+              </span>
             )}
           </div>
         </div>

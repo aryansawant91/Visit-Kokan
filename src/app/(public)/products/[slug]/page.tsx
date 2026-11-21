@@ -19,6 +19,7 @@ import {
   RotateCcw,
   Clock,
   ArrowRight,
+  MessageCircle,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { PRODUCT_CATEGORIES } from "@/constants/productCategories";
@@ -189,7 +190,7 @@ export default function ProductDetailPage() {
               {product.name}
             </h1>
 
-            {/* Price Row */}
+            {/* Price Row (commented out as requested - price display turned off):
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-2xl sm:text-3xl font-black text-[#2D6A4F]">
                 ₹{product.price.toLocaleString("en-IN")}
@@ -211,6 +212,7 @@ export default function ProductDetailPage() {
                 </>
               )}
             </div>
+            */}
 
             {/* Short Description / Tagline Quote */}
             {product.shortDescription && (
@@ -249,10 +251,10 @@ export default function ProductDetailPage() {
           />
         </div>
 
-        {/* 4. Sticky Bottom Action Bar (App Dual Action Bar - Always On Top) */}
+        {/* 4. Sticky Bottom Action Bar (Book Now & Cart buttons turned off as requested, WhatsApp Enquiry active) */}
+        {/*
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#d6e2d4] py-3 px-4 shadow-[0_-4px_25px_rgba(0,0,0,0.12)]">
           <div className="max-w-md sm:max-w-lg mx-auto flex items-center gap-3">
-            {/* Button 1: Add to Cart */}
             <button
               onClick={handleAddToCart}
               className={`flex-1 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
@@ -267,7 +269,6 @@ export default function ProductDetailPage() {
               </span>
             </button>
 
-            {/* Button 2: Buy Now */}
             <button
               onClick={handleBuyNow}
               className="flex-1 py-3 px-3 rounded-xl font-black text-xs sm:text-sm bg-[#b8dc26] hover:bg-[#aed422] text-[#142607] shadow-md shadow-[#b8dc26]/30 transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
@@ -277,6 +278,22 @@ export default function ProductDetailPage() {
               </span>
               <Sparkles size={14} className="text-[#142607]" />
             </button>
+          </div>
+        </div>
+        */}
+        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#d6e2d4] py-3 px-4 shadow-[0_-4px_25px_rgba(0,0,0,0.12)]">
+          <div className="max-w-md sm:max-w-lg mx-auto flex items-center gap-3">
+            <a
+              href={`https://wa.me/918432587706?text=${encodeURIComponent(
+                `Hello Visit Kokan! I would like to enquire about "${product.name}". Please share availability and ordering details.`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md shadow-[#25D366]/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+            >
+              <MessageCircle size={16} className="fill-white text-transparent shrink-0" />
+              <span>Enquire via WhatsApp</span>
+            </a>
           </div>
         </div>
       </div>

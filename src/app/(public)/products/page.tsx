@@ -230,10 +230,11 @@ export default function ProductsPage() {
             <span>Sell Products</span>
           </Link>
 
-          {/* Cart Icon */}
+          {/* Cart Icon (turned off while add to cart option is disabled):
           <div className="flex items-center gap-2 flex-shrink-0 [&_svg]:text-white [&_span]:bg-white [&_span]:text-kokan-green">
             <CartIcon />
           </div>
+          */}
         </div>
 
         {/* Category strip */}

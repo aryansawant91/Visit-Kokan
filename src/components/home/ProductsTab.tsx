@@ -121,17 +121,10 @@ function ProductMiniCard({ product }: { product: Product }) {
                 <Clock className="w-3 h-3" /> Soon
               </span>
             ) : (
-              <button
-                onClick={handleAdd}
-                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium transition-colors ${
-                  inCart
-                    ? "bg-kokan-green/10 text-kokan-green"
-                    : "bg-kokan-green text-white hover:bg-kokan-green/90"
-                }`}
-              >
-                <ShoppingCart className="w-3 h-3" />
-                {inCart ? "Added" : "Add"}
-              </button>
+              /* Add to cart option turned off as requested (logic preserved in code) */
+              <span className="text-xs font-bold text-kokan-green group-hover:underline flex items-center gap-0.5">
+                View &rarr;
+              </span>
             )}
           </div>
         </div>

@@ -130,6 +130,7 @@ export default function ProductCard({
                 ₹{product.price?.toLocaleString("en-IN")}
                 <span className="text-[11px] text-white/60 font-normal"> / {product.unit || "pack"}</span>
               </span>
+              {/* Add to cart option turned off as requested (logic preserved in code):
               <button
                 type="button"
                 onClick={handleAddToCart}
@@ -153,6 +154,10 @@ export default function ProductCard({
                   </>
                 )}
               </button>
+              */}
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm group-hover:bg-white group-hover:text-kokan-green transition-all">
+                View &rarr;
+              </span>
             </div>
           </div>
         </div>
@@ -252,29 +257,10 @@ export default function ProductCard({
                 Soon
               </span>
             ) : (
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-semibold transition-all ${
-                  justAdded || inCart
-                    ? "bg-kokan-green text-white shadow-xs"
-                    : "bg-kokan-green/10 text-kokan-green hover:bg-kokan-green hover:text-white"
-                }`}
-              >
-                {justAdded ? (
-                  <>
-                    <Check className="w-3 h-3" /> Added
-                  </>
-                ) : inCart ? (
-                  <>
-                    <ShoppingCart className="w-3 h-3" /> In Cart
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-3 h-3" /> Add
-                  </>
-                )}
-              </button>
+              /* Add to cart option turned off as requested (logic preserved in code) */
+              <span className="text-xs font-bold text-kokan-green/90 group-hover:text-kokan-green group-hover:underline flex items-center gap-0.5">
+                View Details &rarr;
+              </span>
             )}
           </div>
         </div>

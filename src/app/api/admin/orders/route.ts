@@ -27,16 +27,33 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
-    const { id, status } = await req.json();
-    if (!id || !status) {
-      return NextResponse.json({ error: "Missing id or status" }, { status: 400 });
+    const body = await req.json();
+    const { id, orderIds, status, batchName, batchId, trekDate, whatsappGroupLink } = body;
+    
+    const targetIds: string[] = Array.isArray(orderIds) && orderIds.length > 0 
+      ? orderIds 
+      : id ? [id] : [];
+
+    if (targetIds.length === 0) {
+      return NextResponse.json({ error: "Missing order id or orderIds" }, { status: 400 });
     }
 
-    await db.collection("orders").doc(id).update({
-      status,
+    const updates: Record<string, any> = {
       updatedAt: new Date().toISOString(),
-    });
-    return NextResponse.json({ success: true });
+    };
+    if (status !== undefined) updates.status = status;
+    if (batchName !== undefined) updates.batchName = batchName;
+    if (batchId !== undefined) updates.batchId = batchId;
+    if (trekDate !== undefined) updates.trekDate = trekDate;
+    if (whatsappGroupLink !== undefined) updates.whatsappGroupLink = whatsappGroupLink;
+
+    const batch = db.batch();
+    for (const orderId of targetIds) {
+      batch.update(db.collection("orders").doc(orderId), updates);
+    }
+    await batch.commit();
+
+    return NextResponse.json({ success: true, updatedCount: targetIds.length });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("🔴 ADMIN ORDERS PATCH ERROR:", err);

@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
   ShoppingCart,
+  MessageCircle,
 } from "lucide-react";
 import { Product } from "@/types/product";
 import ProductCouponWidget from "@/components/products/ProductCouponWidget";
@@ -80,7 +81,7 @@ export default function ProductTabs({
         {/* 1. OVERVIEW TAB */}
         {activeTab === "overview" && (
           <div className="space-y-5 animate-in fade-in duration-200">
-            {/* Quantity Stepper */}
+            {/* Quantity Stepper & Inline Buy/Cart buttons turned off as requested (logic preserved in code):
             <div className="flex items-center justify-between p-3.5 bg-[#f4f8f3] rounded-2xl border border-[#d6e4d5]">
               <div>
                 <p className="text-xs font-bold text-[#142607]">Select Quantity</p>
@@ -108,7 +109,6 @@ export default function ProductTabs({
               </div>
             </div>
 
-            {/* Inline Action Buttons: Add to Cart & Buy Now */}
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -135,6 +135,22 @@ export default function ProductTabs({
                 </span>
                 <Sparkles size={14} className="text-[#142607]" />
               </button>
+            </div>
+            */}
+
+            {/* Direct WhatsApp Enquiry Button */}
+            <div className="pt-0.5">
+              <a
+                href={`https://wa.me/918432587706?text=${encodeURIComponent(
+                  `Hello Visit Kokan! I would like to enquire about "${product.name}". Please share availability and ordering details.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 px-4 rounded-2xl font-bold text-xs sm:text-sm bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md shadow-[#25D366]/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+              >
+                <MessageCircle size={16} className="fill-white text-transparent shrink-0" />
+                <span>Enquire via WhatsApp for Availability & Orders</span>
+              </a>
             </div>
 
             {/* Description Paragraph */}
@@ -193,11 +209,12 @@ export default function ProductTabs({
               </div>
             </div>
 
-            {/* Product Coupons Widget (if available) */}
+            {/* Product Coupons Widget (turned off as requested):
             <ProductCouponWidget
               price={product.price * quantity}
               onApply={() => {}}
             />
+            */}
           </div>
         )}
 
