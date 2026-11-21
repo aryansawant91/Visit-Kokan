@@ -1,6 +1,5 @@
 import { Metadata } from "next";
-import dynamic from "next/dynamic";
-import { Compass, MapPin } from "lucide-react";
+import KonkanMap from "./KonkanMap";
 
 export const metadata: Metadata = {
   title: "Interactive Konkan Visual Route Map 2026 — Beaches, Forts & Ferries | Visit Kokan",
@@ -23,22 +22,7 @@ export const metadata: Metadata = {
   },
 };
 
-const KonkanMapExplorer = dynamic(
-  () => import("@/components/map/KonkanMapExplorer"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-[calc(100vh-64px)] min-h-[600px] bg-slate-900 flex flex-col items-center justify-center text-white space-y-3">
-        <div className="w-12 h-12 border-4 border-[#b8dc26] border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-bold text-emerald-200">
-          Loading Interactive Konkan Coastal Map...
-        </p>
-      </div>
-    ),
-  }
-);
-
 export default function MapPage() {
-  return <KonkanMapExplorer />;
+  return <KonkanMap />;
 }
 
