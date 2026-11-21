@@ -5,6 +5,7 @@ import MobileNav from "@/components/layout/MobileNav";
 import Footer from "@/components/layout/Footer";
 import { usePathname } from "next/navigation";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -31,6 +32,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       {!isFullBleedDetailPage && <MobileNav />}
          {/* Vercel Analytics */}
     <Analytics />
+      {/* speed Analytics */}
+    <SpeedInsights/>
     </>
   );
 }
