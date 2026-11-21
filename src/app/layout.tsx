@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { CartProvider } from '@/context/CartContext'
@@ -37,6 +38,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body>
@@ -46,6 +49,8 @@ export default function RootLayout({
           </CartProvider>
         </AuthProvider>
         <AIChatWidget />
+        {gaMeasurementId && <GoogleAnalytics gaId={gaMeasurementId} />}
+       
       </body>
     </html>
   )
