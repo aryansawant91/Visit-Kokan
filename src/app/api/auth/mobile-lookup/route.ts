@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
+import { getClientIp, checkIpRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const ipLimit = await checkIpRateLimit("lookup", clientIp, 10, 10 * 60 * 1000, 1000);
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many lookup attempts. Please wait." },
+        { status: 429 }
+      );
+    }
+
     const { mobile } = await req.json();
 
     const cleanMobile = typeof mobile === "string" ? mobile.trim().replace(/[^0-9+]/g, "") : "";

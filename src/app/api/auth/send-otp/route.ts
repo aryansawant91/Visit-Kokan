@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
+import { getClientIp, checkIpRateLimit } from "@/lib/rateLimit";
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
@@ -20,6 +21,22 @@ export async function POST(req: NextRequest) {
 
     if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
+    // 1. IP-Based Rate Limiting (Anti-Spam & Quota Protection)
+    // Checked FIRST before any database lookups or SMTP dispatches
+    const clientIp = getClientIp(req);
+    const ipLimit = await checkIpRateLimit("otp", clientIp, 5, 15 * 60 * 1000, 20_000);
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: ipLimit.errorReason || "Too many OTP requests from your network. Please wait." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil(ipLimit.resetInMs / 1000)),
+          },
+        }
+      );
+    }
+
     // Check if email exists for login
     if (purpose === "login") {
       const snap = await adminDb
@@ -32,7 +49,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Rate limit: max 3 OTPs per 15 minutes
+    // 2. Email-Based Rate Limiting: max 3 OTPs per 15 minutes
     const windowStart = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     const recentSnap = await adminDb
       .collection("otps")
@@ -42,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     if (recentSnap.size >= 3) {
       return NextResponse.json(
-        { error: "Too many OTP requests. Please wait 15 minutes." },
+        { error: "Too many OTP requests for this email. Please wait 15 minutes." },
         { status: 429 }
       );
     }
@@ -51,9 +68,10 @@ export async function POST(req: NextRequest) {
     const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
     const now    = new Date().toISOString();
 
-    // Save OTP to Firestore
+    // Save OTP to Firestore (including IP for security tracking)
     await adminDb.collection("otps").add({
       email:     email.trim().toLowerCase(),
+      ip:        clientIp,
       otp,
       purpose,
       expiresAt: expiry,

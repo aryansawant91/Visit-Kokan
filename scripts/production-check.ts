@@ -138,16 +138,17 @@ async function main() {
   // --------------------------------------------------------------------------
   // STAGE 3: Security & Access Control Integration Tests
   // --------------------------------------------------------------------------
-  const stage5Passed = await runStage("Integration Tests", "Security & Access Controls (31 Assertions)", async () => {
+  const stage5Passed = await runStage("Integration Tests", "Security & Access Controls (33 Assertions)", async () => {
     try {
       const output = execSync(
         "npx ts-node -r tsconfig-paths/register --project tsconfig.node.json scripts/test-integration.ts",
         { stdio: "pipe", cwd: process.cwd(), env: process.env }
       ).toString();
-      if (!output.includes("Tests Passed: 31 / 31")) {
-        throw new Error(`Integration tests did not complete 31/31:\n${output}`);
+      const match = output.match(/Tests Passed:\s*(\d+)\s*\/\s*(\d+)/);
+      if (!match || match[1] !== match[2] || Number(match[1]) < 31) {
+        throw new Error(`Integration tests did not complete successfully:\n${output}`);
       }
-      return "31/31 passed: Signed session cookies, RBAC, IDOR, price tampering blocked";
+      return `${match[1]}/${match[2]} passed: Signed cookies, RBAC, IDOR, price tampering, IP rate limiting`;
     } catch (err: any) {
       const output = err.stdout?.toString() || err.stderr?.toString() || err.message;
       throw new Error(`Integration test execution error:\n${output}`);
@@ -232,7 +233,7 @@ async function main() {
     console.log("================================================================================");
     console.log(" 🚀 VERDICT: ALL PRODUCTION CHECKS PASSED — READY FOR PRODUCTION DEPLOYMENT!   ");
     console.log("================================================================================");
-    console.log(` • Total Tests & Assertions Verified: 79`);
+    console.log(` • Total Tests & Assertions Verified: 81`);
     console.log(` • Security Invariants: SECURE (Zero high/critical vulnerabilities)`);
     console.log(` • TypeScript Typecheck: 0 errors`);
     console.log(` • Total Verification Duration: ${(totalTime / 1000).toFixed(1)} seconds`);

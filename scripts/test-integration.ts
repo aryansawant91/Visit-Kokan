@@ -24,6 +24,8 @@ if (fs.existsSync(envPath)) {
   }
 }
 
+process.env.IS_TEST = "true";
+
 // 2. Now import NextRequest and route handlers
 import { NextRequest } from "next/server";
 import {
@@ -45,6 +47,8 @@ import { POST as checkoutCreateOrder } from "@/app/api/checkout/create-order/rou
 import { POST as checkoutCreateOfflineOrder } from "@/app/api/checkout/create-offline-order/route";
 import { GET as addressesGet } from "@/app/api/addresses/route";
 import { POST as mobileLookupPost } from "@/app/api/auth/mobile-lookup/route";
+import { POST as sendOtpPost } from "@/app/api/auth/send-otp/route";
+import { checkIpRateLimit } from "@/lib/rateLimit";
 
 interface TestResult {
   name: string;
@@ -70,7 +74,7 @@ function record(name: string, category: string, expected: number | string, actua
   console.log(`${color} ${category} -> ${name} (Expected: ${expected}, Got: ${actual})`);
 }
 
-function makeReq(url: string, method: string, body?: any, cookies?: Record<string, string>): NextRequest {
+function makeReq(url: string, method: string, body?: any, cookies?: Record<string, string>, customHeaders?: Record<string, string>): NextRequest {
   const headers = new Headers();
   headers.set("content-type", "application/json");
 
@@ -79,6 +83,12 @@ function makeReq(url: string, method: string, body?: any, cookies?: Record<strin
       .map(([k, v]) => `${k}=${v}`)
       .join("; ");
     headers.set("cookie", cookieHeader);
+  }
+
+  if (customHeaders) {
+    for (const [k, v] of Object.entries(customHeaders)) {
+      headers.set(k, v);
+    }
   }
 
   const init: any = {
@@ -267,6 +277,26 @@ async function runTests() {
   const resMobileBadFormat = await mobileLookupPost(unauthReq("http://localhost/api/auth/mobile-lookup", "POST", { mobile: "123" }));
   record("Block Short Mobile in /api/auth/mobile-lookup", "Input Validation", 400, resMobileBadFormat.status, resMobileBadFormat.status === 400);
 
+  // 7. Rate Limiting Tests (IP-Based Anti-Spam)
+  console.log("\n\x1b[33m--- Testing Rate Limiting Protections ---\x1b[0m");
+
+  const burstIp = "198.51.100.99";
+  // 1st request initiates cooldown
+  const firstBurstCheck = await checkIpRateLimit("burst_test", burstIp, 5, 60_000, 20_000);
+  // Immediate 2nd request violates 20s rapid-fire cooldown
+  const secondBurstCheck = await checkIpRateLimit("burst_test", burstIp, 5, 60_000, 20_000);
+  record("Enforce Rapid Burst Cooldown between Requests", "Rate Limiting", "blocked", secondBurstCheck.allowed ? "allowed" : "blocked", !secondBurstCheck.allowed);
+
+  const cappedIp = "198.51.100.42";
+  // Pre-seed max 5 requests to simulate reaching the threshold
+  for (let i = 0; i < 5; i++) {
+    await checkIpRateLimit("otp", cappedIp, 5, 15 * 60 * 1000, 0);
+  }
+
+  // The 6th request hitting /api/auth/send-otp must be blocked immediately with HTTP 429
+  const resOtpBlocked = await sendOtpPost(makeReq("http://localhost/api/auth/send-otp", "POST", { email: "attacker@example.com", purpose: "signup" }, undefined, { "x-forwarded-for": cappedIp }));
+  record("Block /api/auth/send-otp when IP Rate Limit Exceeded", "Rate Limiting", 429, resOtpBlocked.status, resOtpBlocked.status === 429);
+
   // Summary
   console.log("\n\x1b[36m====================================================\x1b[0m");
   console.log("\x1b[36m               INTEGRATION TEST SUMMARY             \x1b[0m");
@@ -290,7 +320,7 @@ async function runTests() {
     console.log(`\x1b[31mTests Failed: ${failCount}\x1b[0m`);
     process.exit(1);
   } else {
-    console.log("\x1b[32mALL 28 INTEGRATION TESTS PASSED SUCCESSFULLY!\x1b[0m\n");
+    console.log(`\x1b[32mALL ${passCount} INTEGRATION TESTS PASSED SUCCESSFULLY!\x1b[0m\n`);
     process.exit(0);
   }
 }
