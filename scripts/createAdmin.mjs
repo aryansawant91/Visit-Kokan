@@ -23,9 +23,15 @@ initializeApp({
 const auth = getAuth()
 const db = getFirestore()
 
-const ADMIN_EMAIL = 'admin@kokan.com'   // 👈 change this
-const ADMIN_PASSWORD = 'Admin@123'       // 👈 change this
-const ADMIN_NAME = 'Kokan Admin'
+const ADMIN_EMAIL = process.env.INITIAL_ADMIN_EMAIL || process.env.ADMIN_EMAIL
+const ADMIN_PASSWORD = process.env.INITIAL_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD
+const ADMIN_NAME = process.env.ADMIN_NAME || 'Kokan Admin'
+
+if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  console.error('❌ Error: INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD environment variables are required.')
+  console.error('Example: INITIAL_ADMIN_EMAIL="admin@visitkokan.in" INITIAL_ADMIN_PASSWORD="YourSecurePassword!" node scripts/createAdmin.mjs')
+  process.exit(1)
+}
 
 async function createAdmin() {
   try {

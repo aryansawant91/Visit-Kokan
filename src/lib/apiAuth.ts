@@ -1,7 +1,15 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
 
-const SESSION_SECRET = process.env.SESSION_SECRET || process.env.RAZORPAY_KEY_SECRET || "vk_session_secret_kokan_2024";
+const SESSION_SECRET =
+  process.env.SESSION_SECRET ||
+  process.env.RAZORPAY_KEY_SECRET ||
+  (() => {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CRITICAL: SESSION_SECRET or RAZORPAY_KEY_SECRET environment variable must be set in production.");
+    }
+    return "dev_vk_secret_fallback_do_not_use_in_prod";
+  })();
 
 export interface SessionData {
   uid?: string;

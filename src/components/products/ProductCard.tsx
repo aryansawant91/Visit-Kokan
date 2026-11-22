@@ -55,6 +55,19 @@ export default function ProductCard({
 
   const hasImage = !imgError && Boolean(product.images?.[0]);
 
+  // Optimize known remote patterns (Firebase, Unsplash, Wikimedia) and local images
+  const canOptimizeImage = (url?: string) => {
+    if (!url) return false;
+    if (url.startsWith("/")) return true;
+    return (
+      url.includes("firebasestorage.googleapis.com") ||
+      url.includes("lh3.googleusercontent.com") ||
+      url.includes("images.unsplash.com") ||
+      url.includes("wikimedia.org") ||
+      url.includes("drive.google.com")
+    );
+  };
+
   // If featured card (like in Featured Destinations carousel)
   if (featured) {
     return (
@@ -73,7 +86,7 @@ export default function ProductCard({
               alt={product.name}
               fill
               sizes="(max-width: 640px) 70vw, 280px"
-              unoptimized={Boolean(product.images[0] && !product.images[0].startsWith("/"))}
+              unoptimized={!canOptimizeImage(product.images[0])}
               onError={() => setImgError(true)}
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
@@ -184,7 +197,7 @@ export default function ProductCard({
               alt={product.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              unoptimized={Boolean(product.images[0] && !product.images[0].startsWith("/"))}
+              unoptimized={!canOptimizeImage(product.images[0])}
               onError={() => setImgError(true)}
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />

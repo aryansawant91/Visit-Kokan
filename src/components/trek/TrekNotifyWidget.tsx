@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, Users, MessageCircle } from "lucide-react";
+import { WHATSAPP_NUMBER } from "@/constants/contact";
 
 interface TrekNotifyWidgetProps {
   trekName: string;
@@ -9,15 +10,13 @@ interface TrekNotifyWidgetProps {
   hideStickyBar?: boolean;
 }
 
-const ENQUIRY_WHATSAPP_NUMBER = "918432587706"; // ← REPLACE with your number, country code no + or spaces
-
 export default function TrekNotifyWidget({
   trekName, pricePerPerson, whatsappGroupLink, hideStickyBar = false,
 }: TrekNotifyWidgetProps) {
   const enquiryMessage = encodeURIComponent(
     `Hi! I have a group of 8+ people interested in the "${trekName}" trek. Can you help us arrange a date for this?`
   );
-  const enquiryLink = `https://wa.me/${ENQUIRY_WHATSAPP_NUMBER}?text=${enquiryMessage}`;
+  const enquiryLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${enquiryMessage}`;
 
   const Content = (
     <>

@@ -201,7 +201,8 @@ export default function HeroCarousel({
               alt={`${name} photo ${idx + 1}`}
               fill
               priority={idx === 0}
-              sizes="(max-width: 768px) 100vw, 540px"
+              loading={idx === 0 ? "eager" : "lazy"}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 800px"
               className="object-cover"
             />
           </div>

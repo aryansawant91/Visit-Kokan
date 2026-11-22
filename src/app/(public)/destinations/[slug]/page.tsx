@@ -10,7 +10,19 @@ import HeroCarousel from "@/components/destination/HeroCarousel";
 import DestinationTabs from "@/components/destination/DestinationTabs";
 import { adminDb } from "@/lib/firebaseAdmin";
 
+// Enable ISR on Vercel Edge CDN for sub-50ms TTFB
+export const revalidate = 3600;
+
+// In-memory cache for rapid lookup
+const destMemoryCache = new Map<string, { data: any; time: number }>();
+const CACHE_TTL_MS = 60_000 * 15; // 15 mins
+
 async function getDestination(slug: string) {
+  const cached = destMemoryCache.get(slug);
+  if (cached && Date.now() - cached.time < CACHE_TTL_MS) {
+    return cached.data;
+  }
+
   try {
     // Try direct Firestore query first for fast SSR
     if (adminDb) {
@@ -109,7 +121,7 @@ async function getDestination(slug: string) {
         const doc = snap.docs[0];
         const data = doc.data();
         // Convert any Firestore Timestamps and non-plain values into plain JSON-serializable types
-        return JSON.parse(
+        const result = JSON.parse(
           JSON.stringify({ id: doc.id, ...data }, (_k, v) => {
             if (v && typeof v === "object" && typeof v.toDate === "function") {
               return v.toDate().toISOString();
@@ -120,6 +132,8 @@ async function getDestination(slug: string) {
             return v;
           })
         ) as any;
+        destMemoryCache.set(slug, { data: result, time: Date.now() });
+        return result;
       }
     }
   } catch (err: any) {
@@ -134,10 +148,12 @@ async function getDestination(slug: string) {
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://visitkokan.in");
     const res = await fetch(
       `${baseUrl}/api/destinations?slug=${slug}`,
-      { cache: "no-store" }
+      { next: { revalidate: 3600 } }
     );
     if (!res.ok) return null;
-    return res.json();
+    const result = await res.json();
+    destMemoryCache.set(slug, { data: result, time: Date.now() });
+    return result;
   } catch {
     return null;
   }

@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
                 </div>
 
                 <p style="color: #6b5344; font-size: 14px;">Thank you for choosing Visit Kokan. We'll keep you updated on your order status.</p>
-                <a href="https://visitkokan.in/order-confirmation/${orderId}" style="display: inline-block; background: #2d7a4f; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-top: 8px;">View Order Details</a>
+                <a href="${(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://visitkokan.in").replace(/\/$/, "")}/order-confirmation/${orderId}" style="display: inline-block; background: #2d7a4f; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-top: 8px;">View Order Details</a>
               </div>
             </div>
           `,

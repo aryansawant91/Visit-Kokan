@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(null, { status: 404 });
       }
 
-      return NextResponse.json({ id: doc.id, ...data });
+      return NextResponse.json(
+        { id: doc.id, ...data },
+        { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=1800" } }
+      );
     }
 
     const vendorId = req.nextUrl.searchParams.get("vendorId");
@@ -52,7 +55,9 @@ export async function GET(req: NextRequest) {
       .map((doc) => ({ id: doc.id, ...doc.data() }))
       .filter((p: any) => p.isActive !== false);
 
-    return NextResponse.json(products);
+    return NextResponse.json(products, {
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=1800" },
+    });
 
   } catch (err: any) {
     console.error("=== PRODUCTS API ERROR ===");

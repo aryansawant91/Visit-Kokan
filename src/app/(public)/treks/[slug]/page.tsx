@@ -6,7 +6,19 @@ import TrekJsonLd from "@/components/trek/TrekJsonLd";
 import TrekDetailClientView from "@/components/trek/TrekDetailClientView";
 import { adminDb } from "@/lib/firebaseAdmin";
 
+// Enable ISR (Incremental Static Regeneration) on Vercel Edge CDN for sub-50ms TTFB
+export const revalidate = 3600; // 1 hour edge cache
+
+// In-memory cache for fast repeated lookups during server rendering
+const trekMemoryCache = new Map<string, { data: Trek | null; time: number }>();
+const CACHE_TTL_MS = 60_000 * 15; // 15 mins
+
 async function getTrek(slug: string): Promise<Trek | null> {
+  const cached = trekMemoryCache.get(slug);
+  if (cached && Date.now() - cached.time < CACHE_TTL_MS) {
+    return cached.data;
+  }
+
   try {
     // Direct Firestore query first for fast SSR
     if (adminDb) {
@@ -20,7 +32,7 @@ async function getTrek(slug: string): Promise<Trek | null> {
       if (!snap.empty) {
         const doc = snap.docs[0];
         const data = doc.data();
-        return JSON.parse(
+        const result = JSON.parse(
           JSON.stringify({ id: doc.id, ...data }, (_k, v) => {
             if (v && typeof v === "object" && typeof v.toDate === "function") {
               return v.toDate().toISOString();
@@ -31,13 +43,16 @@ async function getTrek(slug: string): Promise<Trek | null> {
             return v;
           })
         ) as Trek;
+
+        trekMemoryCache.set(slug, { data: result, time: Date.now() });
+        return result;
       }
     }
   } catch (err: any) {
     console.warn("Direct adminDb lookup failed for trek, falling back to API:", err.message);
   }
 
-  // Fallback to internal API
+  // Fallback to internal API with edge revalidation
   try {
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
@@ -45,10 +60,12 @@ async function getTrek(slug: string): Promise<Trek | null> {
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://visitkokan.in");
     const res = await fetch(
       `${baseUrl}/api/treks?slug=${slug}`,
-      { cache: "no-store" }
+      { next: { revalidate: 3600 } }
     );
     if (!res.ok) return null;
-    return res.json();
+    const result = await res.json();
+    trekMemoryCache.set(slug, { data: result, time: Date.now() });
+    return result;
   } catch {
     return null;
   }

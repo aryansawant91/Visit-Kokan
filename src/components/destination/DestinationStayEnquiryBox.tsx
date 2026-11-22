@@ -15,8 +15,7 @@ import {
   User,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-
-const WHATSAPP_NUMBER = "918432587706";
+import { WHATSAPP_NUMBER } from "@/constants/contact";
 
 interface Props {
   destinationName: string;

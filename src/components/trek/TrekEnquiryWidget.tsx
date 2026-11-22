@@ -26,8 +26,7 @@ interface Props {
   isBookable?: boolean;
 }
 
-const SUPPORT_PHONE = "+918432587706";
-const WHATSAPP_NUMBER = "918432587706";
+import { SUPPORT_PHONE, WHATSAPP_NUMBER } from "@/constants/contact";
 
 export default function TrekEnquiryWidget({
   trekId,

@@ -25,11 +25,20 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import toast from "react-hot-toast";
-import BookingPassModal from "@/components/booking/BookingPassModal";
 
-const CONCIERGE_PHONE = "+918432587706";
-const CONCIERGE_PHONE_DISPLAY = "+91 84325 87706";
+import { SUPPORT_PHONE } from "@/constants/contact";
+
+const BookingPassModal = dynamic(
+  () => import("@/components/booking/BookingPassModal"),
+  { ssr: false }
+);
+
+const CONCIERGE_PHONE = SUPPORT_PHONE;
+const CONCIERGE_PHONE_DISPLAY = SUPPORT_PHONE.startsWith("+91") && SUPPORT_PHONE.length === 13
+  ? `+91 ${SUPPORT_PHONE.slice(3, 8)} ${SUPPORT_PHONE.slice(8)}`
+  : SUPPORT_PHONE;
 
 export default function OrderConfirmationPage() {
   const { id } = useParams();

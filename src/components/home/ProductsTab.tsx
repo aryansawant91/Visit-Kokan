@@ -80,7 +80,7 @@ function ProductMiniCard({ product }: { product: Product }) {
               alt={product.name}
               fill
               sizes="(max-width: 640px) 144px, 160px"
-              unoptimized={product.images[0].includes("wikimedia.org") || product.images[0].includes("unsplash.com")}
+              unoptimized={!isWhitelistedRemote(product.images[0])}
               onError={() => setImgErr(true)}
               className="object-cover"
             />
@@ -132,6 +132,18 @@ function ProductMiniCard({ product }: { product: Product }) {
     </Link>
   );
 }
+const isWhitelistedRemote = (url?: string) => {
+  if (!url) return false;
+  if (url.startsWith("/")) return true;
+  return (
+    url.includes("firebasestorage.googleapis.com") ||
+    url.includes("lh3.googleusercontent.com") ||
+    url.includes("images.unsplash.com") ||
+    url.includes("wikimedia.org") ||
+    url.includes("drive.google.com")
+  );
+};
+
 export default function ProductsTab() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);

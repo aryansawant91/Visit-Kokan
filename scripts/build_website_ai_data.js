@@ -49,6 +49,7 @@ async function run() {
   const tsContent = `// -------------------------------------------------------------
 // AUTO-GENERATED FROM FIRESTORE - VISIT KOKAN PLATFORM KNOWLEDGE
 // -------------------------------------------------------------
+import { SUPPORT_PHONE, WHATSAPP_NUMBER, SITE_URL } from "@/constants/contact";
 
 export interface WebsiteTrekInfo {
   slug: string;
@@ -71,10 +72,10 @@ export interface WebsiteDestinationInfo {
 
 export const PLATFORM_INFO = {
   name: "Visit Kokan",
-  domain: "https://visitkokan.in",
-  whatsappNumber: "+91 84325 87706",
-  whatsappUrl: "https://wa.me/918432587706",
-  callNumber: "+918432587706",
+  domain: SITE_URL,
+  whatsappNumber: SUPPORT_PHONE,
+  whatsappUrl: `https://wa.me/\${WHATSAPP_NUMBER}`,
+  callNumber: SUPPORT_PHONE,
   trekBatchPrice: 1499,
   trekAdvanceDeposit: 750,
   pricingPolicy: "Uniform ₹1,499 per trekker with ₹750 advance deposit to confirm batch slot.",

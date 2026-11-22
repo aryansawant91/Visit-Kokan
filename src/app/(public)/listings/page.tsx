@@ -22,6 +22,18 @@ import {
 
 const ITEMS_PER_PAGE = 10;
 
+const isWhitelistedRemote = (url?: string) => {
+  if (!url) return false;
+  if (url.startsWith("/")) return true;
+  return (
+    url.includes("firebasestorage.googleapis.com") ||
+    url.includes("lh3.googleusercontent.com") ||
+    url.includes("images.unsplash.com") ||
+    url.includes("wikimedia.org") ||
+    url.includes("drive.google.com")
+  );
+};
+
 function ListingCard({
   listing,
   page = 1,
@@ -48,7 +60,8 @@ function ListingCard({
           src={image}
           alt={listing.name}
           fill
-          unoptimized={Boolean(image && !image.startsWith("/"))}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
+          unoptimized={!isWhitelistedRemote(image)}
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />

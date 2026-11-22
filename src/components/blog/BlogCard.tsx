@@ -7,6 +7,18 @@ import { Clock, Eye } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
+const isWhitelistedRemote = (url?: string) => {
+  if (!url) return false;
+  if (url.startsWith("/")) return true;
+  return (
+    url.includes("firebasestorage.googleapis.com") ||
+    url.includes("lh3.googleusercontent.com") ||
+    url.includes("images.unsplash.com") ||
+    url.includes("wikimedia.org") ||
+    url.includes("drive.google.com")
+  );
+};
+
 export default function BlogCard({ blog }: { blog: Blog }) {
   const category = BLOG_CATEGORIES.find((c) => c.value === blog.category);
   const [imgError, setImgError] = useState(false);
@@ -23,10 +35,7 @@ export default function BlogCard({ blog }: { blog: Blog }) {
               alt={blog.title}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              unoptimized={
-                blog.coverImage!.includes("wikimedia.org") ||
-                blog.coverImage!.includes("unsplash.com")
-              }
+              unoptimized={!isWhitelistedRemote(blog.coverImage)}
               onError={() => setImgError(true)}
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />

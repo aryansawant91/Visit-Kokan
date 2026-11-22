@@ -28,7 +28,10 @@ export async function GET(req: NextRequest) {
       if (snap.empty) return NextResponse.json(null, { status: 404 });
       const doc = snap.docs[0];
       const data = doc.data();
-      return NextResponse.json({ id: doc.id, ...data });
+      return NextResponse.json(
+        { id: doc.id, ...data },
+        { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=1800" } }
+      );
     }
 
     const query = all === "true"
@@ -44,7 +47,11 @@ export async function GET(req: NextRequest) {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
 
-    return NextResponse.json(treks);
+    const headers = all === "true"
+      ? undefined
+      : { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=1800" };
+
+    return NextResponse.json(treks, headers ? { headers } : undefined);
   } catch (err: any) {
     console.error("Treks GET error:", err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });

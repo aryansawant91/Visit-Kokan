@@ -41,6 +41,18 @@ const POPULAR_SEARCHES = [
 ];
 
 // Reliable image component with graceful fallback to prevent broken <img> icons
+const isWhitelistedRemote = (url?: string) => {
+  if (!url) return false;
+  if (url.startsWith("/")) return true;
+  return (
+    url.includes("firebasestorage.googleapis.com") ||
+    url.includes("lh3.googleusercontent.com") ||
+    url.includes("images.unsplash.com") ||
+    url.includes("wikimedia.org") ||
+    url.includes("drive.google.com")
+  );
+};
+
 function ResultThumbnail({
   src,
   alt,
@@ -79,7 +91,7 @@ function ResultThumbnail({
       alt={alt}
       fill
       sizes="80px"
-      unoptimized
+      unoptimized={!isWhitelistedRemote(src)}
       onError={() => setHasError(true)}
       className="object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
     />

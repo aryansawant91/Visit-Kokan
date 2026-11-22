@@ -46,6 +46,18 @@ export default function ProductHeroCarousel({
   ];
   const displayImages = images && images.length > 0 ? images : fallbackImages;
 
+  const canOptimizeImage = (url?: string) => {
+    if (!url) return false;
+    if (url.startsWith("/")) return true;
+    return (
+      url.includes("firebasestorage.googleapis.com") ||
+      url.includes("lh3.googleusercontent.com") ||
+      url.includes("images.unsplash.com") ||
+      url.includes("wikimedia.org") ||
+      url.includes("drive.google.com")
+    );
+  };
+
   // Restore wishlist state from localStorage
   useEffect(() => {
     try {
@@ -154,7 +166,9 @@ export default function ProductHeroCarousel({
             alt={`${name} photo ${idx + 1}`}
             fill
             priority={idx === 0}
-            unoptimized={Boolean(img && !img.startsWith("/"))}
+            loading={idx === 0 ? "eager" : "lazy"}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 700px"
+            unoptimized={!canOptimizeImage(img)}
             className="object-cover object-center"
           />
         </div>

@@ -34,6 +34,18 @@ const TRAVEL_CATEGORIES = [
   { label: "Temples", emoji: "🛕", value: "temples" },
 ];
 
+const isWhitelistedRemote = (url?: string) => {
+  if (!url) return false;
+  if (url.startsWith("/")) return true;
+  return (
+    url.includes("firebasestorage.googleapis.com") ||
+    url.includes("lh3.googleusercontent.com") ||
+    url.includes("images.unsplash.com") ||
+    url.includes("wikimedia.org") ||
+    url.includes("drive.google.com")
+  );
+};
+
 export interface DestinationItem {
   name: string;
   region: string;
@@ -223,7 +235,7 @@ function DestinationCard({ dest }: { dest: DestinationItem }) {
               alt={dest.name}
               fill
               sizes="(max-width: 640px) 160px, 192px"
-              unoptimized={dest.image.includes("wikimedia.org") || dest.image.includes("unsplash.com")}
+              unoptimized={!isWhitelistedRemote(dest.image)}
               onError={() => setImgErr(true)}
               className="object-cover"
             />
@@ -284,7 +296,7 @@ function TrekCard({ trek }: { trek: Trek }) {
               alt={trek.name}
               fill
               sizes="(max-width: 640px) 192px, 224px"
-              unoptimized={trek.images[0].includes("wikimedia.org") || trek.images[0].includes("unsplash.com")}
+              unoptimized={!isWhitelistedRemote(trek.images[0])}
               onError={() => setImgErr(true)}
               className="object-cover"
             />
@@ -386,7 +398,7 @@ function ProductCard({ product }: { product: Product }) {
               alt={product.name}
               fill
               sizes="(max-width: 640px) 192px, 224px"
-              unoptimized={Boolean(product.images[0] && !product.images[0].startsWith("/"))}
+              unoptimized={!isWhitelistedRemote(product.images[0])}
               onError={() => setImgErr(true)}
               className="object-cover"
             />
@@ -485,7 +497,7 @@ function HomestayCard({ listing }: { listing: Listing | Partial<Listing> }) {
           src={image}
           alt={listing.name || "Homestay"}
           fill
-          unoptimized={Boolean(image && !image.startsWith("/"))}
+          unoptimized={!isWhitelistedRemote(image)}
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />

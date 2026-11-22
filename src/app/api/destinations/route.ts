@@ -27,7 +27,10 @@ export async function GET(req: NextRequest) {
 
       if (snap.empty) return NextResponse.json(null, { status: 404 });
       const doc = snap.docs[0];
-      return NextResponse.json({ id: doc.id, ...doc.data() });
+      return NextResponse.json(
+        { id: doc.id, ...doc.data() },
+        { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=1800" } }
+      );
     }
 
     // admin=all fetches everything regardless of approval
@@ -44,7 +47,11 @@ export async function GET(req: NextRequest) {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
 
-    return NextResponse.json(destinations);
+    const headers = all === "true"
+      ? undefined
+      : { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=1800" };
+
+    return NextResponse.json(destinations, headers ? { headers } : undefined);
   } catch (err: any) {
     console.error("Destinations GET error:", err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });

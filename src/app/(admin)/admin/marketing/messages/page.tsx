@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { SITE_URL } from "@/constants/contact";
 import {
   Send,
   Users,
@@ -226,7 +227,7 @@ export default function TrekkerMarketingMessagesPage() {
     const daysAgo = t.daysSinceLastTrek;
     const promo = customPromoCode.trim() || "TREK10";
     const discount = customDiscountText.trim() || "10% OFF";
-    const websiteLink = "https://visitkokan.com/treks";
+    const websiteLink = `${SITE_URL}/treks`;
 
     if (selectedTemplate === "welcome_back") {
       return `Hey ${firstName}! 🏔️ It's been ${daysAgo} days since your memorable trek to *${t.lastTrekName || "the Sahyadris"}* with Visit Kokan.

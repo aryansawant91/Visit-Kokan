@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
+import dynamic from 'next/dynamic'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { CartProvider } from '@/context/CartContext'
-import AIChatWidget from "@/components/ai/AIChatWidget";
+
+const AIChatWidget = dynamic(() => import('@/components/ai/AIChatWidget'), {
+  ssr: false,
+})
 
 const inter = Inter({
   subsets: ['latin'],
