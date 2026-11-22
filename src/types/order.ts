@@ -51,6 +51,7 @@ export interface Order {
   trekDate?: string;
   batchId?: string;
   batchName?: string;
+  batchStatus?: "live" | "closed" | string;
   pickupLocation?: string;
   userPhone?: string;
   persons?: TrekPerson[];
@@ -63,7 +64,10 @@ export interface Order {
   cashCollected?: boolean;
   couponCode?: string | null;
   couponDiscount?: number;
+  discount?: number;
   offlineVerified?: boolean;
+  boarded?: boolean;
+  boardedAt?: string;
   totalAmount: number;
   status: OrderStatus;
 

@@ -144,13 +144,16 @@ function resolveRedirect(
   role: UserRole,
   redirectParam?: string | null,
 ): string {
+  if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
+    return redirectParam
+  }
   if (role === 'admin')  return '/admin/dashboard'
   if (role === 'vendor') {
     return profile.vendorStatus === 'approved'
       ? '/vendor/dashboard'
       : '/vendor/pending'
   }
-  return redirectParam ?? '/'
+  return '/'
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -203,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       let claimedRole: UserRole = p?.role ?? 'user'
       try {
-        const tokenResult: IdTokenResult = await fbUser.getIdTokenResult(true)
+        const tokenResult: IdTokenResult = await fbUser.getIdTokenResult()
         if (tokenResult.claims.role) {
           claimedRole = tokenResult.claims.role as UserRole
         }
@@ -213,7 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setRole(claimedRole)
       setProfile(p)
-      await setSessionCookie(fbUser.uid, claimedRole, p?.vendorStatus)
+      setSessionCookie(fbUser.uid, claimedRole, p?.vendorStatus).catch(console.error)
 
       // Read redirect: sessionStorage (set by OTP flow) or URL param fallback
       const storedRedirect = sessionStorage.getItem('vk_pending_redirect')
@@ -228,12 +231,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       pendingRedirect.current = null
 
-      const destination = resolveRedirect(
-        p ?? ({} as UserProfile),
-        claimedRole,
-        redirect,
-      )
-      router.replace(destination)
+      // Check if user is currently on an auth page (/login, /register, etc.)
+      const isAuthPage = typeof window !== 'undefined' && (
+        window.location.pathname === '/login' ||
+        window.location.pathname === '/register' ||
+        window.location.pathname === '/forgot-password'
+      );
+
+      // Only redirect if explicitly on a login/register page or if an OTP redirect was stored.
+      // If the user refreshed an existing page (e.g. /admin/orders, /admin/treks, etc.),
+      // they MUST stay on that page!
+      if (storedRedirect || isAuthPage) {
+        const destination = resolveRedirect(
+          p ?? ({} as UserProfile),
+          claimedRole,
+          redirect,
+        )
+        router.replace(destination)
+      }
 
       setLoading(false)
     })

@@ -16,6 +16,14 @@ export async function POST(req: NextRequest) {
       userId,
       userEmail,
       userName,
+      userPhone,
+      phone,
+      pickupLocation,
+      paymentType,
+      advancePaid,
+      remainingCash,
+      couponCode,
+      couponDiscount,
       items,
       deliveryAddress,
       trekId,
@@ -65,12 +73,23 @@ export async function POST(req: NextRequest) {
 
     const now = new Date().toISOString();
 
+    const resolvedPhone = userPhone || phone || deliveryAddress?.phone || null;
+
     // Save pending order to Firestore
     const orderData: any = {
       orderType,
       userId: userId || null,
       userEmail: userEmail || null,
       userName: userName || null,
+      userPhone: resolvedPhone,
+      phone: resolvedPhone,
+      contactPhone: resolvedPhone,
+      pickupLocation: pickupLocation || null,
+      paymentType: paymentType || "full",
+      advancePaid: advancePaid !== undefined ? Number(advancePaid) : numAmount,
+      remainingCash: remainingCash !== undefined ? Number(remainingCash) : 0,
+      couponCode: couponCode || null,
+      couponDiscount: couponDiscount ? Number(couponDiscount) : 0,
       totalAmount: numAmount,
       status: "pending",
       razorpayOrderId: razorpayOrder.id,

@@ -148,10 +148,8 @@ export default function OrderConfirmationPage() {
 
   const isTrek = order.orderType === "trek";
   const conciergeWaMessage = encodeURIComponent(
-    `Hi Visit Kokan Concierge! 🌊\n\nI just confirmed my booking on visitkokan.in:\n• Order ID: ${order.id}\n• Type: ${
-      isTrek ? `Trek (${order.trekName || "Expedition"})` : "Kokan Products"
-    }\n• Amount Paid: ₹${order.totalAmount.toLocaleString("en-IN")}\n• Email: ${
-      order.userEmail || "Traveler"
+    `Hi Visit Kokan Concierge! 🌊\n\nI just confirmed my booking on visitkokan.in:\n• Order ID: ${order.id}\n• Type: ${isTrek ? `Trek (${order.trekName || "Expedition"})` : "Kokan Products"
+    }\n• Amount Paid: ₹${order.totalAmount.toLocaleString("en-IN")}\n• Email: ${order.userEmail || "Traveler"
     }\n\nPlease share batch departure details & WhatsApp updates.`
   );
 
@@ -209,25 +207,23 @@ export default function OrderConfirmationPage() {
               {!hasJoinedWhatsapp
                 ? "Step 1 of 2 Pending"
                 : !hasDownloadedTicket
-                ? "Step 2 of 2 Pending"
-                : "All Steps Completed ✅"}
+                  ? "Step 2 of 2 Pending"
+                  : "All Steps Completed ✅"}
             </span>
           </div>
 
           {/* ── STEP 1: Join WhatsApp Batch Group ── */}
           <div
-            className={`rounded-3xl p-5 border transition-all ${
-              hasJoinedWhatsapp
-                ? "bg-emerald-50/80 border-emerald-300/80 shadow-xs"
-                : "bg-gradient-to-br from-[#f0faf2] to-white border-emerald-300 shadow-sm ring-2 ring-emerald-500/20"
-            }`}
+            className={`rounded-3xl p-5 border transition-all ${hasJoinedWhatsapp
+              ? "bg-emerald-50/80 border-emerald-300/80 shadow-xs"
+              : "bg-gradient-to-br from-[#f0faf2] to-white border-emerald-300 shadow-sm ring-2 ring-emerald-500/20"
+              }`}
           >
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="flex items-center gap-2.5">
                 <div
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                    hasJoinedWhatsapp ? "bg-emerald-600 text-white" : "bg-[#25D366] text-white shadow-xs"
-                  }`}
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${hasJoinedWhatsapp ? "bg-emerald-600 text-white" : "bg-[#25D366] text-white shadow-xs"
+                    }`}
                 >
                   <MessageCircle className="w-5 h-5 fill-white text-transparent" />
                 </div>
@@ -274,8 +270,8 @@ export default function OrderConfirmationPage() {
                   {hasJoinedWhatsapp
                     ? "Open WhatsApp Group Again"
                     : isTrek
-                    ? "Join WhatsApp Batch Group Now"
-                    : "Connect on WhatsApp"}
+                      ? "Join WhatsApp Batch Group Now"
+                      : "Connect on WhatsApp"}
                 </span>
                 <ExternalLink size={12} />
               </a>
@@ -294,20 +290,18 @@ export default function OrderConfirmationPage() {
 
           {/* ── STEP 2: Official Boarding Pass & PDF Ticket (Unlocked after Step 1) ── */}
           <div
-            className={`rounded-3xl p-5 border transition-all ${
-              !hasJoinedWhatsapp
-                ? "bg-gray-50/80 border-gray-200 opacity-75"
-                : "bg-gradient-to-r from-emerald-900 via-[#1b4332] to-[#122e20] text-white shadow-lg border-emerald-500/40 ring-2 ring-emerald-400/25"
-            }`}
+            className={`rounded-3xl p-5 border transition-all ${!hasJoinedWhatsapp
+              ? "bg-gray-50/80 border-gray-200 opacity-75"
+              : "bg-gradient-to-r from-emerald-900 via-[#1b4332] to-[#122e20] text-white shadow-lg border-emerald-500/40 ring-2 ring-emerald-400/25"
+              }`}
           >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
-                    !hasJoinedWhatsapp
-                      ? "bg-gray-200 text-gray-500"
-                      : "bg-emerald-500/25 border border-emerald-400/40 text-emerald-300 shadow-inner"
-                  }`}
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${!hasJoinedWhatsapp
+                    ? "bg-gray-200 text-gray-500"
+                    : "bg-emerald-500/25 border border-emerald-400/40 text-emerald-300 shadow-inner"
+                    }`}
                 >
                   {!hasJoinedWhatsapp ? <Lock className="w-5 h-5" /> : <Download className="w-6 h-6 text-emerald-300" />}
                 </div>
@@ -315,34 +309,30 @@ export default function OrderConfirmationPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-[10px] font-mono font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                        !hasJoinedWhatsapp
-                          ? "bg-gray-200 text-gray-600"
-                          : "bg-emerald-400/20 text-emerald-300 border border-emerald-400/30"
-                      }`}
+                      className={`text-[10px] font-mono font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${!hasJoinedWhatsapp
+                        ? "bg-gray-200 text-gray-600"
+                        : "bg-emerald-400/20 text-emerald-300 border border-emerald-400/30"
+                        }`}
                     >
                       STEP 2
                     </span>
                     <span
-                      className={`text-xs font-bold ${
-                        !hasJoinedWhatsapp ? "text-gray-500" : "text-emerald-200"
-                      }`}
+                      className={`text-xs font-bold ${!hasJoinedWhatsapp ? "text-gray-500" : "text-emerald-200"
+                        }`}
                     >
                       {isTrek ? "Official Boarding Pass & QR Ticket" : "Official Invoice & QR Receipt"}
                     </span>
                   </div>
 
                   <p
-                    className={`text-sm font-bold mt-0.5 ${
-                      !hasJoinedWhatsapp ? "text-gray-700" : "text-white"
-                    }`}
+                    className={`text-sm font-bold mt-0.5 ${!hasJoinedWhatsapp ? "text-gray-700" : "text-white"
+                      }`}
                   >
                     {isTrek ? "Download Offline Boarding Ticket" : "Download Official Invoice"}
                   </p>
                   <p
-                    className={`text-[11px] ${
-                      !hasJoinedWhatsapp ? "text-gray-500" : "text-emerald-100/75"
-                    }`}
+                    className={`text-[11px] ${!hasJoinedWhatsapp ? "text-gray-500" : "text-emerald-100/75"
+                      }`}
                   >
                     {!hasJoinedWhatsapp
                       ? "Complete Step 1 above to unlock your scannable boarding pass"
@@ -450,13 +440,12 @@ export default function OrderConfirmationPage() {
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-sm sm:text-base text-kokan-earth">Booking Details</h2>
             <span
-              className={`text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${
-                order.status === "confirmed"
-                  ? "bg-emerald-100 text-emerald-800"
-                  : order.status === "pending_verification"
+              className={`text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${order.status === "confirmed"
+                ? "bg-emerald-100 text-emerald-800"
+                : order.status === "pending_verification"
                   ? "bg-amber-100 text-amber-900 border border-amber-200"
                   : "bg-kokan-green/10 text-kokan-green"
-              }`}
+                }`}
             >
               {order.status === "pending_verification"
                 ? "Pending Verification"

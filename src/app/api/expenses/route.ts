@@ -9,9 +9,13 @@ export async function GET(req: NextRequest) {
 
   try {
     const snap = await db.collection("expenses").get();
-    const expenses = snap.docs
+    const batchKey = req.nextUrl.searchParams.get("batchKey");
+    let expenses = snap.docs
       .map((doc) => ({ id: doc.id, ...doc.data() }))
       .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    if (batchKey) {
+      expenses = expenses.filter((e: any) => e.batchKey === batchKey);
+    }
     return NextResponse.json(expenses);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -32,6 +36,8 @@ export async function POST(req: NextRequest) {
       category: body.category || "general",
       trekId: body.trekId || null,
       trekName: body.trekName || null,
+      batchKey: body.batchKey || null,
+      batchName: body.batchName || null,
       date: body.date || now,
       createdAt: now,
     };

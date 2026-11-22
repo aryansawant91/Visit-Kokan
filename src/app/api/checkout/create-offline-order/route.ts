@@ -5,8 +5,8 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
-      orderType, userId, userEmail, userName,
-      trekId, trekName, trekSlug, whatsappGroupLink,
+      orderType, userId, userEmail, userName, userPhone, phone, pickupLocation,
+      trekId, trekName, trekDate, trekSlug, whatsappGroupLink,
       couponCode, couponDiscount, totalAmount, persons,
     } = body;
 
@@ -33,11 +33,17 @@ export async function POST(req: NextRequest) {
 
     const now = new Date().toISOString();
 
+    const resolvedPhone = userPhone || phone || null;
+
     const orderData: any = {
       orderType,
       userId: userId || null,
       userEmail: userEmail || null,
       userName: userName || null,
+      userPhone: resolvedPhone,
+      phone: resolvedPhone,
+      contactPhone: resolvedPhone,
+      pickupLocation: pickupLocation || null,
       totalAmount: numAmount,
       status: "pending_verification",
       paymentVerified: false,
@@ -53,6 +59,7 @@ export async function POST(req: NextRequest) {
     if (orderType === "trek") {
       orderData.trekId = trekId;
       orderData.trekName = trekName;
+      orderData.trekDate = trekDate || null;
       orderData.trekSlug = trekSlug;
       if (whatsappGroupLink && typeof whatsappGroupLink === "string" && whatsappGroupLink.startsWith("https://chat.whatsapp.com/")) {
         orderData.whatsappGroupLink = whatsappGroupLink;

@@ -13,6 +13,8 @@ export async function POST(req: NextRequest) {
 
     const orderRef = await adminDb.collection("orders").add({
       userId, userEmail, userName,
+      userPhone: deliveryAddress?.phone || body.userPhone || body.phone || null,
+      phone: deliveryAddress?.phone || body.userPhone || body.phone || null,
       items,
       deliveryAddress,
       orderType: "product",

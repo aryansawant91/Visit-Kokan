@@ -122,7 +122,7 @@ function calculateAge(dob: string) {
   return age;
 }
 
-const maxDOB = () => { const d = new Date(); d.setFullYear(d.getFullYear() - 6);  return d.toISOString().split("T")[0]; };
+const maxDOB = () => { const d = new Date(); d.setFullYear(d.getFullYear() - 6); return d.toISOString().split("T")[0]; };
 const minDOB = () => { const d = new Date(); d.setFullYear(d.getFullYear() - 80); return d.toISOString().split("T")[0]; };
 
 function formatTimeLeft(expiresAt: string | null): string | null {
@@ -130,10 +130,10 @@ function formatTimeLeft(expiresAt: string | null): string | null {
   const diff = new Date(expiresAt).getTime() - Date.now();
   if (diff <= 0) return "Expired";
   const totalMinutes = Math.floor(diff / 1000 / 60);
-  const days    = Math.floor(totalMinutes / (60 * 24));
-  const hours   = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
   const minutes = totalMinutes % 60;
-  if (days > 0)  return `${days}d ${hours}h left`;
+  if (days > 0) return `${days}d ${hours}h left`;
   if (hours > 0) return `${hours}h ${minutes}m left`;
   return `${minutes}m left`;
 }
@@ -164,11 +164,10 @@ function Pills<T extends string>({
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-            value === o.value
-              ? "bg-kokan-green text-white border-kokan-green shadow-xs"
-              : "bg-white text-kokan-earth/60 border-kokan-sand/60 hover:border-kokan-green/40"
-          }`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${value === o.value
+            ? "bg-kokan-green text-white border-kokan-green shadow-xs"
+            : "bg-white text-kokan-earth/60 border-kokan-sand/60 hover:border-kokan-green/40"
+            }`}
         >
           {o.label}
         </button>
@@ -192,11 +191,10 @@ function CountdownBadge({ expiresAt }: { expiresAt: string | null }) {
   const isUrgent = timeLeft.includes("m left") || timeLeft.includes("h left");
 
   return (
-    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-      isUrgent
-        ? "bg-rose-100 text-rose-700 animate-pulse"
-        : "bg-amber-100 text-amber-800"
-    }`}>
+    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isUrgent
+      ? "bg-rose-100 text-rose-700 animate-pulse"
+      : "bg-amber-100 text-amber-800"
+      }`}>
       <Clock className="w-2.5 h-2.5" />
       {timeLeft}
     </span>
@@ -211,8 +209,8 @@ export default function TrekBookingWidget({
   const { user, profile } = useAuth();
   const router = useRouter();
 
-  const [open, setOpen]                     = useState(false);
-  const [persons, setPersons]               = useState<Person[]>([emptyPerson()]);
+  const [open, setOpen] = useState(false);
+  const [persons, setPersons] = useState<Person[]>([emptyPerson()]);
 
   // Listen to open-trek-booking event from external triggers
   useEffect(() => {
@@ -221,22 +219,30 @@ export default function TrekBookingWidget({
     return () => window.removeEventListener("open-trek-booking", handler);
   }, []);
 
-  const [activePerson, setActivePerson]         = useState(0);
+  const [activePerson, setActivePerson] = useState(0);
   const [disclaimerModalOpen, setDisclaimerModalOpen] = useState(false);
-  const [agreed, setAgreed]                     = useState(false);
-  const [errors, setErrors]                     = useState<string[]>([]);
-  const [loading, setLoading]                   = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // ── Guest details state ────────────────────────────────────────────────────
-  const [guestId]    = useState(() => makeGuestId());
-  const [guestName, setGuestName]   = useState("");
+  // ── Contact details state (for both guest and logged-in user) ──────────────
+  const [guestId] = useState(() => makeGuestId());
+  const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
+  const [userContactPhone, setUserContactPhone] = useState(profile?.phone ?? "");
+  const [selectedPickup, setSelectedPickup] = useState("Basepoint");
+
+  useEffect(() => {
+    if (profile?.phone && !userContactPhone) {
+      setUserContactPhone(profile.phone);
+    }
+  }, [profile?.phone]);
 
   const effectiveUserId = user?.uid ?? guestId;
-  const effectiveEmail  = user ? (user.email ?? "") : guestEmail;
-  const effectiveName   = user ? (profile?.displayName ?? user.email ?? "Guest") : guestName;
-  const effectivePhone  = user ? (profile?.phone ?? "") : guestPhone;
+  const effectiveEmail = user ? (user.email ?? "") : guestEmail;
+  const effectiveName = user ? (profile?.displayName ?? user.email ?? "Guest") : guestName;
+  const effectivePhone = user ? (userContactPhone || profile?.phone || "") : guestPhone;
 
   // ── Payment choice (full vs advance) ───────────────────────────────────────
   const [paymentChoice, setPaymentChoice] = useState<"full" | "half">(
@@ -246,22 +252,22 @@ export default function TrekBookingWidget({
   const [paymentMethod, setPaymentMethod] = useState<"online" | "offline">("offline");
 
   // ── Coupon state ──────────────────────────────────────────────────────────
-  const [couponInput, setCouponInput]       = useState("");
-  const [appliedCoupon, setAppliedCoupon]   = useState<{
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string; discount: number; description: string;
   } | null>(null);
-  const [couponError, setCouponError]       = useState("");
-  const [couponLoading, setCouponLoading]   = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
 
   // ── Derived amounts ───────────────────────────────────────────────────────
-  const subtotal       = persons.length * pricePerPerson;
+  const subtotal = persons.length * pricePerPerson;
   const couponDiscount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
-  const totalAmount    = Math.max(0, subtotal - couponDiscount);
+  const totalAmount = Math.max(0, subtotal - couponDiscount);
 
-  const hasAdvanceOption   = advanceAmount > 0;
+  const hasAdvanceOption = advanceAmount > 0;
   const showSplitBreakdown = hasAdvanceOption && paymentChoice === "half" && paymentMethod === "online";
-  const amountToPayOnline  = showSplitBreakdown ? advanceAmount : totalAmount;
-  const remainingCash      = showSplitBreakdown ? Math.max(0, totalAmount - advanceAmount) : 0;
+  const amountToPayOnline = showSplitBreakdown ? advanceAmount : totalAmount;
+  const remainingCash = showSplitBreakdown ? Math.max(0, totalAmount - advanceAmount) : 0;
 
   // ── Persons ───────────────────────────────────────────────────────────────
 
@@ -315,9 +321,11 @@ export default function TrekBookingWidget({
     const errs: string[] = [];
 
     if (!user) {
-      if (!guestName.trim())            errs.push("Your name is required");
-      if (!isValidEmail(guestEmail))    errs.push("A valid email address is required");
-      if (!isValidPhone(guestPhone))    errs.push("A valid 10-digit phone number is required");
+      if (!guestName.trim()) errs.push("Your name is required");
+      if (!isValidEmail(guestEmail)) errs.push("A valid email address is required");
+      if (!isValidPhone(guestPhone)) errs.push("A valid 10-digit phone number is required");
+    } else {
+      if (!isValidPhone(effectivePhone)) errs.push("A valid 10-digit mobile number is required for trek coordination");
     }
 
     persons.forEach((p, i) => {
@@ -326,7 +334,7 @@ export default function TrekBookingWidget({
       if (!p.birthDate) { errs.push(`${lbl}: DOB required`); }
       else {
         const age = calculateAge(p.birthDate);
-        if (age < 6)  errs.push(`${lbl}: Min age is 6`);
+        if (age < 6) errs.push(`${lbl}: Min age is 6`);
         if (age > 80) errs.push(`${lbl}: Max age is 80`);
       }
       if (p.idProofUploading) errs.push(`${lbl}: ID proof is still uploading, please wait`);
@@ -391,8 +399,11 @@ export default function TrekBookingWidget({
           userEmail: effectiveEmail,
           userName: effectiveName,
           userPhone: effectivePhone,
+          phone: effectivePhone,
+          pickupLocation: selectedPickup,
           isGuest: !user,
           trekId, trekName, trekSlug,
+          trekDate: scheduledDate,
           whatsappGroupLink: whatsappGroupLink ?? null,
           couponCode: appliedCoupon?.code ?? null,
           couponDiscount,
@@ -462,8 +473,11 @@ export default function TrekBookingWidget({
           userEmail: effectiveEmail,
           userName: effectiveName,
           userPhone: effectivePhone,
+          phone: effectivePhone,
+          pickupLocation: selectedPickup,
           isGuest: !user,
           trekId, trekName, trekSlug,
+          trekDate: scheduledDate,
           whatsappGroupLink: whatsappGroupLink ?? null,
           couponCode: appliedCoupon?.code ?? null,
           couponDiscount,
@@ -632,8 +646,51 @@ export default function TrekBookingWidget({
             {/* Scrollable Body */}
             <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
 
-              {/* 1. Guest contact details (only when not logged in) */}
-              {!user && (
+              {/* 1. Contact & Boarding details */}
+              {user ? (
+                <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-kokan-earth uppercase tracking-wider">Contact &amp; Boarding Details</p>
+                    <span className="text-[11px] text-kokan-earth/60 font-medium">Logged in as {user.email}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">
+                        Contact Mobile Number *
+                      </label>
+                      <input
+                        type="tel"
+                        value={userContactPhone}
+                        onChange={(e) => setUserContactPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        placeholder="10-digit mobile number"
+                        className="w-full border border-gray-200 bg-white rounded-xl px-3 py-2 text-xs text-kokan-earth font-medium focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">
+                        Bus Boarding Stop
+                      </label>
+                      <select
+                        value={selectedPickup}
+                        onChange={(e) => setSelectedPickup(e.target.value)}
+                        className="w-full border border-gray-200 bg-white rounded-xl px-3 py-2 text-xs text-kokan-earth font-medium focus:outline-none focus:ring-2 focus:ring-kokan-green/30 cursor-pointer"
+                      >
+                        <option value="Basepoint">Basepoint (Direct Arrival)</option>
+                        <option value="Borivali">Borivali Station</option>
+                        <option value="Andheri">Andheri Station (WEH)</option>
+                        <option value="Sion">Sion Circle</option>
+                        <option value="Chembur">Chembur (Kala Killa)</option>
+                        <option value="Vashi">Vashi Old Toll Plaza</option>
+                        <option value="Panvel">Panvel Bus Stand</option>
+                        <option value="Pune">Pune Pickup Point</option>
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-kokan-earth/50">
+                    Trek coordinators will send WhatsApp updates &amp; boarding details to this mobile number.
+                  </p>
+                </div>
+              ) : (
                 <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-bold text-kokan-earth uppercase tracking-wider">Your Contact Details</p>
@@ -665,7 +722,7 @@ export default function TrekBookingWidget({
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Phone *</label>
+                      <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">Mobile Phone *</label>
                       <input
                         type="tel"
                         value={guestPhone}
@@ -674,8 +731,27 @@ export default function TrekBookingWidget({
                         className="w-full border border-gray-200 bg-white rounded-xl px-3 py-2 text-xs text-kokan-earth focus:outline-none focus:ring-2 focus:ring-kokan-green/30"
                       />
                     </div>
+                    <div className="col-span-2">
+                      <label className="block text-[10px] font-bold text-kokan-earth/60 uppercase tracking-widest mb-1">
+                        Bus Boarding Stop
+                      </label>
+                      <select
+                        value={selectedPickup}
+                        onChange={(e) => setSelectedPickup(e.target.value)}
+                        className="w-full border border-gray-200 bg-white rounded-xl px-3 py-2 text-xs text-kokan-earth font-medium focus:outline-none focus:ring-2 focus:ring-kokan-green/30 cursor-pointer"
+                      >
+                        <option value="Basepoint">Basepoint (Direct Arrival)</option>
+                        <option value="Borivali">Borivali Station</option>
+                        <option value="Andheri">Andheri Station (WEH)</option>
+                        <option value="Sion">Sion Circle</option>
+                        <option value="Chembur">Chembur (Kala Killa)</option>
+                        <option value="Vashi">Vashi Old Toll Plaza</option>
+                        <option value="Panvel">Panvel Bus Stand</option>
+                        <option value="Pune">Pune Pickup Point</option>
+                      </select>
+                    </div>
                   </div>
-                  <p className="text-[10px] text-kokan-earth/50">We will send your booking confirmation & trek itinerary to these details.</p>
+                  <p className="text-[10px] text-kokan-earth/50">We will send your booking confirmation &amp; trek itinerary to these details.</p>
                 </div>
               )}
 
@@ -690,11 +766,10 @@ export default function TrekBookingWidget({
                           key={i}
                           type="button"
                           onClick={() => setActivePerson(i)}
-                          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                            activePerson === i
-                              ? "bg-kokan-green text-white border-kokan-green shadow-xs"
-                              : "bg-white text-kokan-earth/60 border-gray-200 hover:border-kokan-green/40"
-                          }`}
+                          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${activePerson === i
+                            ? "bg-kokan-green text-white border-kokan-green shadow-xs"
+                            : "bg-white text-kokan-earth/60 border-gray-200 hover:border-kokan-green/40"
+                            }`}
                         >
                           {done
                             ? <Check className="w-3 h-3 text-white" />
@@ -907,11 +982,10 @@ export default function TrekBookingWidget({
                     <button
                       type="button"
                       onClick={() => setPaymentChoice("half")}
-                      className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${
-                        paymentChoice === "half"
-                          ? "bg-kokan-green text-white border-kokan-green shadow-xs"
-                          : "bg-white text-kokan-earth/70 border-gray-200 hover:border-kokan-green/40"
-                      }`}
+                      className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${paymentChoice === "half"
+                        ? "bg-kokan-green text-white border-kokan-green shadow-xs"
+                        : "bg-white text-kokan-earth/70 border-gray-200 hover:border-kokan-green/40"
+                        }`}
                     >
                       <span className="block text-[10px] opacity-80 uppercase tracking-wider">Advance</span>
                       <span className="block font-black text-sm">₹{advanceAmount.toLocaleString("en-IN")}</span>
@@ -919,11 +993,10 @@ export default function TrekBookingWidget({
                     <button
                       type="button"
                       onClick={() => setPaymentChoice("full")}
-                      className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${
-                        paymentChoice === "full"
-                          ? "bg-kokan-green text-white border-kokan-green shadow-xs"
-                          : "bg-white text-kokan-earth/70 border-gray-200 hover:border-kokan-green/40"
-                      }`}
+                      className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${paymentChoice === "full"
+                        ? "bg-kokan-green text-white border-kokan-green shadow-xs"
+                        : "bg-white text-kokan-earth/70 border-gray-200 hover:border-kokan-green/40"
+                        }`}
                     >
                       <span className="block text-[10px] opacity-80 uppercase tracking-wider">Full Fare</span>
                       <span className="block font-black text-sm">₹{totalAmount.toLocaleString("en-IN")}</span>

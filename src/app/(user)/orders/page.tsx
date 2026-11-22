@@ -84,7 +84,7 @@ export default function OrdersPage() {
       ) : (
         <div className="space-y-3">
           {orders.map((order) => {
-  
+
             const status = statusConfig[order.status] ?? statusConfig.pending;
             return (
               <div key={order.id} className="bg-white rounded-2xl p-5 border border-kokan-sand/30">
