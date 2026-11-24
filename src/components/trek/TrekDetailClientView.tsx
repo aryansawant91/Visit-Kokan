@@ -64,6 +64,59 @@ function HighlightIcon({ text }: { text: string }) {
   return <Compass size={18} className="text-[#173722]" />;
 }
 
+function ScrollDeferredSection({
+  children,
+  placeholder,
+  rootMargin = "250px",
+}: {
+  children: React.ReactNode;
+  placeholder?: React.ReactNode;
+  rootMargin?: string;
+}) {
+  const [isInView, setIsInView] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (!("IntersectionObserver" in window)) {
+      setIsInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [rootMargin]);
+
+  return (
+    <div ref={containerRef}>
+      {isInView ? (
+        children
+      ) : (
+        placeholder || (
+          <div className="bg-white rounded-3xl p-6 border border-[#cadbc7] shadow-sm animate-pulse space-y-3">
+            <div className="h-4 w-40 bg-[#dce7da] rounded" />
+            <div className="h-16 bg-[#edf3eb] rounded-2xl" />
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
 export default function TrekDetailClientView({
   trek,
   category,
@@ -254,24 +307,66 @@ export default function TrekDetailClientView({
               </div>
             </a>
 
-            {/* Regional Weather Widget */}
-            <WeatherWidget region={trek.region} bestSeason={trek.bestSeason} />
+            {/* Regional Weather Widget (Loaded on Scroll) */}
+            <ScrollDeferredSection
+              placeholder={
+                <div className="bg-white rounded-3xl p-5 border border-[#cadbc7] shadow-sm animate-pulse space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div className="h-4 w-36 bg-[#dce7da] rounded" />
+                    <div className="h-6 w-20 bg-[#edf3eb] rounded-full" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="h-16 bg-[#edf3eb] rounded-2xl" />
+                    <div className="h-16 bg-[#edf3eb] rounded-2xl" />
+                    <div className="h-16 bg-[#edf3eb] rounded-2xl" />
+                  </div>
+                </div>
+              }
+            >
+              <WeatherWidget region={trek.region} bestSeason={trek.bestSeason} />
+            </ScrollDeferredSection>
 
-            {/* Nearby Stays in Region */}
+            {/* Nearby Stays in Region (Loaded on Scroll) */}
             <div className="pt-2">
               <h3 className="text-sm font-bold text-[#102416] mb-3">
                 Nearby Stays &amp; Homestays in {trek.region}
               </h3>
-              <NearbyListings region={trek.region} currentSlug={trek.slug} />
+              <ScrollDeferredSection
+                placeholder={
+                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="w-[142px] h-[190px] bg-white rounded-xl border border-[#d6e2d4] p-2 space-y-2 shrink-0 animate-pulse"
+                      >
+                        <div className="w-full h-[105px] bg-[#edf3eb] rounded-lg" />
+                        <div className="h-3 w-3/4 bg-[#edf3eb] rounded" />
+                        <div className="h-3 w-1/2 bg-[#edf3eb] rounded" />
+                      </div>
+                    ))}
+                  </div>
+                }
+              >
+                <NearbyListings region={trek.region} currentSlug={trek.slug} />
+              </ScrollDeferredSection>
             </div>
 
-            {/* Traveler Reviews & Ratings */}
+            {/* Traveler Reviews & Ratings (Loaded on Scroll) */}
             <div className="pt-3">
-              <ReviewList
-                targetType="trek"
-                targetId={trek.slug}
-                targetName={`${trek.name} Expedition`}
-              />
+              <ScrollDeferredSection
+                placeholder={
+                  <div className="bg-white rounded-3xl p-6 border border-[#cadbc7] shadow-sm animate-pulse space-y-3">
+                    <div className="h-5 w-44 bg-[#dce7da] rounded" />
+                    <div className="h-20 bg-[#edf3eb] rounded-2xl" />
+                  </div>
+                }
+              >
+                <ReviewList
+                  targetType="trek"
+                  targetId={trek.slug}
+                  targetName={`${trek.name} Expedition`}
+                />
+              </ScrollDeferredSection>
             </div>
 
             {/* Mobile Dedicated Booking Section right after guide */}

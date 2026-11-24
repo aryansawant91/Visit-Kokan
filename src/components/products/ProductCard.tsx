@@ -10,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PRODUCT_CATEGORIES } from "@/constants/productCategories";
 import { useTrackEvent } from "@/hooks/useTrackEvent";
+import { isUnoptimizedUrl, FALLBACK_PRODUCT_IMAGE } from "@/lib/imageUtils";
 
 interface ProductCardProps {
   product: Product;
@@ -55,16 +56,16 @@ export default function ProductCard({
 
   const hasImage = !imgError && Boolean(product.images?.[0]);
 
-  // Optimize known remote patterns (Firebase, Unsplash, Wikimedia) and local images
+  // Optimize known remote patterns (Firebase, Unsplash) and local images.
+  // Bypass server optimization for rate-limiting hosts (Wikimedia Commons) to prevent 429 Too Many Requests.
   const canOptimizeImage = (url?: string) => {
     if (!url) return false;
     if (url.startsWith("/")) return true;
+    if (isUnoptimizedUrl(url)) return false;
     return (
       url.includes("firebasestorage.googleapis.com") ||
       url.includes("lh3.googleusercontent.com") ||
-      url.includes("images.unsplash.com") ||
-      url.includes("wikimedia.org") ||
-      url.includes("drive.google.com")
+      url.includes("images.unsplash.com")
     );
   };
 

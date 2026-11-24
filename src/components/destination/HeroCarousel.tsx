@@ -10,8 +10,11 @@ import {
   Star,
   MapPin,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { isUnoptimizedUrl, FALLBACK_DESTINATION_IMAGE } from "@/lib/imageUtils";
 
 interface Props {
   images: string[];
@@ -38,14 +41,18 @@ export default function HeroCarousel({
   const [current, setCurrent] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
   const touchStartX = useRef<number | null>(null);
 
   const fallbackImages = [
-    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=80",
+    FALLBACK_DESTINATION_IMAGE,
     "https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5?w=1600&q=80",
     "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1600&q=80",
   ];
-  const displayImages = images && images.length > 0 ? images : fallbackImages;
+  const validImages = (images ?? []).filter(
+    (img): img is string => typeof img === "string" && img.trim().length > 0 && !img.includes("undefined")
+  );
+  const displayImages = validImages.length > 0 ? validImages : fallbackImages;
 
   // Restore favorite state from localStorage
   useEffect(() => {
@@ -178,36 +185,36 @@ export default function HeroCarousel({
     <div className="relative w-full select-none">
       <Toaster position="top-center" />
 
-      {/* ── Curved Hero Image Canvas ── */}
+      {/* ── Curved Hero Image Canvas (Mobile curve, Luxury rounded card on desktop) ── */}
       <div
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
-        className="relative h-[52vh] min-h-[380px] max-h-[480px] w-full overflow-hidden shadow-md"
-        style={{
-          /* Convex downward curve matching the reference exactly */
-          borderRadius: "0 0 50% 50% / 0 0 42px 42px",
-        }}
+        className="relative h-[52vh] min-h-[380px] max-h-[480px] lg:h-[460px] lg:max-h-[500px] w-full overflow-hidden shadow-md [border-radius:0_0_50%_50%/0_0_42px_42px] lg:[border-radius:36px]"
       >
         {/* Slides */}
         {displayImages.map((img, idx) => {
-          const shouldRender = idx === 0 || idx === current || Math.abs(idx - current) <= 1;
+          const finalSrc = failedImages[idx]
+            ? fallbackImages[idx % fallbackImages.length]
+            : img;
+
           return (
             <div
               key={idx}
-              className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
-                idx === current ? "opacity-100 z-1" : "opacity-0 z-0 pointer-events-none"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${idx === current ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                }`}
             >
-              {shouldRender && (
-                <Image
-                  src={img}
-                  alt={`${name} photo ${idx + 1}`}
-                  fill
-                  priority={idx === 0}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 800px"
-                  className="object-cover"
-                />
-              )}
+              <Image
+                src={finalSrc}
+                alt={`${name} photo ${idx + 1}`}
+                fill
+                priority={idx === 0}
+                unoptimized={isUnoptimizedUrl(finalSrc)}
+                onError={() => {
+                  setFailedImages((prev) => ({ ...prev, [idx]: true }));
+                }}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 800px"
+                className="object-cover"
+              />
             </div>
           );
         })}
@@ -215,6 +222,26 @@ export default function HeroCarousel({
         {/* Ambient Dark Gradients */}
         <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 via-black/20 to-transparent z-10 pointer-events-none" />
         <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-black/85 via-black/45 to-transparent z-10 pointer-events-none" />
+
+        {/* ── Desktop Prev / Next Navigation Arrows ── */}
+        {displayImages.length > 1 && (
+          <>
+            <button
+              onClick={prev}
+              aria-label="Previous image"
+              className="hidden lg:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/35 hover:bg-black/55 backdrop-blur-md border border-white/25 text-white items-center justify-center transition-all shadow-lg active:scale-95"
+            >
+              <ChevronLeft size={22} className="stroke-[2.5]" />
+            </button>
+            <button
+              onClick={next}
+              aria-label="Next image"
+              className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/35 hover:bg-black/55 backdrop-blur-md border border-white/25 text-white items-center justify-center transition-all shadow-lg active:scale-95"
+            >
+              <ChevronRight size={22} className="stroke-[2.5]" />
+            </button>
+          </>
+        )}
 
         {/* ── Top Bar Controls: Frosted Glass Floating Buttons ── */}
         <div className="absolute top-5 inset-x-0 px-4 flex items-center justify-between z-20">
@@ -281,11 +308,10 @@ export default function HeroCarousel({
                 className="transition-all duration-300 focus:outline-none"
               >
                 <div
-                  className={`rounded-full transition-all duration-300 ${
-                    i === current
-                      ? "w-4 h-1.5 bg-white"
-                      : "w-1.5 h-1.5 bg-white/50 hover:bg-white/80"
-                  }`}
+                  className={`rounded-full transition-all duration-300 ${i === current
+                    ? "w-4 h-1.5 bg-white"
+                    : "w-1.5 h-1.5 bg-white/50 hover:bg-white/80"
+                    }`}
                 />
               </button>
             ))}
@@ -294,11 +320,11 @@ export default function HeroCarousel({
       </div>
 
       {/* ── Floating Action Button (Star FAB) ── */}
-      {/* Overlaps the bottom-right curve between the photo and the mint area */}
+      {/* Overlaps the bottom-right curve on mobile, neatly positioned on desktop */}
       <button
         onClick={toggleFavorite}
         aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-        className="absolute -bottom-7 right-5 sm:right-6 z-30 w-14 h-14 rounded-full bg-[#101912] text-white flex items-center justify-center shadow-xl shadow-black/35 hover:scale-105 active:scale-95 transition-transform duration-200 cursor-pointer border border-white/10"
+        className="absolute -bottom-7 right-5 sm:right-6 lg:bottom-4 lg:right-6 z-30 w-14 h-14 lg:w-12 lg:h-12 rounded-full bg-[#101912] text-white flex items-center justify-center shadow-xl shadow-black/35 hover:scale-105 active:scale-95 transition-transform duration-200 cursor-pointer border border-white/10"
       >
         <Star
           size={24}

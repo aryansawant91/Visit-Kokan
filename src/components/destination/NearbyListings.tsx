@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Star, ArrowRight } from "lucide-react";
 import DestinationStayEnquiryBox from "./DestinationStayEnquiryBox";
+import { isUnoptimizedUrl } from "@/lib/imageUtils";
 
 interface Props {
   region: string;
@@ -76,6 +77,7 @@ export default function NearbyListings({ region, currentSlug, destinationName }:
                   src={listing.images[0]}
                   alt={listing.name}
                   fill
+                  unoptimized={isUnoptimizedUrl(listing.images[0])}
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (

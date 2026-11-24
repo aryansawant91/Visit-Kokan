@@ -152,9 +152,25 @@ export default function ReviewList({ targetType, targetId, targetName }: Props) 
 
       {/* 4. List of Reviews */}
       {loading ? (
-        <div className="flex items-center justify-center p-8 text-gray-400 gap-2">
-          <Loader2 size={18} className="animate-spin text-[#2D6A4F]" />
-          <span className="text-xs font-medium">Loading traveler reviews...</span>
+        <div className="space-y-3 animate-pulse">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-white rounded-2xl p-4 border border-[#cadbc7] shadow-2xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-[#dce7da]" />
+                  <div className="space-y-1.5">
+                    <div className="h-3.5 w-24 bg-[#edf3eb] rounded" />
+                    <div className="h-2.5 w-16 bg-[#edf3eb] rounded" />
+                  </div>
+                </div>
+                <div className="h-4 w-16 bg-amber-100/70 rounded-full" />
+              </div>
+              <div className="space-y-1.5">
+                <div className="h-3 w-full bg-[#edf3eb] rounded" />
+                <div className="h-3 w-4/5 bg-[#edf3eb] rounded" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : filteredReviews.length > 0 ? (
         <div className="space-y-3">

@@ -87,6 +87,59 @@ function HighlightIcon({ text }: { text: string }) {
   return <Compass size={15} className="text-[#1b4329]" />;
 }
 
+function ScrollDeferredSection({
+  children,
+  placeholder,
+  rootMargin = "250px",
+}: {
+  children: React.ReactNode;
+  placeholder?: React.ReactNode;
+  rootMargin?: string;
+}) {
+  const [isInView, setIsInView] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (!("IntersectionObserver" in window)) {
+      setIsInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [rootMargin]);
+
+  return (
+    <div ref={containerRef}>
+      {isInView ? (
+        children
+      ) : (
+        placeholder || (
+          <div className="bg-white rounded-2xl p-5 border border-[#d6e2d4] shadow-xs animate-pulse space-y-3">
+            <div className="h-4 w-36 bg-[#dce7db] rounded" />
+            <div className="h-16 bg-[#edf3eb] rounded-xl" />
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
 export default function DestinationTabs({
   dest,
   category,
@@ -260,7 +313,7 @@ export default function DestinationTabs({
   return (
     <div className="space-y-4">
       {/* ── Sticky Pill Tabs Bar with Language Switcher ── */}
-      <div className="sticky top-0 z-30 bg-[#edf3eb]/95 backdrop-blur-md py-2.5 -mx-5 px-5 border-b border-[#d6e2d4]/80 shadow-xs flex items-center justify-between gap-2">
+      <div className="sticky top-0 z-30 bg-[#edf3eb]/95 lg:bg-white/95 backdrop-blur-md py-2.5 -mx-5 px-5 lg:mx-0 lg:px-3 lg:rounded-2xl border-b lg:border border-[#d6e2d4]/80 shadow-xs flex items-center justify-between gap-2">
         <div
           ref={tabContainerRef}
           className="flex items-center gap-2 overflow-x-auto scrollbar-none scroll-smooth pb-0.5 flex-1 min-w-0"
@@ -757,10 +810,26 @@ export default function DestinationTabs({
           </div>
         )}
 
-        {/* Weather Widget */}
-        <WeatherWidget region={dest.region} bestSeason={season.short} />
+        {/* Weather Widget (Loaded on Scroll) */}
+        <ScrollDeferredSection
+          placeholder={
+            <div className="bg-white rounded-xl p-4 border border-[#d6e2d4] shadow-xs animate-pulse space-y-3">
+              <div className="flex justify-between items-center">
+                <div className="h-4 w-32 bg-[#dce7db] rounded" />
+                <div className="h-6 w-20 bg-[#edf3eb] rounded-full" />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="h-14 bg-[#edf3eb] rounded-xl" />
+                <div className="h-14 bg-[#edf3eb] rounded-xl" />
+                <div className="h-14 bg-[#edf3eb] rounded-xl" />
+              </div>
+            </div>
+          }
+        >
+          <WeatherWidget region={dest.region} bestSeason={season.short} />
+        </ScrollDeferredSection>
 
-        {/* Nearby Stays & Experiences (Flipkart Horizontal Cards Carousel) */}
+        {/* Nearby Stays & Experiences (Loaded on Scroll) */}
         <div className="pt-1">
           <div className="flex items-center justify-between mb-2 px-1">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#102416]">
@@ -768,17 +837,43 @@ export default function DestinationTabs({
             </h2>
             <span className="text-[10px] text-[#69846f]">Scroll →</span>
           </div>
-          <NearbyListings region={dest.region} currentSlug={dest.slug} destinationName={dest.name} />
+          <ScrollDeferredSection
+            placeholder={
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="w-[142px] h-[190px] bg-white rounded-xl border border-[#d6e2d4] p-2 space-y-2 shrink-0 animate-pulse"
+                  >
+                    <div className="w-full h-[105px] bg-[#edf3eb] rounded-lg" />
+                    <div className="h-3 w-3/4 bg-[#edf3eb] rounded" />
+                    <div className="h-3 w-1/2 bg-[#edf3eb] rounded" />
+                  </div>
+                ))}
+              </div>
+            }
+          >
+            <NearbyListings region={dest.region} currentSlug={dest.slug} destinationName={dest.name} />
+          </ScrollDeferredSection>
         </div>
       </section>
 
-      {/* ── 7. REVIEWS & RATINGS SECTION ── */}
+      {/* ── 7. REVIEWS & RATINGS SECTION (Loaded on Scroll) ── */}
       <section id="section-reviews" className="scroll-mt-20 space-y-3.5 pt-2">
-        <ReviewList
-          targetType="destination"
-          targetId={dest.slug}
-          targetName={dest.name}
-        />
+        <ScrollDeferredSection
+          placeholder={
+            <div className="bg-white rounded-2xl p-5 border border-[#d6e2d4] shadow-xs animate-pulse space-y-3">
+              <div className="h-4 w-36 bg-[#dce7db] rounded" />
+              <div className="h-20 bg-[#edf3eb] rounded-xl" />
+            </div>
+          }
+        >
+          <ReviewList
+            targetType="destination"
+            targetId={dest.slug}
+            targetName={dest.name}
+          />
+        </ScrollDeferredSection>
       </section>
     </div>
   );

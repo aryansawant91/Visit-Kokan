@@ -83,12 +83,27 @@ export default function ProductsPage() {
   }, [loading]);
 
   useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem("vk_products_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed.filter((p: any) => p.isActive !== false));
+          setLoading(false);
+        }
+      }
+    } catch {}
+
     fetch("/api/products")
       .then((r) => r.json())
       .then((data) => {
         const list = Array.isArray(data) ? data : [];
-        setProducts(list.filter((p: any) => p.isActive !== false));
+        const active = list.filter((p: any) => p.isActive !== false);
+        setProducts(active);
         setLoading(false);
+        try {
+          sessionStorage.setItem("vk_products_cache", JSON.stringify(active));
+        } catch {}
       })
       .catch(() => {
         setProducts([]);

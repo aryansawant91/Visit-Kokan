@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Destination } from "@/types/destination";
 import { DESTINATION_CATEGORIES, DESTINATION_REGIONS } from "@/constants/destinationConstants";
 import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Star, ChevronRight, ChevronLeft, Building2, Map } from "lucide-react";
+import { isUnoptimizedUrl, FALLBACK_DESTINATION_IMAGE } from "@/lib/imageUtils";
 
 function DestinationCard({
   destination,
@@ -22,6 +23,15 @@ function DestinationCard({
   priority?: boolean;
   onCardClick?: () => void;
 }) {
+  const [hasError, setHasError] = useState(false);
+
+  const initialSrc =
+    (destination.coverImage && destination.coverImage.trim()) ||
+    (destination.images && destination.images.find((img) => img && typeof img === "string" && img.trim())) ||
+    null;
+
+  const cardImage = hasError || !initialSrc ? FALLBACK_DESTINATION_IMAGE : initialSrc;
+
   return (
     <Link
       href={`/destinations/${destination.slug}?fromPage=${page}`}
@@ -29,18 +39,16 @@ function DestinationCard({
       className="block group"
     >
       <div className={`relative rounded-2xl overflow-hidden shadow-sm ${featured ? "h-52 sm:h-64" : "h-44 sm:h-52"}`}>
-        {destination.coverImage || destination.images?.[0] ? (
-          <Image
-            src={destination.coverImage ?? destination.images[0]}
-            alt={destination.name}
-            fill
-            priority={priority}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-teal-50 flex items-center justify-center text-4xl">🏖️</div>
-        )}
+        <Image
+          src={cardImage}
+          alt={destination.name}
+          fill
+          priority={priority}
+          unoptimized={isUnoptimizedUrl(cardImage)}
+          onError={() => setHasError(true)}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+        />
 
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />

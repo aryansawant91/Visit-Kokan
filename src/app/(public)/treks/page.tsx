@@ -9,6 +9,7 @@ import Image from "next/image";
 import { Trek } from "@/types/trek";
 import { TREK_CATEGORIES, TREK_DIFFICULTIES, TREK_REGIONS } from "@/constants/trekConstants";
 import { Search, X, SlidersHorizontal, ArrowLeft, MapPin, Clock, ChevronRight, ChevronLeft, Building2 } from "lucide-react";
+import { isUnoptimizedUrl, FALLBACK_TREK_IMAGE } from "@/lib/imageUtils";
 
 const VALID_COUPONS = [
   { code: "TREK50",   discount: 50,  description: "₹50 off on any trek" },
@@ -37,8 +38,15 @@ function TrekCard({
   priority?: boolean;
   onCardClick?: () => void;
 }) {
+  const [hasError, setHasError] = useState(false);
   const diff = DIFFICULTY_CONFIG[trek.difficulty] ?? { color: "text-gray-600", bg: "bg-gray-100", emoji: "⚪" };
   const isBookable = trek.slug === "torna-fort-trek" || Boolean(trek.isBookable) || trek.bookingStatus === "open";
+
+  const initialSrc =
+    (trek.images && trek.images.find((img) => img && typeof img === "string" && img.trim())) ||
+    null;
+
+  const cardImage = hasError || !initialSrc ? FALLBACK_TREK_IMAGE : initialSrc;
 
   return (
     <Link
@@ -47,18 +55,16 @@ function TrekCard({
       className="block group"
     >
       <div className={`relative rounded-2xl overflow-hidden shadow-sm ${featured ? "h-52 sm:h-64" : "h-44 sm:h-52"}`}>
-        {trek.images?.[0] ? (
-          <Image
-            src={trek.images[0]}
-            alt={trek.name}
-            fill
-            priority={priority}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-teal-50 flex items-center justify-center text-4xl">🥾</div>
-        )}
+        <Image
+          src={cardImage}
+          alt={trek.name}
+          fill
+          priority={priority}
+          unoptimized={isUnoptimizedUrl(cardImage)}
+          onError={() => setHasError(true)}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+        />
 
         {/* Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />

@@ -10,8 +10,11 @@ import {
   Check,
   Heart,
   Package,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { isUnoptimizedUrl, FALLBACK_PRODUCT_IMAGE } from "@/lib/imageUtils";
 
 interface Props {
   images: string[];
@@ -37,23 +40,28 @@ export default function ProductHeroCarousel({
   const router = useRouter();
   const [current, setCurrent] = useState(0);
   const [isWishlist, setIsWishlist] = useState(false);
+  const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
   const touchStartX = useRef<number | null>(null);
 
   const fallbackImages = [
+    FALLBACK_PRODUCT_IMAGE,
     "/images/banners/alphonso-mangoes.jpg",
     "/images/banners/kokum-sherbet.jpg",
     "/images/banners/konkan-cashews.jpg",
   ];
-  const displayImages = images && images.length > 0 ? images : fallbackImages;
+  const validImages = (images ?? []).filter(
+    (img): img is string => typeof img === "string" && img.trim().length > 0 && !img.includes("undefined")
+  );
+  const displayImages = validImages.length > 0 ? validImages : fallbackImages;
 
   const canOptimizeImage = (url?: string) => {
     if (!url) return false;
     if (url.startsWith("/")) return true;
+    if (url.includes("wikimedia.org") || url.includes("wikipedia.org")) return false;
     return (
       url.includes("firebasestorage.googleapis.com") ||
       url.includes("lh3.googleusercontent.com") ||
       url.includes("images.unsplash.com") ||
-      url.includes("wikimedia.org") ||
       url.includes("drive.google.com")
     );
   };
@@ -147,38 +155,66 @@ export default function ProductHeroCarousel({
 
   return (
     <div
-      className="relative h-[340px] sm:h-[390px] rounded-b-[36px] sm:rounded-b-[44px] overflow-hidden shadow-md select-none bg-emerald-950/20"
+      className="relative h-[340px] sm:h-[390px] lg:h-[480px] rounded-b-[36px] sm:rounded-b-[44px] lg:rounded-[36px] overflow-hidden shadow-md select-none bg-emerald-950/20"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       <Toaster position="top-center" />
 
       {/* Images Slider */}
-      {displayImages.map((img, idx) => (
-        <div
-          key={idx}
-          className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
-            idx === current ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-          }`}
-        >
-          <Image
-            src={img}
-            alt={`${name} photo ${idx + 1}`}
-            fill
-            priority={idx === 0}
-            loading={idx === 0 ? "eager" : "lazy"}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 700px"
-            unoptimized={!canOptimizeImage(img)}
-            className="object-cover object-center"
-          />
-        </div>
-      ))}
+      {displayImages.map((img, idx) => {
+        const finalSrc = failedImages[idx]
+          ? fallbackImages[idx % fallbackImages.length]
+          : img;
+
+        return (
+          <div
+            key={idx}
+            className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
+              idx === current ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+            }`}
+          >
+            <Image
+              src={finalSrc}
+              alt={`${name} photo ${idx + 1}`}
+              fill
+              priority={idx === 0}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 800px"
+              unoptimized={isUnoptimizedUrl(finalSrc) || !canOptimizeImage(finalSrc)}
+              onError={() => {
+                setFailedImages((prev) => ({ ...prev, [idx]: true }));
+              }}
+              className="object-cover object-center"
+            />
+          </div>
+        );
+      })}
 
       {/* Top Gradient Shadow for Action Buttons */}
       <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/60 to-transparent z-20 pointer-events-none" />
 
       {/* Bottom Subtle Gradient for indicators */}
       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-20 pointer-events-none" />
+
+      {/* ── Desktop Prev / Next Navigation Arrows ── */}
+      {displayImages.length > 1 && (
+        <>
+          <button
+            onClick={() => setCurrent((i) => (i - 1 + displayImages.length) % displayImages.length)}
+            aria-label="Previous image"
+            className="hidden lg:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/35 hover:bg-black/55 backdrop-blur-md border border-white/25 text-white items-center justify-center transition-all shadow-lg active:scale-95"
+          >
+            <ChevronLeft size={22} className="stroke-[2.5]" />
+          </button>
+          <button
+            onClick={() => setCurrent((i) => (i + 1) % displayImages.length)}
+            aria-label="Next image"
+            className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/35 hover:bg-black/55 backdrop-blur-md border border-white/25 text-white items-center justify-center transition-all shadow-lg active:scale-95"
+          >
+            <ChevronRight size={22} className="stroke-[2.5]" />
+          </button>
+        </>
+      )}
 
       {/* Floating Header Actions (Back & Share/Wishlist) */}
       <div className="absolute top-4 inset-x-4 flex items-center justify-between z-30">

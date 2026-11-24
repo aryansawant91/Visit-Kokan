@@ -13,6 +13,7 @@ import {
   Mountain,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { isUnoptimizedUrl, FALLBACK_TREK_IMAGE } from "@/lib/imageUtils";
 
 interface Props {
   images: string[];
@@ -42,14 +43,18 @@ export default function TrekHeroCarousel({
   const [current, setCurrent] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
   const touchStartX = useRef<number | null>(null);
 
   const fallbackImages = [
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80",
+    FALLBACK_TREK_IMAGE,
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1600&q=80",
     "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600&q=80",
   ];
-  const displayImages = images && images.length > 0 ? images : fallbackImages;
+  const validImages = (images ?? []).filter(
+    (img): img is string => typeof img === "string" && img.trim().length > 0 && !img.includes("undefined")
+  );
+  const displayImages = validImages.length > 0 ? validImages : fallbackImages;
 
   // Restore favorite state from localStorage
   useEffect(() => {
@@ -179,24 +184,29 @@ export default function TrekHeroCarousel({
       >
         {/* Slides */}
         {displayImages.map((img, idx) => {
-          const shouldRender = idx === 0 || idx === current || Math.abs(idx - current) <= 1;
+          const finalSrc = failedImages[idx]
+            ? fallbackImages[idx % fallbackImages.length]
+            : img;
+
           return (
             <div
               key={idx}
               className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
-                idx === current ? "opacity-100 z-1" : "opacity-0 z-0 pointer-events-none"
+                idx === current ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
               }`}
             >
-              {shouldRender && (
-                <Image
-                  src={img}
-                  alt={`${name} photo ${idx + 1}`}
-                  fill
-                  priority={idx === 0}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 800px"
-                  className="object-cover"
-                />
-              )}
+              <Image
+                src={finalSrc}
+                alt={`${name} photo ${idx + 1}`}
+                fill
+                priority={idx === 0}
+                unoptimized={isUnoptimizedUrl(finalSrc)}
+                onError={() => {
+                  setFailedImages((prev) => ({ ...prev, [idx]: true }));
+                }}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 800px"
+                className="object-cover"
+              />
             </div>
           );
         })}
