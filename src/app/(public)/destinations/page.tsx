@@ -13,11 +13,13 @@ function DestinationCard({
   destination,
   featured = false,
   page = 1,
+  priority = false,
   onCardClick,
 }: {
   destination: Destination;
   featured?: boolean;
   page?: number;
+  priority?: boolean;
   onCardClick?: () => void;
 }) {
   return (
@@ -32,6 +34,7 @@ function DestinationCard({
             src={destination.coverImage ?? destination.images[0]}
             alt={destination.name}
             fill
+            priority={priority}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -142,9 +145,27 @@ export default function DestinationsPage() {
   }, [loading]);
 
   useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem("vk_destinations_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDestinations(parsed);
+          setLoading(false);
+        }
+      }
+    } catch {}
+
     fetch("/api/destinations")
       .then((r) => r.json())
-      .then((data) => { setDestinations(Array.isArray(data) ? data : []); setLoading(false); })
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setDestinations(list);
+        setLoading(false);
+        try {
+          sessionStorage.setItem("vk_destinations_cache", JSON.stringify(list));
+        } catch {}
+      })
       .catch(() => setLoading(false));
   }, []);
 
@@ -380,6 +401,8 @@ export default function DestinationsPage() {
             src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=80"
             alt="Konkan Coast"
             fill
+            priority
+            sizes="100vw"
             className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
@@ -453,11 +476,12 @@ export default function DestinationsPage() {
                   ref={featuredScrollerRef}
                   className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:overflow-visible"
                 >
-                  {featured.map((d) => (
+                  {featured.map((d, idx) => (
                     <div key={d.id} className="flex-shrink-0 w-[68vw] sm:w-auto">
                       <DestinationCard
                         destination={d}
                         featured
+                        priority={idx === 0}
                         page={currentPage}
                         onCardClick={() => saveNavState(currentPage)}
                       />
@@ -486,6 +510,7 @@ export default function DestinationsPage() {
                   <DestinationCard
                     destination={d}
                     page={currentPage}
+                    priority={i < 2}
                     onCardClick={() => saveNavState(currentPage)}
                   />
                 </div>

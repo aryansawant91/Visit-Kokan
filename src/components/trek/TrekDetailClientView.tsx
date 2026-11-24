@@ -11,15 +11,25 @@ import {
   ShieldCheck, Bus, Utensils, MessageCircle,
   HelpCircle, AlertCircle
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { Trek } from "@/types/trek";
 import WeatherWidget from "@/components/destination/WeatherWidget";
 import NearbyListings from "@/components/destination/NearbyListings";
 import TrekHeroCarousel from "@/components/trek/TrekHeroCarousel";
 import TrekStickyBar from "@/components/trek/TrekStickyBar";
 import TrekEnquiryWidget from "@/components/trek/TrekEnquiryWidget";
-import TrekBookingWidget from "@/components/trek/TrekBookingWidget";
 import DurgTrekGuide from "@/components/trek/DurgTrekGuide";
-import ReviewList from "@/components/reviews/ReviewList";
+
+// Code-split heavy interactive modal & below-the-fold reviews off the mobile initial paint bundle
+const TrekBookingWidget = dynamic(
+  () => import("@/components/trek/TrekBookingWidget"),
+  { ssr: false }
+);
+
+const ReviewList = dynamic(
+  () => import("@/components/reviews/ReviewList"),
+  { ssr: false }
+);
 
 interface Props {
   trek: Trek;

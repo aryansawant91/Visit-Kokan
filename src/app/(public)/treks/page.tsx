@@ -28,11 +28,13 @@ function TrekCard({
   trek,
   featured = false,
   page = 1,
+  priority = false,
   onCardClick,
 }: {
   trek: Trek;
   featured?: boolean;
   page?: number;
+  priority?: boolean;
   onCardClick?: () => void;
 }) {
   const diff = DIFFICULTY_CONFIG[trek.difficulty] ?? { color: "text-gray-600", bg: "bg-gray-100", emoji: "⚪" };
@@ -50,6 +52,7 @@ function TrekCard({
             src={trek.images[0]}
             alt={trek.name}
             fill
+            priority={priority}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -178,6 +181,17 @@ function TreksPageInner() {
   }, []); // eslint-disable-line
 
   useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem("vk_treks_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setTreks(parsed);
+          setLoading(false);
+        }
+      }
+    } catch {}
+
     fetch("/api/treks")
       .then((r) => r.json())
       .then((data) => {
@@ -191,6 +205,9 @@ function TreksPageInner() {
         });
         setTreks(unique);
         setLoading(false);
+        try {
+          sessionStorage.setItem("vk_treks_cache", JSON.stringify(unique));
+        } catch {}
       })
       .catch(() => setLoading(false));
   }, []);
@@ -375,6 +392,8 @@ function TreksPageInner() {
             src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80"
             alt="Konkan Treks"
             fill
+            priority
+            sizes="100vw"
             className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
@@ -450,9 +469,9 @@ function TreksPageInner() {
                   <span className="text-xs text-kokan-earth/40">{featured.length} treks</span>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:overflow-visible">
-                  {featured.map((t) => (
+                  {featured.map((t, idx) => (
                     <div key={t.id} className="flex-shrink-0 w-[68vw] sm:w-auto">
-                      <TrekCard trek={t} featured page={currentPage} onCardClick={() => saveNavState(currentPage)} />
+                      <TrekCard trek={t} featured priority={idx === 0} page={currentPage} onCardClick={() => saveNavState(currentPage)} />
                     </div>
                   ))}
                 </div>
@@ -475,7 +494,7 @@ function TreksPageInner() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {paginatedItems.map((t, i) => (
                 <div key={t.id} className={i === 0 && !hasFilters && currentPage === 1 ? "col-span-2 sm:col-span-1" : ""}>
-                  <TrekCard trek={t} page={currentPage} onCardClick={() => saveNavState(currentPage)} />
+                  <TrekCard trek={t} page={currentPage} priority={i < 2} onCardClick={() => saveNavState(currentPage)} />
                 </div>
               ))}
             </div>

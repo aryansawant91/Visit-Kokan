@@ -13,6 +13,25 @@ import { adminDb } from "@/lib/firebaseAdmin";
 // Enable ISR on Vercel Edge CDN for sub-50ms TTFB
 export const revalidate = 3600;
 
+// Pre-generate top popular destination routes on Vercel Edge at build time
+export async function generateStaticParams() {
+  try {
+    if (adminDb) {
+      const snap = await adminDb
+        .collection("destinations")
+        .where("approved", "==", true)
+        .limit(25)
+        .get();
+      return snap.docs
+        .map((doc) => ({ slug: doc.data().slug }))
+        .filter((item) => Boolean(item.slug));
+    }
+  } catch {
+    // If building offline or without db access, fallback cleanly to on-demand ISR
+  }
+  return [];
+}
+
 // In-memory cache for rapid lookup
 const destMemoryCache = new Map<string, { data: any; time: number }>();
 const CACHE_TTL_MS = 60_000 * 15; // 15 mins

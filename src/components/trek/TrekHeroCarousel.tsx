@@ -178,24 +178,28 @@ export default function TrekHeroCarousel({
         }}
       >
         {/* Slides */}
-        {displayImages.map((img, idx) => (
-          <div
-            key={idx}
-            className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
-              idx === current ? "opacity-100 z-1" : "opacity-0 z-0 pointer-events-none"
-            }`}
-          >
-            <Image
-              src={img}
-              alt={`${name} photo ${idx + 1}`}
-              fill
-              priority={idx === 0}
-              loading={idx === 0 ? "eager" : "lazy"}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 800px"
-              className="object-cover"
-            />
-          </div>
-        ))}
+        {displayImages.map((img, idx) => {
+          const shouldRender = idx === 0 || idx === current || Math.abs(idx - current) <= 1;
+          return (
+            <div
+              key={idx}
+              className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
+                idx === current ? "opacity-100 z-1" : "opacity-0 z-0 pointer-events-none"
+              }`}
+            >
+              {shouldRender && (
+                <Image
+                  src={img}
+                  alt={`${name} photo ${idx + 1}`}
+                  fill
+                  priority={idx === 0}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 800px"
+                  className="object-cover"
+                />
+              )}
+            </div>
+          );
+        })}
 
         {/* Ambient Dark Gradients */}
         <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 via-black/20 to-transparent z-10 pointer-events-none" />

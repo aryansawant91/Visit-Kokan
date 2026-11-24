@@ -33,13 +33,25 @@ import {
   Umbrella,
   ArrowRight,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import WeatherWidget from "./WeatherWidget";
-import NearbyListings from "./NearbyListings";
-import TideStatusCard from "@/components/travel/TideStatusCard";
 import { isSeaFort } from "@/lib/tides/konkanTides";
 import LanguageToggle from "@/components/ui/LanguageToggle";
 import { useMarathiReader } from "@/hooks/useMarathiReader";
-import ReviewList from "@/components/reviews/ReviewList";
+
+// Code-split tab panels to keep destination initial payload featherweight
+const NearbyListings = dynamic(() => import("./NearbyListings"), {
+  ssr: false,
+  loading: () => <div className="h-32 bg-[#edf3eb] rounded-2xl animate-pulse" />,
+});
+
+const TideStatusCard = dynamic(() => import("@/components/travel/TideStatusCard"), {
+  ssr: false,
+});
+
+const ReviewList = dynamic(() => import("@/components/reviews/ReviewList"), {
+  ssr: false,
+});
 
 interface DestinationTabsProps {
   dest: any;

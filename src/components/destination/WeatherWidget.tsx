@@ -92,6 +92,22 @@ export default function WeatherWidget({ region, bestSeason }: Props) {
 
   useEffect(() => {
     let isMounted = true;
+    const cacheKey = `vk_weather_${matched.lat}_${matched.lon}`;
+
+    if (typeof window !== "undefined") {
+      try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          const { data, time } = JSON.parse(cached);
+          if (Date.now() - time < 30 * 60 * 1000) {
+            setWeather(data);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch {}
+    }
+
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${matched.lat}&longitude=${matched.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m&timezone=Asia%2FKolkata`;
 
     fetch(url)
@@ -102,14 +118,18 @@ export default function WeatherWidget({ region, bestSeason }: Props) {
       .then((data) => {
         if (!isMounted) return;
         if (data?.current) {
-          setWeather({
+          const parsedWeather: LiveWeather = {
             temperature: Math.round(data.current.temperature_2m),
             feelsLike: Math.round(data.current.apparent_temperature),
             humidity: data.current.relative_humidity_2m,
             windSpeed: Math.round(data.current.wind_speed_10m),
             weatherCode: data.current.weather_code,
             isDay: data.current.is_day ?? 1,
-          });
+          };
+          setWeather(parsedWeather);
+          try {
+            sessionStorage.setItem(cacheKey, JSON.stringify({ data: parsedWeather, time: Date.now() }));
+          } catch {}
         }
         setLoading(false);
       })
