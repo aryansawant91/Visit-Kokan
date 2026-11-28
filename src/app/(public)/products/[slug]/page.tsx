@@ -26,6 +26,7 @@ import { PRODUCT_CATEGORIES } from "@/constants/productCategories";
 import ProductHeroCarousel from "@/components/products/ProductHeroCarousel";
 import ProductTabs from "@/components/products/ProductTabs";
 import ProductDetailLoading from "./loading";
+import { trackGAEvent } from "@/lib/analytics";
 
 const RECENTLY_VIEWED_KEY = "kokan_recently_viewed";
 
@@ -303,6 +304,13 @@ export default function ProductDetailPage() {
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() =>
+                    trackGAEvent("whatsapp_enquiry_click", {
+                      source: "product_desktop",
+                      item_name: product.name,
+                      region: product.region || "Konkan",
+                    })
+                  }
                   className="w-full py-3.5 px-4 rounded-2xl font-black text-sm bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md shadow-[#25D366]/25 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
                 >
                   <MessageCircle size={18} className="fill-white text-transparent shrink-0" />
@@ -364,6 +372,13 @@ export default function ProductDetailPage() {
               )}`}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() =>
+                trackGAEvent("whatsapp_enquiry_click", {
+                  source: "product_mobile",
+                  item_name: product.name,
+                  region: product.region || "Konkan",
+                })
+              }
               className="flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md shadow-[#25D366]/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               <MessageCircle size={16} className="fill-white text-transparent shrink-0" />

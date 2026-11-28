@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import KonkanMap from "./KonkanMap";
 
 export const metadata: Metadata = {
-  title: "Interactive Konkan Visual Route Map 2026 — Beaches, Forts & Ferries | Visit Kokan",
+  title: "Interactive Konkan Visual Route Map 2026 — Beaches, Forts & Ferries",
   description:
     "Interactive map of coastal Maharashtra. Explore 48 destinations, 60 Sahyadri forts & mountain treks, and 5 vehicle ferry shortcuts across Raigad, Ratnagiri, and Sindhudurg.",
   keywords: [

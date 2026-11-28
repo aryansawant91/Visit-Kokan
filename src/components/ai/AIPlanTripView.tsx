@@ -28,6 +28,7 @@ import {
   MessageCircle
 } from "lucide-react";
 import { ItineraryData } from "./ItineraryModal";
+import { trackGAEvent } from "@/lib/analytics";
 
 const POPULAR_PRESETS = [
   {
@@ -165,6 +166,13 @@ export default function AIPlanTripView() {
         setErrorMsg(null);
         setItinerary(data.itinerary);
         setActiveDay(0);
+        trackGAEvent("trip_planner_generated", {
+          origin,
+          region,
+          duration,
+          vibe,
+          title: data.itinerary?.title || "Konkan Trip",
+        });
         setChatMessages([
           ...messagesPayload,
           { role: "assistant" as const, content: data.message || "Here is your Konkan itinerary! 🌊" },
@@ -643,6 +651,12 @@ export default function AIPlanTripView() {
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() =>
+                              trackGAEvent("whatsapp_enquiry_click", {
+                                source: "trip_planner",
+                                item_name: itinerary.transportSummary?.to || itinerary.title || region,
+                              })
+                            }
                             className="px-3.5 py-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all active:scale-95"
                           >
                             <MessageCircle size={12} />

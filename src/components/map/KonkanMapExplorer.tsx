@@ -37,6 +37,7 @@ import {
   MapSpotCategory,
 } from "@/data/konkanMapLocations";
 import { FALLBACK_DESTINATION_IMAGE } from "@/lib/imageUtils";
+import { trackGAEvent } from "@/lib/analytics";
 
 // ══════════════════════════════════════════════════════════════
 // 1. BULLETPROOF MAP STYLES (Fast CDN Raster + Satellite + Topo)
@@ -1030,6 +1031,15 @@ export default function KonkanMapExplorer() {
       setRouteOptions(parsedOptions);
       setSelectedRouteIdx(0);
       syncRoutesToMap(parsedOptions, 0, waypoints);
+      if (parsedOptions[0]) {
+        trackGAEvent("map_route_calculated", {
+          origin: startPoint.shortName,
+          destination: routeStops[routeStops.length - 1]?.name || "",
+          stops_count: routeStops.length,
+          distance_km: parsedOptions[0].distanceKm,
+          duration_minutes: parsedOptions[0].durationMinutes,
+        });
+      }
     } catch {
       // Fallback: always draw connected path between waypoints on map even if OSRM is unreachable
       const fallbackCoords: [number, number][] = waypoints.map((w) => [w.lng, w.lat]);

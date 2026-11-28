@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { trackGAEvent } from "@/lib/analytics";
 import {
   Ship,
   Clock,
@@ -58,8 +59,29 @@ export default function FerryClientView() {
     });
   }, [districtFilter, vehicleFilter, searchQuery]);
 
+  // Track initial ferry timetable view
+  useEffect(() => {
+    trackGAEvent("ferry_schedule_view", {
+      route_id: "all",
+      route_name: "Konkan Ferry Timetables Directory",
+    });
+  }, []);
+
   const toggleExpand = (id: string) => {
-    setExpandedRouteId((curr) => (curr === id ? null : id));
+    setExpandedRouteId((curr) => {
+      const next = curr === id ? null : id;
+      if (next) {
+        const route = KONKAN_FERRY_ROUTES.find((r) => r.id === next);
+        if (route) {
+          trackGAEvent("ferry_schedule_view", {
+            route_id: route.id,
+            route_name: route.name,
+            district: route.district,
+          });
+        }
+      }
+      return next;
+    });
   };
 
   const getVehicleChoice = (routeId: string) => routeVehicles[routeId] || "carSmall";
@@ -611,6 +633,12 @@ export default function FerryClientView() {
             )}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() =>
+              trackGAEvent("whatsapp_enquiry_click", {
+                source: "ferry",
+                item_name: "Konkan Ferry Concierge",
+              })
+            }
             className="px-5 py-3 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-[#25D366]/20 transition-all active:scale-95 shrink-0"
           >
             <span>Ask on WhatsApp (+91 84325 87706)</span>

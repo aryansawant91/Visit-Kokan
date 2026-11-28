@@ -11,10 +11,33 @@ import {
   sanitizeTrekText,
 } from "@/lib/ai/transportData";
 import { getWebsiteGroundingContext } from "@/lib/ai/kokanWebsiteData";
+import { adminDb } from "@/lib/firebaseAdmin";
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY!,
 });
+
+async function logAIChatQuestion(params: {
+  question: string;
+  pathname?: string;
+  pageContext?: string;
+  isItinerary: boolean;
+  replyPreview: string;
+}) {
+  try {
+    if (!adminDb || !params.question.trim()) return;
+    await adminDb.collection("ai_chat_logs").add({
+      question: params.question.trim().slice(0, 1000),
+      pathname: (params.pathname || "/").slice(0, 200),
+      pageContext: (params.pageContext || "").slice(0, 200),
+      isItinerary: params.isItinerary,
+      replyPreview: params.replyPreview.trim().slice(0, 350),
+      createdAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.warn("AI chat log save skipped:", err);
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -168,8 +191,16 @@ export async function POST(req: NextRequest) {
             itineraryObj,
             `${pageContext || ""} ${pathname || ""} ${lastUserMessage?.content || ""}`
           );
+          const summaryMsg = parsed.summary || "Here's your Konkan itinerary! 🌊";
+          void logAIChatQuestion({
+            question: lastUserMessage?.content || "",
+            pathname,
+            pageContext,
+            isItinerary: true,
+            replyPreview: sanitizedData?.title ? `${sanitizedData.title} — ${summaryMsg}` : summaryMsg,
+          });
           return NextResponse.json({
-            message: parsed.summary || "Here's your Konkan itinerary! 🌊",
+            message: summaryMsg,
             itinerary: sanitizedData,
           });
         }
@@ -197,6 +228,14 @@ export async function POST(req: NextRequest) {
         itinerary: null,
       });
     }
+
+    void logAIChatQuestion({
+      question: lastUserMessage?.content || "",
+      pathname,
+      pageContext,
+      isItinerary,
+      replyPreview: cleanText,
+    });
 
     return NextResponse.json({ message: cleanText });
 

@@ -8,6 +8,7 @@ import { DESTINATION_CATEGORIES } from "@/constants/destinationConstants";
 import DestinationJsonLd from "@/components/destination/DestinationJsonLd";
 import HeroCarousel from "@/components/destination/HeroCarousel";
 import DestinationTabs from "@/components/destination/DestinationTabs";
+import TrackedExternalLink from "@/components/analytics/TrackedExternalLink";
 import { adminDb } from "@/lib/firebaseAdmin";
 
 // Enable ISR on Vercel Edge CDN for sub-50ms TTFB
@@ -34,9 +35,13 @@ export async function generateStaticParams() {
 
 // In-memory cache for rapid lookup
 const destMemoryCache = new Map<string, { data: any; time: number }>();
+let allApprovedDestinationsCache: { data: any[]; time: number } | null = null;
 const CACHE_TTL_MS = 60_000 * 15; // 15 mins
 
-async function getDestination(slug: string) {
+async function getDestination(rawSlug: string) {
+  const slug = decodeURIComponent(rawSlug || "").trim().toLowerCase();
+  if (!slug) return null;
+
   const cached = destMemoryCache.get(slug);
   if (cached && Date.now() - cached.time < CACHE_TTL_MS) {
     return cached.data;
@@ -154,6 +159,52 @@ async function getDestination(slug: string) {
         destMemoryCache.set(slug, { data: result, time: Date.now() });
         return result;
       }
+
+      // Fuzzy token fallback against approved destinations to prevent 404s on slight slug variations
+      if (!allApprovedDestinationsCache || Date.now() - allApprovedDestinationsCache.time >= CACHE_TTL_MS) {
+        const allSnap = await adminDb
+          .collection("destinations")
+          .where("approved", "==", true)
+          .get();
+        allApprovedDestinationsCache = {
+          data: allSnap.docs.map((d) =>
+            JSON.parse(
+              JSON.stringify({ id: d.id, ...d.data() }, (_k, v) => {
+                if (v && typeof v === "object" && typeof v.toDate === "function") {
+                  return v.toDate().toISOString();
+                }
+                if (v && typeof v === "object" && typeof v._seconds === "number") {
+                  return new Date(v._seconds * 1000).toISOString();
+                }
+                return v;
+              })
+            )
+          ),
+          time: Date.now(),
+        };
+      }
+
+      const stopWords = new Set(["beach", "fort", "temple", "waterfall", "harbour", "harbor", "hill", "station", "the", "and", "of"]);
+      const queryTokens = slug
+        .split("-")
+        .filter((t) => t.length > 2 && !stopWords.has(t));
+
+      if (queryTokens.length > 0) {
+        const fuzzyMatch =
+          allApprovedDestinationsCache.data.find((d) => {
+            const target = `${d.slug || ""} ${d.name || ""}`.toLowerCase();
+            return queryTokens.every((tok) => target.includes(tok));
+          }) ||
+          allApprovedDestinationsCache.data.find((d) => {
+            const target = (d.slug || "").toLowerCase();
+            return target.startsWith(queryTokens[0]) || (queryTokens[0].length >= 5 && target.includes(queryTokens[0]));
+          });
+
+        if (fuzzyMatch) {
+          destMemoryCache.set(slug, { data: fuzzyMatch, time: Date.now() });
+          return fuzzyMatch;
+        }
+      }
     }
   } catch (err: any) {
     console.warn("Direct adminDb lookup failed, falling back to API:", err.message);
@@ -182,9 +233,9 @@ export async function generateMetadata({ params }: { params: any }): Promise<Met
   const resolvedParams = await Promise.resolve(params);
   const slug = resolvedParams?.slug;
   const dest = await getDestination(slug);
-  if (!dest) return { title: "Destination Not Found — Visit Kokan" };
+  if (!dest) return { title: "Destination Not Found" };
   return {
-    title: `${dest.name} — Visit Kokan`,
+    title: dest.name,
     description: dest.description || dest.shortDescription || `Discover ${dest.name} in ${dest.region}, Maharashtra.`,
     openGraph: {
       images: dest.images?.[0] ? [dest.images[0]] : dest.coverImage ? [dest.coverImage] : [],
@@ -248,6 +299,8 @@ export default async function DestinationPage({
         image={allImages[0]}
         region={dest.region}
         slug={dest.slug}
+        bestSeason={dest.bestSeason}
+        highlights={dest.highlights}
       />
 
       {/* ── Outer App-Style Canvas Frame (Phone canvas on mobile, luxury 12-col desktop layout on lg+) ── */}
@@ -429,17 +482,19 @@ export default async function DestinationPage({
                 <p className="text-xs font-bold text-[#0f2416]">Planning a visit?</p>
                 <p className="text-[11px] text-[#526b58]">Get local guidance on homestays & ferries</p>
               </div>
-              <a
+              <TrackedExternalLink
                 href={`https://wa.me/918432587706?text=${encodeURIComponent(
                   `Hello Visit Kokan! I am planning a trip to "${dest.name}" in ${dest.region}. Can you assist with stay options and recommendations?`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                eventName="whatsapp_enquiry_click"
+                eventParams={{ source: "destination", item_name: dest.name, region: dest.region }}
                 className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1f4e38] text-xs font-bold border border-emerald-200 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
               >
                 <MessageCircle size={14} className="text-emerald-600" />
                 <span>WhatsApp Us</span>
-              </a>
+              </TrackedExternalLink>
             </div>
 
           </div>
