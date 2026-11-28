@@ -14,10 +14,15 @@ import {
   Package,
   Check,
   Lock,
+  Flame,
+  Calendar,
 } from "lucide-react";
 import { Trek } from "@/types/trek";
 import { Product } from "@/types/product";
 import { Listing } from "@/types/listing";
+import { Banner } from "@/types/banner";
+import { FALLBACK_DESTINATION_IMAGE } from "@/lib/imageUtils";
+import { trackGAEvent } from "@/lib/analytics";
 import { useCart } from "@/context/CartContext";
 import BusinessListingBanner from "./BusinessListingBanner";
 
@@ -567,6 +572,8 @@ function HomestayCardSkeleton() {
 
 export default function TravelTab() {
   const [activeBanner, setActiveBanner] = useState(0);
+  const [dynamicBanners, setDynamicBanners] = useState<Banner[]>([]);
+  const [failedBannerImages, setFailedBannerImages] = useState<Record<string, boolean>>({});
   const [activeCategory, setActiveCategory] = useState("all");
   const [destinations, setDestinations] = useState<DestinationItem[]>(FALLBACK_DESTINATIONS);
   const [destinationsLoading, setDestinationsLoading] = useState(true);
@@ -577,11 +584,51 @@ export default function TravelTab() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
 
+  const carouselBanners = [
+    ...dynamicBanners.map((b) => ({
+      id: b.id,
+      title: b.title,
+      sub: b.subtitle,
+      cta: b.ctaText || "Book Seat Now",
+      href: b.ctaLink || "/treks",
+      image: b.imageUrl || FALLBACK_DESTINATION_IMAGE,
+      badgeText: b.badgeText,
+      seatsLeft: b.seatsLeft,
+      batchKey: b.batchKey,
+      isDynamic: true,
+    })),
+    ...BANNERS.map((b, idx) => ({
+      id: `static-${idx}`,
+      ...b,
+      badgeText: undefined as string | undefined,
+      seatsLeft: undefined as number | undefined,
+      batchKey: undefined as string | undefined,
+      isDynamic: false,
+    })),
+  ];
+
+  // Fetch active batch/promo banners from Firestore
+  useEffect(() => {
+    fetch("/api/banners")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDynamicBanners(data);
+          setActiveBanner(0);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Auto-rotate banner
   useEffect(() => {
-    const timer = setInterval(() => setActiveBanner((i) => (i + 1) % BANNERS.length), 4000);
+    if (carouselBanners.length <= 1) return;
+    const timer = setInterval(
+      () => setActiveBanner((i) => (i + 1) % carouselBanners.length),
+      4500
+    );
     return () => clearInterval(timer);
-  }, []);
+  }, [carouselBanners.length]);
 
   // Fetch seeded destinations from Firestore via API
   useEffect(() => {
@@ -722,54 +769,132 @@ export default function TravelTab() {
             className="relative h-48 sm:h-56 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm"
             style={{ minHeight: "192px", maxHeight: "224px", position: "relative", overflow: "hidden" }}
           >
-            {BANNERS.map((banner, i) => (
-              <div
-                key={i}
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                  i === activeBanner ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
-                }`}
-                style={{ position: "absolute", inset: 0, overflow: "hidden" }}
-              >
-                {/* Background image */}
-                <Image
-                  src={banner.image}
-                  alt={banner.title}
-                  fill
-                  priority={i === 0}
-                  className="object-cover"
-                  style={{ objectFit: "cover", width: "100%", height: "100%" }}
-                />
+            {carouselBanners.map((banner, i) => {
+              const isExternal = Boolean(banner.href?.startsWith("http"));
+              const resolvedImg = failedBannerImages[banner.id]
+                ? FALLBACK_DESTINATION_IMAGE
+                : banner.image || FALLBACK_DESTINATION_IMAGE;
 
-                {/* Left gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+              const handleBannerCta = () => {
+                if (banner.isDynamic) {
+                  trackGAEvent("banner_cta_click", {
+                    item_name: banner.title,
+                    batch_key: banner.batchKey || "promo",
+                    cta_link: banner.href || "",
+                  });
+                  if (banner.href?.includes("wa.me")) {
+                    trackGAEvent("whatsapp_enquiry_click", {
+                      source: "home_banner",
+                      item_name: banner.title,
+                    });
+                  }
+                }
+              };
 
-                {/* Content */}
-                <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-between items-start max-w-[70%] sm:max-w-sm">
-                  <div>
-                    <span className="text-amber-300/95 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] drop-shadow-sm block mb-1">
-                      {banner.sub}
-                    </span>
-                    <h3 className="text-white font-display font-bold text-xl sm:text-3xl leading-[1.15] drop-shadow-md tracking-tight">
-                      {banner.title}
-                    </h3>
+              return (
+                <div
+                  key={banner.id}
+                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                    i === activeBanner ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
+                  }`}
+                  style={{ position: "absolute", inset: 0, overflow: "hidden" }}
+                >
+                  {/* Background image */}
+                  {banner.isDynamic ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={resolvedImg}
+                      alt={banner.title}
+                      onError={() =>
+                        setFailedBannerImages((prev) => ({ ...prev, [banner.id]: true }))
+                      }
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={banner.image}
+                      alt={banner.title}
+                      fill
+                      priority={i === 0}
+                      className="object-cover"
+                      style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                    />
+                  )}
+
+                  {/* Left gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-transparent" />
+
+                  {/* Content */}
+                  <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-between items-start max-w-[85%] sm:max-w-lg">
+                    <div className="space-y-1.5">
+                      {(banner.badgeText || (banner.seatsLeft !== undefined && banner.seatsLeft > 0)) ? (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {banner.badgeText && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/25 border border-emerald-300/40 text-[#b8dc26] text-[10px] sm:text-[11px] font-black uppercase tracking-wider backdrop-blur-xs">
+                              <Calendar size={11} />
+                              <span>{banner.badgeText}</span>
+                            </span>
+                          )}
+                          {banner.seatsLeft !== undefined && banner.seatsLeft > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/90 text-[#142607] text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-xs">
+                              <Flame size={11} className="fill-current" />
+                              <span>Only {banner.seatsLeft} Seats Left</span>
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-amber-300/95 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] drop-shadow-sm block">
+                          {banner.sub}
+                        </span>
+                      )}
+                      <h3 className="text-white font-display font-bold text-xl sm:text-3xl leading-[1.15] drop-shadow-md tracking-tight">
+                        {banner.title}
+                      </h3>
+                      {banner.isDynamic && banner.sub && (
+                        <p className="text-white/85 text-xs sm:text-sm leading-snug line-clamp-2">
+                          {banner.sub}
+                        </p>
+                      )}
+                    </div>
+
+                    {isExternal ? (
+                      <a
+                        href={banner.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={handleBannerCta}
+                        className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95 ${
+                          banner.isDynamic
+                            ? "bg-[#b8dc26] hover:bg-[#c8eb34] text-[#113822] font-black"
+                            : "text-white bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/35 font-semibold"
+                        }`}
+                      >
+                        {banner.cta} <ChevronRight className="w-3.5 h-3.5" />
+                      </a>
+                    ) : (
+                      <Link
+                        href={banner.href}
+                        onClick={handleBannerCta}
+                        className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs shadow-sm transition-all hover:scale-105 active:scale-95 ${
+                          banner.isDynamic
+                            ? "bg-[#b8dc26] hover:bg-[#c8eb34] text-[#113822] font-black"
+                            : "text-white bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/35 font-semibold"
+                        }`}
+                      >
+                        {banner.cta} <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
                   </div>
-
-                  <Link
-                    href={banner.href}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/35 shadow-sm transition-all hover:scale-105 active:scale-95"
-                  >
-                    {banner.cta} <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Dots Indicator */}
           <div className="flex justify-center items-center gap-1.5 mt-2.5">
-            {BANNERS.map((_, i) => (
+            {carouselBanners.map((b, i) => (
               <button
-                key={i}
+                key={b.id}
                 onClick={() => setActiveBanner(i)}
                 aria-label={`Go to banner ${i + 1}`}
                 className={`rounded-full transition-all duration-300 ${

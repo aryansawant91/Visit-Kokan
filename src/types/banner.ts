@@ -7,6 +7,10 @@ export interface Banner {
   imageUrl: string;
   order: number;
   active: boolean;
+  batchKey?: string;
+  badgeText?: string;
+  seatsLeft?: number;
+  expiresAt?: string;
   createdAt: string;
   updatedAt: string;
 }

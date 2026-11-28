@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { Order, OrderStatus } from "@/types/order";
+import { Banner } from "@/types/banner";
+import { FALLBACK_DESTINATION_IMAGE } from "@/lib/imageUtils";
 import {
   Package,
   Truck,
@@ -49,6 +51,7 @@ import {
   Repeat,
   FileDown,
   Send,
+  Megaphone,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -159,6 +162,22 @@ export default function AdminOrdersPage() {
   const [newBatchWhatsapp, setNewBatchWhatsapp] = useState("");
   const [assigningBatch, setAssigningBatch] = useState(false);
 
+  // Front Page Banner Promotion State (Create Batch Modal & Batch Cards)
+  const [promoteToBanner, setPromoteToBanner] = useState(false);
+  const [bannerTitle, setBannerTitle] = useState("");
+  const [bannerSubtitle, setBannerSubtitle] = useState("");
+  const [bannerCtaType, setBannerCtaType] = useState<"trek" | "whatsapp" | "custom">("trek");
+  const [bannerCtaText, setBannerCtaText] = useState("Book Seat Now");
+  const [bannerCtaLink, setBannerCtaLink] = useState("/treks");
+  const [bannerImageUrl, setBannerImageUrl] = useState("");
+  const [bannerSeatsLeft, setBannerSeatsLeft] = useState("");
+  const [trekCatalog, setTrekCatalog] = useState<Array<{ name: string; slug: string; images?: string[] }>>([]);
+  const [batchBanners, setBatchBanners] = useState<Banner[]>([]);
+  const [bannerToggleLoadingKey, setBannerToggleLoadingKey] = useState<string | null>(null);
+  const [renamingBatchKey, setRenamingBatchKey] = useState<string | null>(null);
+  const [renameBatchValue, setRenameBatchValue] = useState("");
+  const [renamingBatchLoading, setRenamingBatchLoading] = useState(false);
+
   // Modal internal booking search & filters
   const [modalSearch, setModalSearch] = useState("");
   const [modalBookingFilter, setModalBookingFilter] = useState<"all" | "unassigned">("all");
@@ -261,6 +280,124 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const fetchBannersAndTreks = async () => {
+    try {
+      const [bRes, tRes] = await Promise.all([
+        fetch("/api/banners?all=true"),
+        fetch("/api/treks"),
+      ]);
+      if (bRes.ok) {
+        const bData = await bRes.json();
+        setBatchBanners(Array.isArray(bData) ? bData : []);
+      }
+      if (tRes.ok) {
+        const tData = await tRes.json();
+        setTrekCatalog(Array.isArray(tData) ? tData : []);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    fetchBannersAndTreks();
+  }, []);
+
+  const findTrekInfo = (trekName: string) => {
+    const lower = (trekName || "").toLowerCase();
+    return (
+      trekCatalog.find((t) => t.name.toLowerCase() === lower) ||
+      trekCatalog.find((t) => lower && t.name.toLowerCase().includes(lower)) ||
+      null
+    );
+  };
+
+  const buildDefaultCtaLink = (
+    ctaType: "trek" | "whatsapp" | "custom",
+    trekName: string,
+    batchName: string,
+    customUrl?: string
+  ) => {
+    if (ctaType === "whatsapp") {
+      return `https://wa.me/918432587706?text=${encodeURIComponent(
+        `Hello Visit Kokan! I want to join the "${batchName}" (${trekName || "Trek Batch"}). Please share seat availability!`
+      )}`;
+    }
+    if (ctaType === "custom") {
+      return customUrl || "/treks";
+    }
+    const matched = findTrekInfo(trekName);
+    return matched?.slug ? `/treks/${matched.slug}` : "/treks";
+  };
+
+  const handleToggleBatchBanner = async (b: TripBatchGroup) => {
+    const existing = batchBanners.find((bn) => bn.batchKey === b.batchKey);
+    const isCurrentlyLive = Boolean(existing && existing.active);
+    setBannerToggleLoadingKey(b.batchKey);
+
+    try {
+      if (isCurrentlyLive && existing) {
+        const res = await fetch("/api/banners", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: existing.id, active: false }),
+        });
+        if (!res.ok) throw new Error("Failed to hide banner");
+        setBatchBanners((prev) =>
+          prev.map((bn) => (bn.id === existing.id ? { ...bn, active: false } : bn))
+        );
+        toast.success("Removed batch from Front Page Banner");
+      } else {
+        const matchedTrek = findTrekInfo(b.trekName);
+        const formattedDate =
+          b.trekDate && b.trekDate !== "Upcoming Date"
+            ? new Date(b.trekDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+            : "Upcoming";
+        const parsedTrekDate = b.trekDate && b.trekDate !== "Upcoming Date" ? new Date(b.trekDate) : null;
+        const futureExpiresAt =
+          parsedTrekDate &&
+            !Number.isNaN(parsedTrekDate.getTime()) &&
+            parsedTrekDate.getTime() >= Date.now() - 86_400_000
+            ? new Date(parsedTrekDate.getTime() + 86_400_000).toISOString()
+            : null;
+        const payload = {
+          batchKey: b.batchKey,
+          title: existing?.title || `${b.trekName} — ${b.batchName}`,
+          subtitle:
+            existing?.subtitle ||
+            `Join our verified Konkan batch departing ${formattedDate}. Limited group seats!`,
+          ctaText: existing?.ctaText || "Book Seat Now",
+          ctaLink:
+            existing?.ctaLink ||
+            (matchedTrek?.slug ? `/treks/${matchedTrek.slug}` : "/treks"),
+          imageUrl:
+            existing?.imageUrl ||
+            matchedTrek?.images?.[0] ||
+            FALLBACK_DESTINATION_IMAGE,
+          badgeText: `UPCOMING BATCH · ${formattedDate.toUpperCase()}`,
+          expiresAt: futureExpiresAt,
+          active: true,
+        };
+        const res = await fetch("/api/banners", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to publish banner");
+        const saved = await res.json();
+        setBatchBanners((prev) => {
+          const rest = prev.filter((bn) => bn.batchKey !== b.batchKey);
+          return [...rest, saved];
+        });
+        toast.success(`"${b.batchName}" is now LIVE on Front Page Banner!`);
+      }
+    } catch {
+      toast.error("Could not update Front Page Banner");
+    } finally {
+      setBannerToggleLoadingKey(null);
+    }
+  };
+
   const updateStatus = async (id: string, status: OrderStatus) => {
     setActionLoading(id);
     try {
@@ -358,12 +495,111 @@ export default function AdminOrdersPage() {
       setCustomBatches((prev) =>
         prev.filter((b) => b.batchKey !== batch.batchKey && b.batchName !== batch.batchName)
       );
+      if (batchBanners.some((bn) => bn.batchKey === batch.batchKey)) {
+        await fetch("/api/banners", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ batchKey: batch.batchKey }),
+        }).catch(() => { });
+        setBatchBanners((prev) => prev.filter((bn) => bn.batchKey !== batch.batchKey));
+      }
       if (manifestBatch?.batchKey === batch.batchKey) {
         setManifestBatch(null);
       }
       toast.success(`Batch "${batch.batchName}" dissolved and removed`);
     } catch {
       toast.error("Failed to delete batch");
+    }
+  };
+
+  // ── Rename a trip batch (orders, custom batch, and linked banner) ──────────
+  const handleRenameBatch = async (batch: TripBatchGroup) => {
+    const trimmedNewName = renameBatchValue.trim();
+    if (!trimmedNewName) {
+      toast.error("Batch name cannot be empty");
+      return;
+    }
+    if (trimmedNewName === batch.batchName) {
+      setRenamingBatchKey(null);
+      return;
+    }
+
+    const parts = batch.batchKey.split("___");
+    const newBatchKey =
+      parts.length >= 3
+        ? `${parts[0]}___${parts[1]}___${trimmedNewName}`
+        : `${batch.trekName}___${batch.trekDate}___${trimmedNewName}`;
+
+    setRenamingBatchLoading(true);
+    try {
+      if (batch.orders.length > 0) {
+        const orderIds = batch.orders.map((o) => o.id);
+        const res = await fetch("/api/admin/orders", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderIds,
+            batchName: trimmedNewName,
+          }),
+        });
+        if (!res.ok) throw new Error("Failed to rename batch orders");
+        setOrders((prev) =>
+          prev.map((o) => (orderIds.includes(o.id) ? { ...o, batchName: trimmedNewName } : o))
+        );
+      }
+
+      setCustomBatches((prev) =>
+        prev.map((cb) =>
+          cb.batchKey === batch.batchKey || cb.batchName === batch.batchName
+            ? { ...cb, batchName: trimmedNewName, batchKey: newBatchKey }
+            : cb
+        )
+      );
+
+      setClosedBatchKeys((prev) => {
+        if (!prev.includes(batch.batchKey)) return prev;
+        const updated = prev.map((k) => (k === batch.batchKey ? newBatchKey : k));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("vk_closed_batch_keys", JSON.stringify(updated));
+        }
+        return updated;
+      });
+
+      const linkedBanner = batchBanners.find((bn) => bn.batchKey === batch.batchKey);
+      if (linkedBanner) {
+        const updatedTitle = linkedBanner.title?.includes(batch.batchName)
+          ? linkedBanner.title.replace(batch.batchName, trimmedNewName)
+          : `${batch.trekName} — ${trimmedNewName}`;
+        const bannerRes = await fetch("/api/banners", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: linkedBanner.id,
+            batchKey: newBatchKey,
+            title: updatedTitle,
+          }),
+        });
+        if (bannerRes.ok) {
+          setBatchBanners((prev) =>
+            prev.map((bn) =>
+              bn.id === linkedBanner.id
+                ? { ...bn, batchKey: newBatchKey, title: updatedTitle }
+                : bn
+            )
+          );
+        }
+      }
+
+      if (manifestBatch?.batchKey === batch.batchKey) {
+        setManifestBatch({ ...manifestBatch, batchName: trimmedNewName, batchKey: newBatchKey });
+      }
+
+      setRenamingBatchKey(null);
+      toast.success(`Batch renamed to "${trimmedNewName}"`);
+    } catch {
+      toast.error("Failed to rename batch");
+    } finally {
+      setRenamingBatchLoading(false);
     }
   };
 
@@ -506,14 +742,14 @@ export default function AdminOrdersPage() {
         prev.map((o) =>
           o.id === financialsModalOrder.id
             ? {
-                ...o,
-                totalAmount: Number(finTotalAmount),
-                discount: Number(finDiscount),
-                advancePaid: Number(finAdvancePaid),
-                remainingCash: Number(finRemainingCash),
-                userPhone: finUserPhone.trim(),
-                cashCollected: Boolean(finCashCollected),
-              }
+              ...o,
+              totalAmount: Number(finTotalAmount),
+              discount: Number(finDiscount),
+              advancePaid: Number(finAdvancePaid),
+              remainingCash: Number(finRemainingCash),
+              userPhone: finUserPhone.trim(),
+              cashCollected: Boolean(finCashCollected),
+            }
             : o
         )
       );
@@ -526,14 +762,14 @@ export default function AdminOrdersPage() {
             orders: prev.orders.map((o) =>
               o.id === financialsModalOrder.id
                 ? {
-                    ...o,
-                    totalAmount: Number(finTotalAmount),
-                    discount: Number(finDiscount),
-                    advancePaid: Number(finAdvancePaid),
-                    remainingCash: Number(finRemainingCash),
-                    userPhone: finUserPhone.trim(),
-                    cashCollected: Boolean(finCashCollected),
-                  }
+                  ...o,
+                  totalAmount: Number(finTotalAmount),
+                  discount: Number(finDiscount),
+                  advancePaid: Number(finAdvancePaid),
+                  remainingCash: Number(finRemainingCash),
+                  userPhone: finUserPhone.trim(),
+                  cashCollected: Boolean(finCashCollected),
+                }
                 : o
             ),
           };
@@ -605,7 +841,7 @@ export default function AdminOrdersPage() {
 
     setBulkFinSaving(true);
     try {
-      const updatesList: Array<{ id: string; [key: string]: any }> = [];
+      const updatesList: Array<{ id: string;[key: string]: any }> = [];
 
       for (const orderId of bulkFinSelectedOrderIds) {
         const order = bulkFinBatch.orders.find((o) => o.id === orderId);
@@ -617,8 +853,8 @@ export default function AdminOrdersPage() {
           order.advancePaid !== undefined
             ? order.advancePaid
             : order.paymentType !== "offline"
-            ? currentTotal
-            : 0;
+              ? currentTotal
+              : 0;
 
         const newTotal = bulkApplyTotal ? Number(bulkTotalValue) : currentTotal;
         const newDiscount = bulkApplyDiscount ? Number(bulkDiscountValue) : currentDiscount;
@@ -636,11 +872,11 @@ export default function AdminOrdersPage() {
             order.remainingCash !== undefined
               ? order.remainingCash
               : order.paymentType === "offline"
-              ? currentTotal
-              : 0;
+                ? currentTotal
+                : 0;
         }
 
-        const updateObj: { id: string; [key: string]: any } = { id: orderId };
+        const updateObj: { id: string;[key: string]: any } = { id: orderId };
         if (bulkApplyTotal) updateObj.totalAmount = newTotal;
         if (bulkApplyDiscount) updateObj.discount = newDiscount;
         if (bulkApplyPaid) updateObj.advancePaid = newPaid;
@@ -1007,12 +1243,12 @@ export default function AdminOrdersPage() {
         prev.map((o) =>
           o.id === order.id
             ? {
-                ...o,
-                advancePaid: newAdvancePaid,
-                remainingCash: 0,
-                cashCollected: true,
-                status: "confirmed",
-              }
+              ...o,
+              advancePaid: newAdvancePaid,
+              remainingCash: 0,
+              cashCollected: true,
+              status: "confirmed",
+            }
             : o
         )
       );
@@ -1025,12 +1261,12 @@ export default function AdminOrdersPage() {
             orders: prev.orders.map((o) =>
               o.id === order.id
                 ? {
-                    ...o,
-                    advancePaid: newAdvancePaid,
-                    remainingCash: 0,
-                    cashCollected: true,
-                    status: "confirmed",
-                  }
+                  ...o,
+                  advancePaid: newAdvancePaid,
+                  remainingCash: 0,
+                  cashCollected: true,
+                  status: "confirmed",
+                }
                 : o
             ),
           };
@@ -1155,10 +1391,10 @@ export default function AdminOrdersPage() {
         prev.map((o) =>
           o.id === shiftBatchOrder.id
             ? {
-                ...o,
-                batchName: shiftTargetBatchName.trim(),
-                ...(shiftTargetDate.trim() && { trekDate: shiftTargetDate.trim() }),
-              }
+              ...o,
+              batchName: shiftTargetBatchName.trim(),
+              ...(shiftTargetDate.trim() && { trekDate: shiftTargetDate.trim() }),
+            }
             : o
         )
       );
@@ -1224,17 +1460,83 @@ export default function AdminOrdersPage() {
       return;
     }
 
+    const resetBatchModalFields = () => {
+      setBatchModalOpen(false);
+      setNewBatchName("");
+      setNewBatchDate("");
+      setNewBatchWhatsapp("");
+      setPromoteToBanner(false);
+      setBannerTitle("");
+      setBannerSubtitle("");
+      setBannerCtaType("trek");
+      setBannerCtaText("Book Seat Now");
+      setBannerCtaLink("");
+      setBannerImageUrl("");
+      setBannerSeatsLeft("");
+    };
+
+    const publishBatchBannerFromModal = async (
+      batchKey: string,
+      resolvedTrekName: string,
+      resolvedDate: string,
+      batchName: string
+    ) => {
+      if (!promoteToBanner) return;
+      const matchedTrek = findTrekInfo(resolvedTrekName);
+      const formattedDate =
+        resolvedDate && resolvedDate !== "Upcoming Date"
+          ? new Date(resolvedDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+          : "Upcoming";
+      const parsedDate = resolvedDate && resolvedDate !== "Upcoming Date" ? new Date(resolvedDate) : null;
+      const expiresAt =
+        parsedDate && !isNaN(parsedDate.getTime())
+          ? new Date(parsedDate.getTime() + 24 * 60 * 60 * 1000).toISOString()
+          : undefined;
+
+      const payload = {
+        batchKey,
+        title: bannerTitle.trim() || `${resolvedTrekName} — ${batchName}`,
+        subtitle:
+          bannerSubtitle.trim() ||
+          `Join our verified Konkan batch departing ${formattedDate}. Limited group seats!`,
+        ctaText: bannerCtaText.trim() || (bannerCtaType === "whatsapp" ? "Enquire on WhatsApp" : "Book Seat Now"),
+        ctaLink: bannerCtaLink.trim() || buildDefaultCtaLink(bannerCtaType, resolvedTrekName, batchName),
+        imageUrl: bannerImageUrl.trim() || matchedTrek?.images?.[0] || FALLBACK_DESTINATION_IMAGE,
+        badgeText: formattedDate !== "Upcoming" ? `Batch: ${formattedDate}` : "Upcoming Batch",
+        seatsLeft: bannerSeatsLeft ? Number(bannerSeatsLeft) : undefined,
+        expiresAt,
+        active: true,
+      };
+
+      try {
+        const bannerRes = await fetch("/api/banners", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (bannerRes.ok) {
+          const savedBanner = await bannerRes.json();
+          setBatchBanners((prev) => [savedBanner, ...prev.filter((bn) => bn.batchKey !== batchKey)]);
+          toast.success("Batch pushed live to Front Page Banner!");
+        }
+      } catch {
+        toast.error("Batch saved, but failed to publish Front Page Banner");
+      }
+    };
+
     // If 0 bookings are selected, create empty batch definition in customBatches
     if (targetOrderIds.length === 0) {
-      const key = `${newBatchTrek || "General"}___${trekDate || "Upcoming Date"}___${trimmedName}`;
+      const resolvedTrekName = newBatchTrek || "Expedition Batch";
+      const resolvedDate = trekDate || "Upcoming Date";
+      const key = `${newBatchTrek || "General"}___${resolvedDate}___${trimmedName}`;
       setCustomBatches((prev) => {
         if (prev.some((b) => b.batchName === trimmedName)) return prev;
         return [
           ...prev,
           {
             batchKey: key,
-            trekName: newBatchTrek || "Expedition Batch",
-            trekDate: trekDate || "Upcoming Date",
+            trekName: resolvedTrekName,
+            trekDate: resolvedDate,
             batchName: trimmedName,
             orders: [],
             totalTrekkers: 0,
@@ -1249,11 +1551,9 @@ export default function AdminOrdersPage() {
         ];
       });
 
+      await publishBatchBannerFromModal(key, resolvedTrekName, resolvedDate, trimmedName);
       toast.success(`Trip Batch "${trimmedName}" created! You can now select bookings to assign to it.`);
-      setBatchModalOpen(false);
-      setNewBatchName("");
-      setNewBatchDate("");
-      setNewBatchWhatsapp("");
+      resetBatchModalFields();
       return;
     }
 
@@ -1276,23 +1576,27 @@ export default function AdminOrdersPage() {
         prev.map((o) =>
           targetOrderIds.includes(o.id)
             ? {
-                ...o,
-                batchName: trimmedName,
-                ...(trekDate ? { trekDate } : {}),
-                ...(whatsappGroupLink ? { whatsappGroupLink } : {}),
-              }
+              ...o,
+              batchName: trimmedName,
+              ...(trekDate ? { trekDate } : {}),
+              ...(whatsappGroupLink ? { whatsappGroupLink } : {}),
+            }
             : o
         )
       );
+
+      const firstMatchedOrder = orders.find((o) => targetOrderIds.includes(o.id));
+      const resolvedTrekName =
+        newBatchTrek || firstMatchedOrder?.items?.[0]?.name || "General";
+      const resolvedDate = trekDate || firstMatchedOrder?.trekDate || "Upcoming Date";
+      const batchKey = `${resolvedTrekName}___${resolvedDate}___${trimmedName}`;
+      await publishBatchBannerFromModal(batchKey, resolvedTrekName, resolvedDate, trimmedName);
 
       toast.success(
         `Successfully assigned ${data.updatedCount || targetOrderIds.length} booking(s) to "${trimmedName}"`
       );
       setSelectedOrderIds([]);
-      setBatchModalOpen(false);
-      setNewBatchName("");
-      setNewBatchDate("");
-      setNewBatchWhatsapp("");
+      resetBatchModalFields();
     } catch {
       toast.error("Failed to assign batch");
     } finally {
@@ -1531,6 +1835,22 @@ export default function AdminOrdersPage() {
       prev.map((o) => (targetOrderIds.includes(o.id) ? { ...o, batchStatus: newStatus } : o))
     );
 
+    if (shouldClose && batchBanners.some((bn) => bn.batchKey === b.batchKey && bn.active)) {
+      fetch("/api/banners", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ batchKey: b.batchKey, active: false }),
+      })
+        .then((res) => {
+          if (res.ok) {
+            setBatchBanners((prev) =>
+              prev.map((bn) => (bn.batchKey === b.batchKey ? { ...bn, active: false } : bn))
+            );
+          }
+        })
+        .catch(() => { });
+    }
+
     if (targetOrderIds.length > 0) {
       try {
         await fetch("/api/admin/orders", {
@@ -1672,9 +1992,8 @@ export default function AdminOrdersPage() {
           <button
             type="button"
             onClick={() => setViewMode("orders")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              viewMode === "orders" ? "bg-[#2ecc71] text-black shadow-xs font-bold" : "text-white/60 hover:text-white"
-            }`}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "orders" ? "bg-[#2ecc71] text-black shadow-xs font-bold" : "text-white/60 hover:text-white"
+              }`}
           >
             <Package size={14} />
             <span>All Orders ({orders.length})</span>
@@ -1683,9 +2002,8 @@ export default function AdminOrdersPage() {
           <button
             type="button"
             onClick={() => setViewMode("batches")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              viewMode === "batches" ? "bg-[#2ecc71] text-black shadow-xs font-bold" : "text-white/60 hover:text-white"
-            }`}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "batches" ? "bg-[#2ecc71] text-black shadow-xs font-bold" : "text-white/60 hover:text-white"
+              }`}
           >
             <Users size={14} />
             <span>Trek Trip Batches ({tripBatches.length})</span>
@@ -1782,27 +2100,24 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={() => setTypeFilter("all")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    typeFilter === "all" ? "bg-white/10 text-white font-bold" : "text-white/40 hover:text-white"
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${typeFilter === "all" ? "bg-white/10 text-white font-bold" : "text-white/40 hover:text-white"
+                    }`}
                 >
                   All
                 </button>
                 <button
                   type="button"
                   onClick={() => setTypeFilter("trek")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    typeFilter === "trek" ? "bg-[#2ecc71]/20 text-[#2ecc71] font-bold" : "text-white/40 hover:text-white"
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${typeFilter === "trek" ? "bg-[#2ecc71]/20 text-[#2ecc71] font-bold" : "text-white/40 hover:text-white"
+                    }`}
                 >
                   🧗 Treks
                 </button>
                 <button
                   type="button"
                   onClick={() => setTypeFilter("product")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    typeFilter === "product" ? "bg-white/10 text-white font-bold" : "text-white/40 hover:text-white"
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${typeFilter === "product" ? "bg-white/10 text-white font-bold" : "text-white/40 hover:text-white"
+                    }`}
                 >
                   📦 Products
                 </button>
@@ -1844,9 +2159,8 @@ export default function AdminOrdersPage() {
               <button
                 type="button"
                 onClick={() => setStatusTab("all")}
-                className={`px-3 py-1 rounded-lg text-xs transition-colors ${
-                  statusTab === "all" ? "bg-white/15 text-white font-bold" : "text-white/40 hover:text-white"
-                }`}
+                className={`px-3 py-1 rounded-lg text-xs transition-colors ${statusTab === "all" ? "bg-white/15 text-white font-bold" : "text-white/40 hover:text-white"
+                  }`}
               >
                 All ({orders.length})
               </button>
@@ -1855,9 +2169,8 @@ export default function AdminOrdersPage() {
                   key={s.value}
                   type="button"
                   onClick={() => setStatusTab(s.value)}
-                  className={`px-3 py-1 rounded-lg text-xs transition-colors flex items-center gap-1.5 ${
-                    statusTab === s.value ? "bg-white/15 text-white font-bold" : "text-white/40 hover:text-white"
-                  }`}
+                  className={`px-3 py-1 rounded-lg text-xs transition-colors flex items-center gap-1.5 ${statusTab === s.value ? "bg-white/15 text-white font-bold" : "text-white/40 hover:text-white"
+                    }`}
                 >
                   <span>{s.label}</span>
                   <span className="text-[10px] opacity-60">({counts[s.value] ?? 0})</span>
@@ -1874,18 +2187,16 @@ export default function AdminOrdersPage() {
               <button
                 type="button"
                 onClick={() => setQuickDateFilter("all")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
-                  quickDateFilter === "all" ? "bg-white/15 text-white font-bold" : "text-white/40 hover:text-white"
-                }`}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${quickDateFilter === "all" ? "bg-white/15 text-white font-bold" : "text-white/40 hover:text-white"
+                  }`}
               >
                 All Dates
               </button>
               <button
                 type="button"
                 onClick={() => setQuickDateFilter("this_weekend")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors flex items-center gap-1 ${
-                  quickDateFilter === "this_weekend" ? "bg-emerald-500/20 text-[#2ecc71] font-bold border border-[#2ecc71]/30" : "text-white/40 hover:text-white"
-                }`}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors flex items-center gap-1 ${quickDateFilter === "this_weekend" ? "bg-emerald-500/20 text-[#2ecc71] font-bold border border-[#2ecc71]/30" : "text-white/40 hover:text-white"
+                  }`}
               >
                 <span>📅 This Weekend</span>
                 <span className="text-[10px] opacity-70">({weekendCounts.thisWk})</span>
@@ -1893,9 +2204,8 @@ export default function AdminOrdersPage() {
               <button
                 type="button"
                 onClick={() => setQuickDateFilter("next_weekend")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors flex items-center gap-1 ${
-                  quickDateFilter === "next_weekend" ? "bg-emerald-500/20 text-[#2ecc71] font-bold border border-[#2ecc71]/30" : "text-white/40 hover:text-white"
-                }`}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors flex items-center gap-1 ${quickDateFilter === "next_weekend" ? "bg-emerald-500/20 text-[#2ecc71] font-bold border border-[#2ecc71]/30" : "text-white/40 hover:text-white"
+                  }`}
               >
                 <span>📅 Next Weekend</span>
                 <span className="text-[10px] opacity-70">({weekendCounts.nextWk})</span>
@@ -1903,9 +2213,8 @@ export default function AdminOrdersPage() {
               <button
                 type="button"
                 onClick={() => setQuickDateFilter("this_month")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors flex items-center gap-1 ${
-                  quickDateFilter === "this_month" ? "bg-emerald-500/20 text-[#2ecc71] font-bold border border-[#2ecc71]/30" : "text-white/40 hover:text-white"
-                }`}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors flex items-center gap-1 ${quickDateFilter === "this_month" ? "bg-emerald-500/20 text-[#2ecc71] font-bold border border-[#2ecc71]/30" : "text-white/40 hover:text-white"
+                  }`}
               >
                 <span>🗓️ This Month</span>
                 <span className="text-[10px] opacity-70">({weekendCounts.thisMo})</span>
@@ -1913,9 +2222,8 @@ export default function AdminOrdersPage() {
               <button
                 type="button"
                 onClick={() => setQuickDateFilter("custom")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
-                  quickDateFilter === "custom" ? "bg-white/15 text-white font-bold" : "text-white/40 hover:text-white"
-                }`}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${quickDateFilter === "custom" ? "bg-white/15 text-white font-bold" : "text-white/40 hover:text-white"
+                  }`}
               >
                 Custom Range
               </button>
@@ -2025,9 +2333,8 @@ export default function AdminOrdersPage() {
                 return (
                   <div
                     key={order.id}
-                    className={`bg-[#141414] border rounded-2xl p-4 sm:p-5 transition-all ${
-                      isSelected ? "border-[#2ecc71]/60 bg-[#162119]" : "border-white/5 hover:border-white/15"
-                    }`}
+                    className={`bg-[#141414] border rounded-2xl p-4 sm:p-5 transition-all ${isSelected ? "border-[#2ecc71]/60 bg-[#162119]" : "border-white/5 hover:border-white/15"
+                      }`}
                   >
                     <div className="flex items-start gap-3">
                       {/* Selection checkbox */}
@@ -2057,9 +2364,8 @@ export default function AdminOrdersPage() {
 
                             {/* Status Tag */}
                             <span
-                              className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
-                                statusCfg?.color
-                              }`}
+                              className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${statusCfg?.color
+                                }`}
                             >
                               {statusIcon[order.status]} {statusCfg?.label}
                             </span>
@@ -2342,11 +2648,10 @@ export default function AdminOrdersPage() {
               <button
                 type="button"
                 onClick={() => setBatchTabFilter("live")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  batchTabFilter === "live"
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${batchTabFilter === "live"
                     ? "bg-[#2ecc71] text-black shadow-sm"
                     : "text-white/60 hover:text-white hover:bg-white/5"
-                }`}
+                  }`}
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span>Live Batches ({liveBatchesCount})</span>
@@ -2355,11 +2660,10 @@ export default function AdminOrdersPage() {
               <button
                 type="button"
                 onClick={() => setBatchTabFilter("closed")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  batchTabFilter === "closed"
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${batchTabFilter === "closed"
                     ? "bg-amber-400 text-black shadow-sm"
                     : "text-white/60 hover:text-white hover:bg-white/5"
-                }`}
+                  }`}
               >
                 <span>🏁 Closed Batches ({closedBatchesCount})</span>
               </button>
@@ -2367,11 +2671,10 @@ export default function AdminOrdersPage() {
               <button
                 type="button"
                 onClick={() => setBatchTabFilter("all")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  batchTabFilter === "all"
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${batchTabFilter === "all"
                     ? "bg-white/20 text-white shadow-sm"
                     : "text-white/60 hover:text-white hover:bg-white/5"
-                }`}
+                  }`}
               >
                 <span>All ({tripBatches.length})</span>
               </button>
@@ -2389,8 +2692,8 @@ export default function AdminOrdersPage() {
                 {batchTabFilter === "closed"
                   ? "No Closed / Completed Batches"
                   : batchTabFilter === "live"
-                  ? "No Active Live Trek Batches"
-                  : "No Trek Batches Active"}
+                    ? "No Active Live Trek Batches"
+                    : "No Trek Batches Active"}
               </p>
               <p className="text-white/20 text-xs">
                 {batchTabFilter === "closed"
@@ -2409,19 +2712,67 @@ export default function AdminOrdersPage() {
                 return (
                   <div
                     key={b.batchKey}
-                    className={`bg-[#141414] border rounded-2xl p-5 space-y-4 transition-all ${
-                      b.isClosed
+                    className={`bg-[#141414] border rounded-2xl p-5 space-y-4 transition-all ${b.isClosed
                         ? "border-amber-500/20 bg-gradient-to-b from-amber-500/[0.02] to-transparent opacity-95"
                         : "border-white/5 hover:border-white/15"
-                    }`}
+                      }`}
                   >
                     {/* Batch Header */}
                     <div className="flex items-start justify-between gap-2 border-b border-white/5 pb-3">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#2ecc71] bg-[#2ecc71]/10 px-2 py-0.5 rounded-md">
-                            {b.batchName}
-                          </span>
+                          {renamingBatchKey === b.batchKey ? (
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                value={renameBatchValue}
+                                onChange={(e) => setRenameBatchValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") handleRenameBatch(b);
+                                  if (e.key === "Escape") setRenamingBatchKey(null);
+                                }}
+                                autoFocus
+                                disabled={renamingBatchLoading}
+                                placeholder="New batch name..."
+                                className="bg-white/10 border border-[#2ecc71]/50 rounded-md px-2 py-0.5 text-xs font-mono font-bold text-white focus:outline-none w-48"
+                              />
+                              <button
+                                type="button"
+                                disabled={renamingBatchLoading}
+                                onClick={() => handleRenameBatch(b)}
+                                title="Save new batch name"
+                                className="p-1 rounded-md bg-[#2ecc71]/20 hover:bg-[#2ecc71]/30 text-[#2ecc71] border border-[#2ecc71]/30 cursor-pointer disabled:opacity-50"
+                              >
+                                {renamingBatchLoading ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={renamingBatchLoading}
+                                onClick={() => setRenamingBatchKey(null)}
+                                title="Cancel rename"
+                                className="p-1 rounded-md bg-white/5 hover:bg-white/15 text-white/60 border border-white/10 cursor-pointer"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#2ecc71] bg-[#2ecc71]/10 px-2 py-0.5 rounded-md">
+                                {b.batchName}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRenamingBatchKey(b.batchKey);
+                                  setRenameBatchValue(b.batchName);
+                                }}
+                                title="Rename this batch"
+                                className="p-1 rounded-md bg-white/5 hover:bg-white/15 text-white/50 hover:text-white transition-colors cursor-pointer"
+                              >
+                                <Pencil size={11} />
+                              </button>
+                            </div>
+                          )}
                           {b.isClosed ? (
                             <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md flex items-center gap-1">
                               <span>🏁 Completed / Closed</span>
@@ -2689,6 +3040,37 @@ export default function AdminOrdersPage() {
                         <span>WhatsApp</span>
                       </button>
 
+                      {(() => {
+                        const existingBanner = batchBanners.find((bn) => bn.batchKey === b.batchKey);
+                        const isBannerLive = Boolean(existingBanner && existingBanner.active);
+                        const isToggling = bannerToggleLoadingKey === b.batchKey;
+                        return (
+                          <button
+                            type="button"
+                            disabled={isToggling || b.isClosed}
+                            onClick={() => handleToggleBatchBanner(b)}
+                            title={
+                              b.isClosed
+                                ? "Reopen batch to promote on Home Banner"
+                                : isBannerLive
+                                  ? "Click to remove from Front Page Banner"
+                                  : "Push this batch to Front Page Banner"
+                            }
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${isBannerLive
+                                ? "bg-[#b8dc26]/15 hover:bg-[#b8dc26]/25 border-[#b8dc26]/40 text-[#b8dc26]"
+                                : "bg-white/5 hover:bg-white/10 border-white/15 text-white/75"
+                              }`}
+                          >
+                            {isToggling ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : (
+                              <Megaphone size={13} />
+                            )}
+                            <span>{isBannerLive ? "Home Banner: LIVE" : "Push to Home Banner"}</span>
+                          </button>
+                        );
+                      })()}
+
                       {b.isClosed ? (
                         <button
                           type="button"
@@ -2848,8 +3230,8 @@ export default function AdminOrdersPage() {
                   manifestPickupFilter === "all"
                     ? manifestBatch.orders
                     : manifestBatch.orders.filter(
-                        (o) => (o.pickupLocation || "Basepoint") === manifestPickupFilter
-                      );
+                      (o) => (o.pickupLocation || "Basepoint") === manifestPickupFilter
+                    );
 
                 return (
                   <div className="space-y-2.5 pb-3 border-b border-white/5">
@@ -2860,11 +3242,10 @@ export default function AdminOrdersPage() {
                           <span>Boarding Attendance:</span>
                         </span>
                         <span
-                          className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md ${
-                            pct === 100
+                          className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md ${pct === 100
                               ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                               : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                          }`}
+                            }`}
                         >
                           {boardedCount} / {totalTrekkers} Boarded ({pct}%)
                         </span>
@@ -2890,11 +3271,10 @@ export default function AdminOrdersPage() {
                       <button
                         type="button"
                         onClick={() => setManifestPickupFilter("all")}
-                        className={`px-2.5 py-0.5 rounded-lg text-[11px] font-semibold transition-colors ${
-                          manifestPickupFilter === "all"
+                        className={`px-2.5 py-0.5 rounded-lg text-[11px] font-semibold transition-colors ${manifestPickupFilter === "all"
                             ? "bg-white/20 text-white font-bold"
                             : "text-white/40 hover:text-white"
-                        }`}
+                          }`}
                       >
                         All Stops ({manifestBatch.totalTrekkers})
                       </button>
@@ -2903,11 +3283,10 @@ export default function AdminOrdersPage() {
                           key={loc}
                           type="button"
                           onClick={() => setManifestPickupFilter(loc)}
-                          className={`px-2.5 py-0.5 rounded-lg text-[11px] transition-colors flex items-center gap-1 ${
-                            manifestPickupFilter === loc
+                          className={`px-2.5 py-0.5 rounded-lg text-[11px] transition-colors flex items-center gap-1 ${manifestPickupFilter === loc
                               ? "bg-[#2ecc71]/20 text-[#2ecc71] font-bold border border-[#2ecc71]/40"
                               : "text-white/40 hover:text-white"
-                          }`}
+                            }`}
                         >
                           <span>{loc}</span>
                           <span className="text-[10px] opacity-70">({cnt})</span>
@@ -2989,11 +3368,10 @@ export default function AdminOrdersPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleToggleBoarding(order.id, order.boarded)}
-                                  className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer border ${
-                                    order.boarded
+                                  className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer border ${order.boarded
                                       ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
                                       : "bg-white/5 text-white/40 hover:text-white border-white/10"
-                                  }`}
+                                    }`}
                                   title="Click to toggle boarding check-in"
                                 >
                                   {order.boarded ? <CheckCheck size={11} /> : <Square size={11} />}
@@ -3228,6 +3606,160 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
+              {/* ── Front Page Banner Promotion ── */}
+              <div className="rounded-2xl border border-[#b8dc26]/20 bg-[#b8dc26]/[0.04] p-3.5 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={promoteToBanner}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setPromoteToBanner(checked);
+                        if (checked) {
+                          const matched = findTrekInfo(newBatchTrek);
+                          if (!bannerTitle && (newBatchTrek || newBatchName)) {
+                            setBannerTitle(
+                              newBatchTrek && newBatchName
+                                ? `${newBatchTrek} — ${newBatchName}`
+                                : newBatchTrek || newBatchName
+                            );
+                          }
+                          if (!bannerImageUrl && matched?.images?.[0]) {
+                            setBannerImageUrl(matched.images[0]);
+                          }
+                          if (!bannerCtaLink) {
+                            setBannerCtaLink(
+                              buildDefaultCtaLink(bannerCtaType, newBatchTrek, newBatchName || "Upcoming Batch")
+                            );
+                          }
+                        }
+                      }}
+                      className="w-4 h-4 accent-[#b8dc26] rounded cursor-pointer"
+                    />
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-[#b8dc26]">
+                      <Megaphone size={14} />
+                      Show this Batch on Front Page Banner &amp; CTA
+                    </span>
+                  </label>
+
+                  {promoteToBanner && newBatchTrek && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const matched = findTrekInfo(newBatchTrek);
+                        const formattedDate = newBatchDate
+                          ? new Date(newBatchDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+                          : "Upcoming";
+                        setBannerTitle(newBatchName ? `${newBatchTrek} — ${newBatchName}` : newBatchTrek);
+                        setBannerSubtitle(
+                          `Join our verified Konkan batch departing ${formattedDate}. Limited group seats!`
+                        );
+                        if (matched?.images?.[0]) setBannerImageUrl(matched.images[0]);
+                        setBannerCtaLink(
+                          buildDefaultCtaLink(bannerCtaType, newBatchTrek, newBatchName || "Upcoming Batch")
+                        );
+                      }}
+                      className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-[#b8dc26]/15 hover:bg-[#b8dc26]/25 text-[#b8dc26] border border-[#b8dc26]/30 transition-colors cursor-pointer"
+                    >
+                      Auto-fill from Trek
+                    </button>
+                  )}
+                </div>
+
+                {promoteToBanner && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
+                    <div className="sm:col-span-2">
+                      <label className="text-white/70 block mb-1 font-semibold">Banner Headline</label>
+                      <input
+                        value={bannerTitle}
+                        onChange={(e) => setBannerTitle(e.target.value)}
+                        placeholder="e.g. Kalsubai Night Trek — Swargate Bus Batch"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:border-[#b8dc26]/40"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="text-white/70 block mb-1 font-semibold">Banner Subtitle</label>
+                      <input
+                        value={bannerSubtitle}
+                        onChange={(e) => setBannerSubtitle(e.target.value)}
+                        placeholder="e.g. Join our verified Konkan batch departing 14 Dec. Limited group seats!"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:border-[#b8dc26]/40"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-white/70 block mb-1 font-semibold">CTA Destination Type</label>
+                      <select
+                        value={bannerCtaType}
+                        onChange={(e) => {
+                          const nextType = e.target.value as "trek" | "whatsapp" | "custom";
+                          setBannerCtaType(nextType);
+                          if (nextType !== "custom") {
+                            setBannerCtaLink(
+                              buildDefaultCtaLink(nextType, newBatchTrek, newBatchName || "Upcoming Batch")
+                            );
+                          }
+                          if (nextType === "whatsapp" && bannerCtaText === "Book Seat Now") {
+                            setBannerCtaText("Enquire on WhatsApp");
+                          } else if (nextType === "trek" && bannerCtaText === "Enquire on WhatsApp") {
+                            setBannerCtaText("Book Seat Now");
+                          }
+                        }}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#b8dc26]/40 cursor-pointer"
+                      >
+                        <option value="trek" className="bg-[#141414]">Trek Booking Page (/treks/...)</option>
+                        <option value="whatsapp" className="bg-[#141414]">Direct WhatsApp Enquiry</option>
+                        <option value="custom" className="bg-[#141414]">Custom URL</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-white/70 block mb-1 font-semibold">CTA Button Text</label>
+                      <input
+                        value={bannerCtaText}
+                        onChange={(e) => setBannerCtaText(e.target.value)}
+                        placeholder="Book Seat Now"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:border-[#b8dc26]/40"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-white/70 block mb-1 font-semibold">CTA Target Link</label>
+                      <input
+                        value={bannerCtaLink}
+                        onChange={(e) => setBannerCtaLink(e.target.value)}
+                        placeholder="/treks/kalsubai or https://..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:border-[#b8dc26]/40"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-white/70 block mb-1 font-semibold">Seats Left Urgency (Optional)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={bannerSeatsLeft}
+                        onChange={(e) => setBannerSeatsLeft(e.target.value)}
+                        placeholder="e.g. 6"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:border-[#b8dc26]/40"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="text-white/70 block mb-1 font-semibold">Banner Cover Image URL (Optional)</label>
+                      <input
+                        value={bannerImageUrl}
+                        onChange={(e) => setBannerImageUrl(e.target.value)}
+                        placeholder="Auto-filled from trek or paste custom image URL"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:border-[#b8dc26]/40"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* ── Interactive Booking Picker ── */}
               <div className="space-y-2 pt-3 border-t border-white/10">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -3264,18 +3796,16 @@ export default function AdminOrdersPage() {
                     <button
                       type="button"
                       onClick={() => setModalBookingFilter("all")}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
-                        modalBookingFilter === "all" ? "bg-white/15 text-white font-bold" : "text-white/40 hover:text-white"
-                      }`}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${modalBookingFilter === "all" ? "bg-white/15 text-white font-bold" : "text-white/40 hover:text-white"
+                        }`}
                     >
                       All ({orders.filter((o) => o.orderType === "trek").length})
                     </button>
                     <button
                       type="button"
                       onClick={() => setModalBookingFilter("unassigned")}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
-                        modalBookingFilter === "unassigned" ? "bg-[#2ecc71]/20 text-[#2ecc71] font-bold" : "text-white/40 hover:text-white"
-                      }`}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${modalBookingFilter === "unassigned" ? "bg-[#2ecc71]/20 text-[#2ecc71] font-bold" : "text-white/40 hover:text-white"
+                        }`}
                     >
                       Unassigned ({orders.filter((o) => o.orderType === "trek" && (!o.batchName || o.batchName === "Standard Batch")).length})
                     </button>
@@ -3321,15 +3851,14 @@ export default function AdminOrdersPage() {
                         <div
                           key={o.id}
                           onClick={() => toggleSelectOrder(o.id)}
-                          className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all ${
-                            isChecked ? "bg-[#2ecc71]/15 border border-[#2ecc71]/40" : "hover:bg-white/5 border border-transparent"
-                          }`}
+                          className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all ${isChecked ? "bg-[#2ecc71]/15 border border-[#2ecc71]/40" : "hover:bg-white/5 border border-transparent"
+                            }`}
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <input
                               type="checkbox"
                               checked={isChecked}
-                              onChange={() => {}} // Handled by parent container click
+                              onChange={() => { }} // Handled by parent container click
                               className="rounded border-white/30 bg-white/10 text-[#2ecc71] focus:ring-0 cursor-pointer pointer-events-none"
                             />
                             <div className="min-w-0">
@@ -3880,24 +4409,23 @@ export default function AdminOrdersPage() {
                           o.advancePaid !== undefined
                             ? o.advancePaid
                             : o.paymentType !== "offline"
-                            ? o.totalAmount
-                            : 0;
+                              ? o.totalAmount
+                              : 0;
                         const due =
                           o.remainingCash !== undefined
                             ? o.remainingCash
                             : o.paymentType === "offline"
-                            ? o.totalAmount
-                            : 0;
+                              ? o.totalAmount
+                              : 0;
 
                         return (
                           <div
                             key={o.id}
                             onClick={() => toggleSelectBulkOrder(o.id)}
-                            className={`pt-2 pb-2 px-2.5 rounded-xl transition-all cursor-pointer flex items-start gap-2.5 ${
-                              isSelected
+                            className={`pt-2 pb-2 px-2.5 rounded-xl transition-all cursor-pointer flex items-start gap-2.5 ${isSelected
                                 ? "bg-[#2ecc71]/10 border border-[#2ecc71]/30 text-white"
                                 : "hover:bg-white/[0.03] text-white/70 border border-transparent"
-                            }`}
+                              }`}
                           >
                             <div className="mt-0.5">
                               {isSelected ? (
@@ -4202,11 +4730,10 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={() => handleTemplateChange("reminder")}
-                  className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
-                    whatsappTemplate === "reminder"
+                  className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${whatsappTemplate === "reminder"
                       ? "bg-amber-500/15 border-amber-500/40 text-amber-400 font-bold"
                       : "bg-white/5 border-white/10 text-white/70 hover:text-white"
-                  }`}
+                    }`}
                 >
                   <span className="block text-[11px]">💰 Payment Due Reminder</span>
                 </button>
@@ -4214,11 +4741,10 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={() => handleTemplateChange("confirmation")}
-                  className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
-                    whatsappTemplate === "confirmation"
+                  className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${whatsappTemplate === "confirmation"
                       ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 font-bold"
                       : "bg-white/5 border-white/10 text-white/70 hover:text-white"
-                  }`}
+                    }`}
                 >
                   <span className="block text-[11px]">🎫 Booking Confirmation</span>
                 </button>
@@ -4226,11 +4752,10 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={() => handleTemplateChange("group_invite")}
-                  className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
-                    whatsappTemplate === "group_invite"
+                  className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${whatsappTemplate === "group_invite"
                       ? "bg-blue-500/15 border-blue-500/40 text-blue-400 font-bold"
                       : "bg-white/5 border-white/10 text-white/70 hover:text-white"
-                  }`}
+                    }`}
                 >
                   <span className="block text-[11px]">👥 Group Invite Link</span>
                 </button>
@@ -4238,11 +4763,10 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={() => handleTemplateChange("pickup")}
-                  className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
-                    whatsappTemplate === "pickup"
+                  className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${whatsappTemplate === "pickup"
                       ? "bg-purple-500/15 border-purple-500/40 text-purple-400 font-bold"
                       : "bg-white/5 border-white/10 text-white/70 hover:text-white"
-                  }`}
+                    }`}
                 >
                   <span className="block text-[11px]">🚌 Pickup &amp; Timing Alert</span>
                 </button>

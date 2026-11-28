@@ -4,7 +4,8 @@ export type GAKeyEventName =
   | "whatsapp_enquiry_click"
   | "map_route_calculated"
   | "trip_planner_generated"
-  | "ferry_schedule_view";
+  | "ferry_schedule_view"
+  | "banner_cta_click";
 
 export function trackGAEvent(
   eventName: GAKeyEventName,
