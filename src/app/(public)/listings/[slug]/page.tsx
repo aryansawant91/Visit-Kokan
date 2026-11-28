@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: { params: any }): Promise<Met
   const listing = await getListing(slug);
   if (!listing) return { title: "Listing Not Found" };
   return {
-    title: `${listing.name} — Visit Kokan`,
+    title: listing.name,
     description: listing.description,
     openGraph: { images: listing.images?.[0] ? [listing.images[0]] : [] },
   };

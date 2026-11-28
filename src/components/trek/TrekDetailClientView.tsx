@@ -19,6 +19,8 @@ import TrekHeroCarousel from "@/components/trek/TrekHeroCarousel";
 import TrekStickyBar from "@/components/trek/TrekStickyBar";
 import TrekEnquiryWidget from "@/components/trek/TrekEnquiryWidget";
 import DurgTrekGuide from "@/components/trek/DurgTrekGuide";
+import { trackGAEvent } from "@/lib/analytics";
+import { getTravelLogistics } from "@/lib/travelLogistics";
 
 // Code-split heavy interactive modal & below-the-fold reviews off the mobile initial paint bundle
 const TrekBookingWidget = dynamic(
@@ -237,6 +239,59 @@ export default function TrekDetailClientView({
 
             {/* ── DURG APP STYLE GUIDE (Multiple Base Villages, History, How to Reach, Attractions) ── */}
             <DurgTrekGuide trek={trek} />
+
+            {/* Mumbai & Pune Weekend Reach Card (GEO + AI Structured Logistics) */}
+            {(() => {
+              const logistics = getTravelLogistics(trek.slug || "", trek.name, trek.region || "");
+              return (
+                <div className="bg-white rounded-3xl p-5 border border-[#cadbc7] shadow-sm space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-xs font-extrabold tracking-wider uppercase text-[#2D6A4F] flex items-center gap-1.5">
+                      <Navigation size={14} className="text-[#2D6A4F]" /> Mumbai &amp; Pune Weekend Reach
+                    </h3>
+                    <Link
+                      href="/map"
+                      className="text-[11px] font-bold text-[#2D6A4F] hover:underline flex items-center gap-0.5"
+                    >
+                      <span>Open Route Map</span>
+                      <ChevronRight size={13} />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                    <div className="p-3 bg-[#f8faf7] rounded-2xl border border-[#e2eae0]">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2D6A4F] block">
+                        From Mumbai
+                      </span>
+                      <span className="font-bold text-[#0f2416] mt-0.5 block">
+                        {logistics.fromMumbai}
+                      </span>
+                    </div>
+                    <div className="p-3 bg-[#f8faf7] rounded-2xl border border-[#e2eae0]">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2D6A4F] block">
+                        From Pune
+                      </span>
+                      <span className="font-bold text-[#0f2416] mt-0.5 block">
+                        {logistics.fromPune}
+                      </span>
+                    </div>
+                  </div>
+                  {logistics.ferryShortcut && (
+                    <div className="p-3 rounded-2xl bg-[#0f766e]/10 border border-[#0f766e]/25 flex items-center justify-between gap-3">
+                      <p className="text-[11px] text-[#142e1b] font-medium leading-snug">
+                        <span className="font-bold text-[#0f766e]">{logistics.ferryShortcut.title}: </span>
+                        {logistics.ferryShortcut.detail}
+                      </p>
+                      <Link
+                        href={logistics.ferryShortcut.href}
+                        className="px-3 py-1.5 rounded-xl bg-[#0f766e] text-white text-[11px] font-bold shrink-0 hover:bg-[#0d655e] transition-colors"
+                      >
+                        Ferry Info
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Day-by-Day Expedition Itinerary */}
             {trek.itinerary && trek.itinerary.length > 0 && (
@@ -611,6 +666,13 @@ export default function TrekDetailClientView({
               href={whatsappInquiryUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() =>
+                trackGAEvent("whatsapp_enquiry_click", {
+                  source: "trek",
+                  item_name: trek.name,
+                  region: trek.region,
+                })
+              }
               className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1f4e38] text-xs font-bold border border-emerald-200 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
             >
               <MessageCircle size={14} className="text-emerald-600" />

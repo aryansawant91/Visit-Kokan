@@ -21,6 +21,7 @@ import {
 import { Product } from "@/types/product";
 import ProductCouponWidget from "@/components/products/ProductCouponWidget";
 import ProductReviews from "@/components/products/ProductReviews";
+import { trackGAEvent } from "@/lib/analytics";
 
 interface ProductTabsProps {
   product: Product;
@@ -146,6 +147,13 @@ export default function ProductTabs({
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() =>
+                  trackGAEvent("whatsapp_enquiry_click", {
+                    source: "product_tab",
+                    item_name: product.name,
+                    region: product.region || "Konkan",
+                  })
+                }
                 className="w-full py-3.5 px-4 rounded-2xl font-bold text-xs sm:text-sm bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md shadow-[#25D366]/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 <MessageCircle size={16} className="fill-white text-transparent shrink-0" />

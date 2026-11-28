@@ -30,41 +30,132 @@ export async function generateStaticParams() {
 
 // In-memory cache for fast repeated lookups during server rendering
 const trekMemoryCache = new Map<string, { data: Trek | null; time: number }>();
+let allApprovedTreksCache: { data: Trek[]; time: number } | null = null;
 const CACHE_TTL_MS = 60_000 * 15; // 15 mins
 
-async function getTrek(slug: string): Promise<Trek | null> {
+const TREK_ALIAS_MAP: Record<string, string> = {
+  "raigad": "raigad-fort",
+  "raigad-trek": "raigad-fort",
+  "raigad-fort-trek": "raigad-fort",
+  "kalavantin": "kalavantin-durg-trek",
+  "kalavantin-durg": "kalavantin-durg-trek",
+  "kalavantin-durg-pinnacle": "kalavantin-durg-trek",
+  "rajmachi": "rajmachi-fort-trek",
+  "rajmachi-fort": "rajmachi-fort-trek",
+  "harishchandragad": "harishchandragad-trek",
+  "kokan-kada": "kokan-kada-ridge-walk",
+  "konkan-kada": "kokan-kada-ridge-walk",
+  "torna": "torna-fort",
+  "torna-trek": "torna-fort",
+  "torna-fort-trek": "torna-fort",
+  "prachitgad": "prachitgad-trek",
+  "prachitgad-fort": "prachitgad-trek",
+  "tamhini": "tamhini-ghat-waterfall-trek",
+  "tamhini-ghat": "tamhini-ghat-waterfall-trek",
+  "devkund": "devkund-waterfall-trek",
+  "devkund-waterfall": "devkund-waterfall-trek",
+  "sindhudurg-trek": "sindhudurg-coastal-trek",
+  "bankot-trek": "bankot-fort-coastal-trek",
+  "amboli-trek": "amboli-sunset-night-trek",
+  "vasota": "vasota-fort-trek",
+  "vasota-fort": "vasota-fort-trek",
+  "mahipatgad": "mahipatgad-fort-trek",
+  "sudhagad": "sudhagad-fort-trek",
+  "karnala": "karnala-fort-trek",
+  "sarasgad": "sarasgad-fort-trek",
+  "korigad": "korigad-fort-trek",
+  "visapur": "visapur-fort-trek",
+  "lohagad": "lohagad-fort-trek",
+  "ratangad": "ratangad-fort-trek",
+  "kalsubai": "kalsubai-peak-trek",
+};
+
+function serializeDoc<T>(id: string, data: FirebaseFirestore.DocumentData): T {
+  return JSON.parse(
+    JSON.stringify({ id, ...data }, (_k, v) => {
+      if (v && typeof v === "object" && typeof v.toDate === "function") {
+        return v.toDate().toISOString();
+      }
+      if (v && typeof v === "object" && typeof v._seconds === "number") {
+        return new Date(v._seconds * 1000).toISOString();
+      }
+      return v;
+    })
+  ) as T;
+}
+
+async function getTrek(rawSlug: string): Promise<Trek | null> {
+  const slug = decodeURIComponent(rawSlug || "").trim().toLowerCase();
+  if (!slug) return null;
+
   const cached = trekMemoryCache.get(slug);
   if (cached && Date.now() - cached.time < CACHE_TTL_MS) {
     return cached.data;
   }
 
   try {
-    // Direct Firestore query first for fast SSR
+    // Direct Firestore query with smart slug variant & alias resolution
     if (adminDb) {
-      const snap = await adminDb
-        .collection("treks")
-        .where("slug", "==", slug)
-        .where("approved", "==", true)
-        .limit(1)
-        .get();
+      const candidateSlugs = Array.from(
+        new Set([
+          slug,
+          ...(TREK_ALIAS_MAP[slug] ? [TREK_ALIAS_MAP[slug]] : []),
+          slug.replace(/-expedition$/, ""),
+          slug.replace(/-trek$/, ""),
+          `${slug}-trek`,
+          `${slug}-fort`,
+          `${slug}-fort-trek`,
+          slug.replace(/-fort-trek$/, "-fort"),
+          slug.replace(/-fort$/, "-fort-trek"),
+        ])
+      ).filter(Boolean);
 
-      if (!snap.empty) {
-        const doc = snap.docs[0];
-        const data = doc.data();
-        const result = JSON.parse(
-          JSON.stringify({ id: doc.id, ...data }, (_k, v) => {
-            if (v && typeof v === "object" && typeof v.toDate === "function") {
-              return v.toDate().toISOString();
-            }
-            if (v && typeof v === "object" && typeof v._seconds === "number") {
-              return new Date(v._seconds * 1000).toISOString();
-            }
-            return v;
-          })
-        ) as Trek;
+      for (const candidate of candidateSlugs) {
+        const snap = await adminDb
+          .collection("treks")
+          .where("slug", "==", candidate)
+          .where("approved", "==", true)
+          .limit(1)
+          .get();
 
-        trekMemoryCache.set(slug, { data: result, time: Date.now() });
-        return result;
+        if (!snap.empty) {
+          const doc = snap.docs[0];
+          const result = serializeDoc<Trek>(doc.id, doc.data());
+          trekMemoryCache.set(slug, { data: result, time: Date.now() });
+          return result;
+        }
+      }
+
+      // Fuzzy token fallback against approved treks to eliminate 404s on slight slug variations
+      if (!allApprovedTreksCache || Date.now() - allApprovedTreksCache.time >= CACHE_TTL_MS) {
+        const allSnap = await adminDb
+          .collection("treks")
+          .where("approved", "==", true)
+          .get();
+        allApprovedTreksCache = {
+          data: allSnap.docs.map((d) => serializeDoc<Trek>(d.id, d.data())),
+          time: Date.now(),
+        };
+      }
+
+      const stopWords = new Set(["trek", "fort", "expedition", "walk", "trail", "peak", "waterfall", "ghat", "the", "and", "of"]);
+      const queryTokens = slug
+        .split("-")
+        .filter((t) => t.length > 2 && !stopWords.has(t));
+
+      if (queryTokens.length > 0) {
+        const fuzzyMatch = allApprovedTreksCache.data.find((t) => {
+          const target = `${t.slug || ""} ${t.name || ""}`.toLowerCase();
+          return queryTokens.every((tok) => target.includes(tok));
+        }) || allApprovedTreksCache.data.find((t) => {
+          const target = (t.slug || "").toLowerCase();
+          return target.startsWith(queryTokens[0]) || queryTokens[0].length >= 5 && target.includes(queryTokens[0]);
+        });
+
+        if (fuzzyMatch) {
+          trekMemoryCache.set(slug, { data: fuzzyMatch, time: Date.now() });
+          return fuzzyMatch;
+        }
       }
     }
   } catch (err: any) {
@@ -94,9 +185,9 @@ export async function generateMetadata({ params }: { params: any }): Promise<Met
   const resolvedParams = await Promise.resolve(params);
   const slug = resolvedParams?.slug;
   const trek = await getTrek(slug);
-  if (!trek) return { title: "Trek Not Found — Visit Kokan" };
+  if (!trek) return { title: "Trek Not Found" };
   return {
-    title: `${trek.name} Trek Expedition — Visit Kokan`,
+    title: `${trek.name} Trek Expedition`,
     description: trek.description || `Explore ${trek.name} trek in ${trek.region}, Maharashtra.`,
     openGraph: {
       images: trek.images?.[0] ? [trek.images[0]] : [],
@@ -140,6 +231,9 @@ export default async function TrekPage({
         region={trek.region}
         slug={trek.slug}
         price={trek.price}
+        difficulty={trek.difficulty}
+        duration={trek.duration}
+        bestSeason={trek.bestSeason}
       />
 
       {/* Main dual-column client view with Durg trail guide and dedicated booking panel */}

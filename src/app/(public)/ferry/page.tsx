@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import FerryClientView from "./FerryClientView";
 
 export const metadata: Metadata = {
-  title: "Konkan Ferry & Ro-Ro Timetables 2026 — Vehicle Fares, Routes & Schedules | Visit Kokan",
+  title: "Konkan Ferry & Ro-Ro Timetables 2026 — Vehicle Fares, Routes & Schedules",
   description:
     "Official schedules, vehicle fares and real-time guidance for coastal ferries across Maharashtra: Mumbai-Mandwa Ro-Ro, Bagmandla-Bankot (Velas), Dighi-Agardanda, Dabhol-Dhopave, and Jaigad-Tavsal.",
   keywords: [

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: {
     template: "%s | Visit Kokan",
-    default: "Sign in | Visit Kokan",
+    default: "Sign in",
   },
   description: "Sign in or create an account to explore the Konkan coast.",
 };

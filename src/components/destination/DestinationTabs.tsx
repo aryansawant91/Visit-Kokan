@@ -38,6 +38,7 @@ import WeatherWidget from "./WeatherWidget";
 import { isSeaFort } from "@/lib/tides/konkanTides";
 import LanguageToggle from "@/components/ui/LanguageToggle";
 import { useMarathiReader } from "@/hooks/useMarathiReader";
+import { getTravelLogistics } from "@/lib/travelLogistics";
 
 // Code-split tab panels to keep destination initial payload featherweight
 const NearbyListings = dynamic(() => import("./NearbyListings"), {
@@ -644,6 +645,66 @@ export default function DestinationTabs({
             )}
           </div>
         )}
+
+        {/* Mumbai & Pune Distance + Ro-Pax Ferry Shortcut (GEO / Weekend Planner Block) */}
+        {(() => {
+          const logistics = getTravelLogistics(dest.slug || "", dest.name, dest.region || "");
+          return (
+            <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-[#d6e2d4] shadow-xs space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-xs font-bold tracking-wider uppercase text-[#2D6A4F] flex items-center gap-1.5">
+                  <Car size={13} className="text-[#2D6A4F]" /> Mumbai &amp; Pune Distance
+                </h3>
+                <Link
+                  href="/map"
+                  className="text-[11px] font-bold text-[#2D6A4F] hover:underline flex items-center gap-0.5"
+                >
+                  <span>Route Map</span>
+                  <ChevronRight size={12} />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="p-2.5 bg-[#f8faf7] rounded-xl border border-[#e2eae0]">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2D6A4F] block">
+                    From Mumbai
+                  </span>
+                  <span className="font-bold text-[#142e1b] mt-0.5 block">
+                    {logistics.fromMumbai}
+                  </span>
+                </div>
+                <div className="p-2.5 bg-[#f8faf7] rounded-xl border border-[#e2eae0]">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2D6A4F] block">
+                    From Pune
+                  </span>
+                  <span className="font-bold text-[#142e1b] mt-0.5 block">
+                    {logistics.fromPune}
+                  </span>
+                </div>
+              </div>
+
+              {logistics.ferryShortcut && (
+                <div className="p-2.5 rounded-xl bg-[#0f766e]/10 border border-[#0f766e]/25 flex items-start justify-between gap-2.5">
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-bold text-[#0f766e] flex items-center gap-1.5">
+                      <Ship size={13} />
+                      <span>{logistics.ferryShortcut.title}</span>
+                    </p>
+                    <p className="text-[11px] text-[#334637] leading-snug">
+                      {logistics.ferryShortcut.detail}
+                    </p>
+                  </div>
+                  <Link
+                    href={logistics.ferryShortcut.href}
+                    className="px-2.5 py-1.5 rounded-lg bg-[#0f766e] text-white text-[10px] font-bold shrink-0 hover:bg-[#0d655e] transition-colors"
+                  >
+                    Timings
+                  </Link>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Google Maps Location Card */}
         <a
