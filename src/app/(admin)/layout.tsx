@@ -27,6 +27,8 @@ import {
   CalendarDays,
   Send,
   ChevronDown,
+  FileText,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -78,6 +80,7 @@ const navSections: NavSection[] = [
           { href: "/admin/treks", label: "Treks Management", icon: Mountain },
           { href: "/admin/destinations", label: "Destinations", icon: MapPin },
           { href: "/admin/listings", label: "Homestays & Stays", icon: Store },
+          { href: "/admin/itinerary-builder", label: "Custom Itinerary PDF", icon: FileText },
         ],
       },
       {
@@ -103,6 +106,7 @@ const navSections: NavSection[] = [
           { href: "/admin/marketing/messages", label: "Send Trek Messages", icon: Send },
           { href: "/admin/marketing/content-calendar", label: "Content Calendar", icon: CalendarDays },
           { href: "/admin/marketing/leads", label: "Trek Enquiries", icon: Users },
+          { href: "/admin/ai-questions", label: "AI Chat Questions", icon: Sparkles },
           { href: "/admin/coupons", label: "Coupons & Deals", icon: Tag },
         ],
       },
@@ -219,10 +223,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex font-['DM_Sans',sans-serif]">
+    <div className="min-h-screen bg-[#0f0f0f] flex font-['DM_Sans',sans-serif] print:block print:min-h-0 print:bg-white">
       {/* ── Sidebar ──────────────────────────────────────────────── */}
       <aside
-        className={`relative flex flex-col bg-[#141414] border-r border-white/5 transition-all duration-300 ${
+        className={`relative flex flex-col bg-[#141414] border-r border-white/5 transition-all duration-300 print:hidden ${
           collapsed ? "w-16" : "w-64"
         }`}
       >
@@ -422,9 +426,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* ── Main App Shell ───────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden print:block print:overflow-visible">
         {/* Top Header Bar */}
-        <header className="h-14 bg-[#141414] border-b border-white/5 flex items-center justify-between px-6 shrink-0">
+        <header className="h-14 bg-[#141414] border-b border-white/5 flex items-center justify-between px-6 shrink-0 print:hidden">
           <p className="text-white/40 text-xs font-medium tracking-wide">
             {getHeaderTitle()}
           </p>
@@ -461,7 +465,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto print:overflow-visible print:h-auto">{children}</main>
       </div>
     </div>
   );
